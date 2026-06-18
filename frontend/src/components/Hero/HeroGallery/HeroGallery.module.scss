@@ -1,0 +1,60 @@
+@use '../../../styles/variables' as vars;
+
+.gallery {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.imageWrapper {
+  flex: 1;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arrowLeft,
+.arrowRight {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0, 0, 0, 0.4);
+  color: vars.$text-main;
+  font-size: 20px;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.info {
+  position: absolute;
+  bottom: 16px;
+  right: 280px;
+  color: vars.$text-main;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.description {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
