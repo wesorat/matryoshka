@@ -1,0 +1,31 @@
+// ==========================================================================
+// 1. БАЗОВАЯ ПАЛИТРА (Color Palette)
+// ==========================================================================
+$basic-light:       #fffaf3;
+$basic-semilight:   #fff2db;
+$basic-dark:        #ffe5bf; 
+$basic-accent:      #f62440; 
+
+//$basic-light:         #bbdce5;
+//$basic-semilight:     #eceedf; 
+//$basic-dark:          #d9c4b0; 
+//$basic-accent:        #cfab8d; 
+
+// Фоны (Backgrounds)
+$bg-main:          $basic-light;
+
+// Текст (Typography)
+$text-main:        #2C2C2C; 
+$text-muted:       #757575;
+$text-light:       $basic-semilight;
+
+// Компоненты (Кнопки, ссылки, границы)
+$link-color:       $basic-accent;
+$border-color:     scale-color($basic-dark, $lightness: -10%);
+
+
+// ==========================================================================
+// 3. ВСПОМОГАТЕЛЬНЫЕ ПЕРЕМЕННЫЕ (Шрифты, Отступы и т.д.)
+// ==========================================================================
+$font-main:        'Helvetica Neue', Arial, sans-serif;
+$base-spacing:     1rem; // 16px
