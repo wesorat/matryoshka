@@ -44,7 +44,7 @@ function HeroGallery({ slides = defaultSlides }) {
           <article className={`${styles.slide} ${styles.side}`}>
             <img
               src={prevSlide.image}
-              alt={prevSlide.title}
+              // alt={prevSlide.title}
               className={styles.slideImage}
             />
           </article>
@@ -55,6 +55,9 @@ function HeroGallery({ slides = defaultSlides }) {
               alt={activeSlide.title}
               className={styles.slideImage}
             />
+            {activeSlide.advantages && (
+              <div className={styles.badge}>{activeSlide.advantages}</div>
+            )}
             <div className={styles.caption}>
               <h2 className={styles.captionTitle}>{activeSlide.title}</h2>
               <p className={styles.captionDescription}>{activeSlide.description}</p>
@@ -64,7 +67,7 @@ function HeroGallery({ slides = defaultSlides }) {
           <article className={`${styles.slide} ${styles.side}`}>
             <img
               src={nextSlide.image}
-              alt={nextSlide.title}
+              // alt={nextSlide.title}
               className={styles.slideImage}
             />
           </article>
