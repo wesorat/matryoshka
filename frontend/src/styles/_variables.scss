@@ -4,6 +4,7 @@
 $basic-light:       #fffaf3;
 $basic-semilight:   #fff2db;
 $basic-dark:        #ffe5bf; 
+$basic-extra-dark:  mix($basic-dark, #000000, 5%);
 $basic-accent:      #f62440; 
 
 //$basic-light:         #bbdce5;
@@ -20,10 +21,10 @@ $text-muted:       #757575;
 $text-light:       $basic-semilight;
 
 // Компоненты (Кнопки, ссылки, границы)
-$link-color:       $basic-accent;
-$border-color:     scale-color($basic-dark, $lightness: -10%);
-
-
+$link-color:             $basic-accent;
+$border-color:           scale-color($basic-dark, $lightness: -10%);
+$button-color:           $basic-dark;
+$button-color-hover:     scale-color($basic-dark, $lightness: -10%);
 // ==========================================================================
 // 3. ВСПОМОГАТЕЛЬНЫЕ ПЕРЕМЕННЫЕ (Шрифты, Отступы и т.д.)
 // ==========================================================================

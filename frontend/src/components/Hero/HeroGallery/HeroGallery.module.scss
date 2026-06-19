@@ -56,7 +56,7 @@
 .active {
   grid-column: 2;
   transform: none;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+  // box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
 }
 
 .caption {
@@ -65,7 +65,7 @@
   right: 0;
   bottom: 0;
   padding: 16px 18px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.72) 100%);
+  background:rgba(#000000, 0.1);
   color: vars.$text-light;
   display: flex;
   flex-direction: column;
@@ -78,8 +78,9 @@
   top: 12px;
   right: 12px;
   padding: 6px 10px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
+  background: vars.$basic-light;
+  color: vars.$basic-extra-dark;
+  font-weight: vars.$basic-dark;
   border-radius: 8px;
   z-index: 5;
 }
@@ -114,9 +115,9 @@
   min-width: 56px;
   height: 34px;
   padding: 0 14px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(0, 0, 0, 0.42);
-  color: vars.$text-main;
+  border: 1px solid vars.$button-color;
+  background: vars.$button-color;
+  color: vars.$button-color-hover;
   font-size: 22px;
   line-height: 1;
   border-radius: 60px;
@@ -125,8 +126,8 @@
 }
 
 .navButton:hover {
-  background: rgba(0, 0, 0, 0.62);
-  transform: translateY(-1px);
+  background: vars.$button-color-hover;
+  color: vars.$button-color;
 }
 
 
