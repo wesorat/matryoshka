@@ -1,18 +1,15 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
-from api.v1.users import user_router
+
+from api.v1.routers import include_routers
 
 
 def create_app() -> FastAPI:
     app = FastAPI()
-    include_router(app)
+    include_routers(app)
 
     return app
-
-
-def include_router(app):
-    app.include_router(user_router)
 
 
 if __name__ == "__main__":

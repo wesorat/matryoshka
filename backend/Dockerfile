@@ -8,7 +8,8 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
 
-# COPY backend/ ./
+# COPY . .
+
 EXPOSE 8000
 
 CMD ["python", "-m", "main"]
