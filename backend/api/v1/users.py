@@ -6,9 +6,3 @@ user_router = APIRouter(
     tags=['Users'],
 )
 
-
-@user_router.get("/")
-async def get_users():
-    return {
-        "get_users": "ok",
-    }
