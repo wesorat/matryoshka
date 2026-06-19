@@ -2,19 +2,27 @@
 @use '../../styles/mixins' as mixins;
 
 .section {
-  width: min(100%, 1180px);
-  margin: 0 auto;
-  padding: 32px 20px 12px;
+  width: 100%;
+  margin: 0 0;
+  padding: 32px 0 12px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
+.container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .headingRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
+  margin-bottom: 12px;
 }
 
 .title {
@@ -39,6 +47,7 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  margin-left: auto;
 }
 
 .actionButton:hover {

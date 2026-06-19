@@ -115,15 +115,15 @@
 
 .navButton {
   pointer-events: auto;
-  min-width: 56px;
-  height: 34px;
-  padding: 0 14px;
+  min-width: 96px;
+  height: 40px;
+  padding: 0 24px;
   border: 1px solid vars.$button-color;
   background: vars.$button-color;
   color: vars.$button-color-hover;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
-  border-radius: 60px;
+  border-radius: 15px;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
 }
