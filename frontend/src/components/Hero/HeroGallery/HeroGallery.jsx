@@ -27,7 +27,11 @@ function HeroGallery({ slides = defaultSlides }) {
 
   if (!slides.length) return null;
 
+  const prevIndex = (activeIndex - 1 + slides.length) % slides.length;
+  const nextIndex = (activeIndex + 1) % slides.length;
   const activeSlide = slides[activeIndex];
+  const prevSlide = slides[prevIndex];
+  const nextSlide = slides[nextIndex];
 
   return (
     <section
@@ -35,34 +39,53 @@ function HeroGallery({ slides = defaultSlides }) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <button
-        className={styles.arrowLeft}
-        onClick={goToPrev}
-        aria-label="Предыдущий слайд"
-      >
-        ‹
-      </button>
+      <div className={styles.carouselWrapper}>
+        <div className={styles.carousel}>
+          <article className={`${styles.slide} ${styles.side}`}>
+            <img
+              src={prevSlide.image}
+              alt={prevSlide.title}
+              className={styles.slideImage}
+            />
+          </article>
 
-      <div className={styles.imageWrapper}>
-        <img
-          key={activeSlide.id}
-          src={activeSlide.image}
-          alt={activeSlide.title}
-          className={styles.image}
-        />
-      </div>
+          <article className={`${styles.slide} ${styles.active}`}>
+            <img
+              src={activeSlide.image}
+              alt={activeSlide.title}
+              className={styles.slideImage}
+            />
+            <div className={styles.caption}>
+              <h2 className={styles.captionTitle}>{activeSlide.title}</h2>
+              <p className={styles.captionDescription}>{activeSlide.description}</p>
+            </div>
+          </article>
 
-      <button
-        className={styles.arrowRight}
-        onClick={goToNext}
-        aria-label="Следующий слайд"
-      >
-        ›
-      </button>
+          <article className={`${styles.slide} ${styles.side}`}>
+            <img
+              src={nextSlide.image}
+              alt={nextSlide.title}
+              className={styles.slideImage}
+            />
+          </article>
+        </div>
 
-      <div className={styles.info}>
-        <h2 className={styles.title}>{activeSlide.title}</h2>
-        <p className={styles.description}>{activeSlide.description}</p>
+        <div className={styles.controls}>
+          <button
+            className={styles.navButton}
+            onClick={goToPrev}
+            aria-label="Предыдущий слайд"
+          >
+            ‹
+          </button>
+          <button
+            className={styles.navButton}
+            onClick={goToNext}
+            aria-label="Следующий слайд"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </section>
   );
