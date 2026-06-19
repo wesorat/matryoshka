@@ -1,0 +1,81 @@
+@use '../styles/variables' as vars;
+
+.appHeader {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 10vh;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: vars.$basic-light;
+  z-index: 20;
+  transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+
+  &__inner {
+    width: min(100%, 1180px);
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  &__logo {
+    height: calc(5vh + 20px);
+    max-height: 80px;
+    width: auto;
+    transition: height 0.3s ease;
+  }
+
+  &__nav {
+    position: absolute;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__link {
+    border: none;
+    background: transparent;
+    color: vars.$text-main;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 10px 14px;
+    border-radius: 999px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(0, 0, 0, 0.04);
+      outline: none;
+    }
+  }
+
+  &__link--active {
+    color: vars.$basic-accent;
+    background: rgba(246, 36, 64, 0.12);
+  }
+}
+
+.appHeader--shrunk {
+  height: 70px;
+  background: vars.$basic-dark;
+
+  .appHeader__logo {
+    height: 42px;
+  }
+}
+
+.appContent {
+  display: block;
+  width: min(1180px, 100%);
+  margin: 24px auto 0;
+  padding: 0 20px;
+  box-sizing: border-box;
+}

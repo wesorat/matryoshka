@@ -1,0 +1,63 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+
+.section {
+  width: 100%;
+  margin: 0 0;
+  padding: 32px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.title {
+  @include mixins.h2-heading;
+  margin: 0;
+  color: vars.$text-main;
+  font-size: 28px;
+}
+
+.actionButton {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 18px;
+  border: 2px solid vars.$button-color;
+  border-radius: 999px;
+  background: transparent;
+  color: vars.$text-main;
+  font-family: vars.$font-secondary;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  margin-left: auto;
+}
+
+.actionButton:hover {
+  background: vars.$button-color;
+  color: vars.$basic-light;
+}
+
+.divider {
+  width: 100%;
+  height: 2px;
+  background: vars.$border-color;
+  opacity: 0.28;
+}
