@@ -29,20 +29,22 @@
 .slide {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 20px;
   /* explicit height so images scale to exact size (assume 16:9 source) */
   height: var(--hero-slide-h, 320px);
-  background: rgba(0, 0, 0, 0.12);
+  background: transparent;
+  box-shadow: none;
   transition: opacity 0.35s ease;
 }
 
 .slideImage {
-  /* scale image to container height without cropping */
+  /* fill whole slide area while preserving ratio */
   height: 100%;
-  width: auto;
-  object-fit: contain;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
   display: block;
-  margin: 0 auto;
+  border-radius: inherit;
 }
 
 .side {
@@ -56,6 +58,7 @@
 .active {
   grid-column: 2;
   transform: none;
+  border-radius: 20px;
   // box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
 }
 
@@ -65,7 +68,7 @@
   right: 0;
   bottom: 0;
   padding: 16px 18px;
-  background:rgba(#000000, 0.1);
+  // background:rgba(#000000, 0.1);
   color: vars.$text-light;
   display: flex;
   flex-direction: column;

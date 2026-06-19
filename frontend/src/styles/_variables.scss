@@ -4,7 +4,7 @@
 $basic-light:       #fffaf3;
 $basic-semilight:   #fff2db;
 $basic-dark:        #ffe5bf; 
-$basic-extra-dark:  mix($basic-dark, #000000, 5%);
+$basic-extra-dark:  scale-color($basic-dark, $lightness: -10%);
 $basic-accent:      #f62440; 
 
 //$basic-light:         #bbdce5;

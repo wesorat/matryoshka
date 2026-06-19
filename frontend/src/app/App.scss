@@ -1,0 +1,46 @@
+@use '../styles/variables' as vars;
+
+.appHeader {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 10vh;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: vars.$basic-light;
+  // box-shadow: 0 1px 20px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+
+  &__inner {
+    width: min(100%, 1180px);
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__logo {
+    height: calc(5vh + 20px);
+    max-height: 80px;
+    width: auto;
+    transition: height 0.3s ease;
+  }
+}
+
+.appHeader--shrunk {
+  height: 70px;
+  background: vars.$basic-dark;
+  // box-shadow: 0 2px 24px rgba(0, 0, 0, 0.12);
+
+  .appHeader__logo {
+    height: 42px;
+  }
+}
+
+.appContent {
+  display: block;  margin-top: 24px;}
