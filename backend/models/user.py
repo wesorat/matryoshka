@@ -28,9 +28,3 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         default=get_datetime_utc_now,
         onupdate=get_datetime_utc_now,
     )
-
-    projects: Mapped[list["Projects"]] = relationship("Projects", back_populates="owner")
-    project_members: Mapped[list["MemberRoles"]] = relationship(
-        "MemberRoles",
-        back_populates="user"
-    )

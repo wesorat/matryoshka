@@ -1,8 +1,8 @@
 """Create tables
 
-Revision ID: a8c71e243525
-Revises:
-Create Date: 2026-06-20 12:14:15.327107
+Revision ID: e7db06248b5b
+Revises: 
+Create Date: 2026-06-20 13:56:14.043776
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a8c71e243525'
+revision: str = 'e7db06248b5b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,9 +24,11 @@ def upgrade() -> None:
     op.create_table('project_category',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('slug', sa.String(length=100), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+    op.create_index(op.f('ix_project_category_slug'), 'project_category', ['slug'], unique=True)
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
@@ -75,6 +77,6 @@ def downgrade() -> None:
     op.drop_table('projects')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
+    op.drop_index(op.f('ix_project_category_slug'), table_name='project_category')
     op.drop_table('project_category')
-    op.execute("DROP TYPE IF EXISTS project_status")
     # ### end Alembic commands ###

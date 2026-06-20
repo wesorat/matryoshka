@@ -8,7 +8,7 @@ from alembic import context
 from db.base import Base
 from models.project import Projects, MemberRoles
 from models.user import User
-from models.category import ProjectsCategory
+from models.category import Category
 
 
 # this is the Alembic Config object, which provides

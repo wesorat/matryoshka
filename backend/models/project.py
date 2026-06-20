@@ -33,13 +33,7 @@ class Projects(Base):
         onupdate=get_datetime_utc_now,
     )
 
-    owner: Mapped["User"] = relationship("User", back_populates="projects")
-    category: Mapped["ProjectsCategory"] = relationship("ProjectsCategory", back_populates="projects")
-    members: Mapped[list["MemberRoles"]] = relationship(
-        "MemberRoles",
-        back_populates="project",
-        cascade="all, delete-orphan"
-    )
+
 
 
 class MemberRoles(Base):
@@ -52,9 +46,5 @@ class MemberRoles(Base):
     __table_args__ = (
         PrimaryKeyConstraint('user_id', 'project_id'),
     )
-
-    user: Mapped["User"] = relationship("User", back_populates="project_members")
-    project: Mapped["Projects"] = relationship("Projects", back_populates="members")
-
 
 

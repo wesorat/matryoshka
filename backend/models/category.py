@@ -7,10 +7,9 @@ from db.base import Base
 
 
 
-class ProjectsCategory(Base):
+class Category(Base):
     __tablename__ = "project_category"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=100), nullable=False, unique=True)
-
-    projects: Mapped[list["Projects"]] = relationship("Projects", back_populates="category")
+    slug: Mapped[str] = mapped_column(String(length=100), nullable=False, unique=True, index=True)
