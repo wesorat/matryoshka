@@ -1,0 +1,54 @@
+@use '../styles/variables' as vars;
+@use '../styles/mixins' as mixins;
+
+.page {
+  width: min(1180px, 100%);
+  margin: 0 auto 40px;
+  padding: 20px 0;
+  box-sizing: border-box;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.title {
+  @include mixins.h1-heading;
+  margin: 0 0 10px;
+  color: vars.$text-main;
+}
+
+.subtitle {
+  margin: 0;
+  font-family: vars.$font-secondary;
+  font-size: 14px;
+  color: vars.$text-muted;
+}
+
+.textContent {
+  width: min(1180px, 100%);
+  margin: 0 auto 32px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.textContent p {
+  margin: 0;
+  font-family: vars.$font-secondary;
+  font-size: 15px;
+  line-height: 1.7;
+  color: vars.$text-main;
+}
+
+.empty {
+  width: min(1180px, 100%);
+  margin: 120px auto;
+  padding: 20px;
+  text-align: center;
+}
+

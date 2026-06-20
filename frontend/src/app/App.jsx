@@ -3,10 +3,13 @@ import Button from '../components/Buttons/Button.jsx'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import Page2 from '../pages/Page2.jsx'
+import ProjectPage from '../pages/ProjectPage.jsx'
+import { defaultProjects } from '../data/slides'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
+  const [selectedProjectId, setSelectedProjectId] = useState(null)
 
   useEffect(() => {
     let ticking = false
@@ -31,6 +34,40 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.page === 'project') {
+        setSelectedProjectId(event.state.projectId)
+        setPage('project')
+      } else if (event.state?.page === 'page2') {
+        setSelectedProjectId(null)
+        setPage('page2')
+      } else {
+        setSelectedProjectId(null)
+        setPage('home')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  const handleProjectClick = (projectId) => {
+    setSelectedProjectId(projectId)
+    setPage('project')
+    window.history.pushState({ page: 'project', projectId }, '')
+  }
+
+  const handleBackToHome = () => {
+    setSelectedProjectId(null)
+    setPage('home')
+    window.history.pushState({ page: 'home' }, '')
+  }
+
+  const selectedProject = defaultProjects.find(
+    (project) => project.id === selectedProjectId,
+  )
+
   return (
     <>
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
@@ -38,29 +75,39 @@ function App() {
           <img src="/logo.svg" alt="Матрешка" className="appHeader__logo" />
           <nav className="appHeader__nav">
             <Button
-            type="button"
-            variant="link"
-            active={page === 'home'}
-            className={page === 'home' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
-            onClick={() => setPage('home')}
-          >
-            Главная
-          </Button>
-          <Button
-            type="button"
-            variant="link"
-            active={page === 'page2'}
-            className={page === 'page2' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
-            onClick={() => setPage('page2')}
-          >
-            Страница 2
-          </Button>
+              type="button"
+              variant="link"
+              active={page === 'home'}
+              className={page === 'home' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
+              onClick={() => {
+                handleBackToHome()
+              }}
+            >
+              Главная
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              active={page === 'page2'}
+              className={page === 'page2' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
+              onClick={() => {
+                setSelectedProjectId(null)
+                setPage('page2')
+                window.history.pushState({ page: 'page2' }, '')
+              }}
+            >
+              Страница 2
+            </Button>
           </nav>
         </div>
       </header>
 
       <main className="appContent">
-        {page === 'home' ? <HomePage /> : <Page2 />}
+        {page === 'home' && <HomePage onProjectClick={handleProjectClick} />}
+        {page === 'page2' && <Page2 />}
+        {page === 'project' && (
+          <ProjectPage project={selectedProject} onBack={handleBackToHome} />
+        )}
       </main>
     </>
   )
