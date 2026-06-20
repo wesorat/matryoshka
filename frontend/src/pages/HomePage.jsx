@@ -2,16 +2,16 @@ import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx'
 import CategorySection from '../components/CategorySection/CategorySection.jsx'
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
 
-function HomePage() {
+function HomePage({ onProjectClick }) {
   return (
     <>
       <HeroGallery />
       <CategorySection />
-      <ProjectCards />
+      <ProjectCards onProjectClick={onProjectClick} />
       <CategorySection />
-      <ProjectCards />
+      <ProjectCards onProjectClick={onProjectClick} />
       <CategorySection />
-      <ProjectCards />
+      <ProjectCards onProjectClick={onProjectClick} />
     </>
   )
 }

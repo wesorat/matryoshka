@@ -1,5 +1,12 @@
 @use './variables' as vars;
 
+@mixin h1-heading {
+  font-family: vars.$font-secondary;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1.2;
+}
+
 @mixin h2-heading {
   font-family: vars.$font-secondary;
   font-weight: 700;

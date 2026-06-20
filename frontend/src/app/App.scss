@@ -6,13 +6,15 @@
   left: 0;
   right: 0;
   width: 100%;
-  height: 10vh;
+  height: 25vh;
   min-height: 70px;
+  max-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: vars.$basic-light;
   z-index: 20;
+  will-change: height, background-color;
   transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 
   &__inner {
@@ -25,11 +27,36 @@
   }
 
   &__logo {
-    height: calc(5vh + 20px);
-    max-height: 80px;
+    height: calc(10vh + 20px);
+    max-height: 1250px;
     width: auto;
-    transition: height 0.3s ease;
+    min-width: 250px;
+    transition: height 0.2s ease;
+
+    cursor: pointer;
+    user-select: none;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
   }
+
+  .appHeader__logoSvg {
+  .logo-letter {
+    transition: transform 0.2s ease;
+    transform: translateX(calc(var(--letter-index) * 0px));
+  }
+}
+
+.appHeader__logoSvg--wide {
+  .logo-letter {
+    // 9 букв, расходятся симметрично от центра
+    transform: translateX(calc((var(--letter-index) - 4.5) * 10px));
+  }
+}
 
   &__nav {
     position: absolute;
@@ -68,14 +95,14 @@
   background: vars.$basic-dark;
 
   .appHeader__logo {
-    height: 42px;
+    height: 54px;
   }
 }
 
 .appContent {
   display: block;
   width: min(1180px, 100%);
-  margin: 24px auto 0;
-  padding: 0 20px;
+  margin: 120px auto 0;
+  padding: 0 0px;
   box-sizing: border-box;
 }

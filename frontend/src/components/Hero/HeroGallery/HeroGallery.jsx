@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { slides as defaultSlides } from '../../../data/slides';
+import Button from '../../Buttons/Button';
 import styles from './HeroGallery.module.scss';
 
 const AUTOPLAY_INTERVAL = 5000;
@@ -74,20 +75,24 @@ function HeroGallery({ slides = defaultSlides }) {
         </div>
 
         <div className={styles.controls}>
-          <button
+          <Button
+            type="button"
+            variant="nav"
             className={styles.navButton}
             onClick={goToPrev}
             aria-label="Предыдущий слайд"
           >
             ‹
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="nav"
             className={styles.navButton}
             onClick={goToNext}
             aria-label="Следующий слайд"
           >
             ›
-          </button>
+          </Button>
         </div>
       </div>
     </section>
