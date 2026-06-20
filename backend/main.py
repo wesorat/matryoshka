@@ -1,7 +1,6 @@
 import uvicorn
 from fastapi import Depends, FastAPI
 
-
 from api.v1.routers import include_routers
 
 
