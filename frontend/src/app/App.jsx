@@ -66,7 +66,11 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
-  
+  const handleLogoClick = () => {
+    setSelectedProjectId(null)
+    setPage('home')
+    window.history.pushState({ page: 'home' }, '')
+  }
 
   const selectedProject = defaultProjects.find(
     (project) => project.id === selectedProjectId,
@@ -76,9 +80,9 @@ function App() {
     <>
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
-          <div className="appHeader__logo">
+          <div className="appHeader__logo" onClick={handleLogoClick}>
             <Logo
-              className={isShrunk ?   'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
+              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'} 
             />
           </div>
           <nav className="appHeader__nav">
@@ -90,9 +94,7 @@ function App() {
       <main className="appContent">
         {page === 'home' && <HomePage onProjectClick={handleProjectClick} />}
         {page === 'page2' && <Page2 />}
-        {page === 'project' && (
-          <ProjectPage project={selectedProject} onBack={handleBackToHome} />
-        )}
+        {page === 'project' && (<ProjectPage project={selectedProject} onBack={handleBackToHome} />)}
       </main>
 
       <Footer />
