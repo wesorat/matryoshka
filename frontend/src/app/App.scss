@@ -42,8 +42,18 @@
   }
 
   .appHeader__logoSvg {
-    --logo-letter-space: 0px;
+  .logo-letter {
+    transition: transform 0.4s ease;
+    transform: translateX(calc(var(--letter-index) * 0px));
   }
+}
+
+.appHeader__logoSvg--wide {
+  .logo-letter {
+    // 9 букв, расходятся симметрично от центра
+    transform: translateX(calc((var(--letter-index) - 4.5) * 10px));
+  }
+}
 
   &__nav {
     position: absolute;

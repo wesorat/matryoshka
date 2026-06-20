@@ -76,8 +76,7 @@ function App() {
         <div className="appHeader__inner">
           <div className="appHeader__logo">
             <Logo
-              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
-              letterSpacing={isShrunk ? 3 : 0}
+              className={isShrunk ?   'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
             />
           </div>
           <nav className="appHeader__nav">
