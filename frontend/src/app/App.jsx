@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import Button from '../components/Buttons/Button.jsx'
+import Logo from '../components/Logo'
+import Footer from '../components/Footer'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import Page2 from '../pages/Page2.jsx'
@@ -72,7 +74,12 @@ function App() {
     <>
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
-          <img src="/logo.svg" alt="Матрешка" className="appHeader__logo" />
+          <div className="appHeader__logo">
+            <Logo
+              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
+              letterSpacing={isShrunk ? 3 : 0}
+            />
+          </div>
           <nav className="appHeader__nav">
             <Button
               type="button"
@@ -109,6 +116,8 @@ function App() {
           <ProjectPage project={selectedProject} onBack={handleBackToHome} />
         )}
       </main>
+
+      <Footer />
     </>
   )
 }

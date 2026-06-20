@@ -17,6 +17,11 @@
   flex-wrap: wrap;
 }
 
+.headerRow > :last-child {
+  align-self: flex-start;
+  margin-top: calc((48px * 1.2 - 40px) / 2);
+}
+
 .title {
   @include mixins.h1-heading;
   margin: 0 0 10px;
