@@ -1,0 +1,73 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.variant_default {
+  background: transparent;
+  color: vars.$text-main;
+}
+
+.variant_link {
+  background: transparent;
+  border: none;
+  color: vars.$text-main;
+  padding: 10px 14px;
+  border-radius: 999px;
+}
+
+.variant_link:hover,
+.variant_link:focus-visible {
+  background: rgba(0, 0, 0, 0.04);
+  outline: none;
+}
+
+.variant_outline {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 18px;
+  border: 2px solid vars.$button-color;
+  border-radius: 999px;
+  background: transparent;
+  color: vars.$text-main;
+  font-family: vars.$font-secondary;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.variant_outline:hover {
+  background: vars.$button-color;
+  color: vars.$basic-light;
+}
+
+.variant_nav {
+  min-width: 96px;
+  height: 40px;
+  padding: 0 24px;
+  border: 1px solid vars.$button-color;
+  background: vars.$button-color;
+  color: vars.$button-color-hover;
+  font-size: 24px;
+  line-height: 1;
+  border-radius: 15px;
+}
+
+.variant_nav:hover {
+  background: vars.$button-color-hover;
+  color: vars.$button-color;
+}
+
+.active {
+  color: vars.$basic-accent;
+  background: rgba(246, 36, 64, 0.12);
+}
