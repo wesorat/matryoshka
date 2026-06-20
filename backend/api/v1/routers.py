@@ -22,4 +22,3 @@ def include_routers(app):
         prefix="/users",
         tags=["users"],
     )
-
