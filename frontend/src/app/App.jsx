@@ -66,6 +66,8 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
+  
+
   const selectedProject = defaultProjects.find(
     (project) => project.id === selectedProjectId,
   )
@@ -80,30 +82,7 @@ function App() {
             />
           </div>
           <nav className="appHeader__nav">
-            <Button
-              type="button"
-              variant="link"
-              active={page === 'home'}
-              className={page === 'home' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
-              onClick={() => {
-                handleBackToHome()
-              }}
-            >
-              Главная
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              active={page === 'page2'}
-              className={page === 'page2' ? 'appHeader__link appHeader__link--active' : 'appHeader__link'}
-              onClick={() => {
-                setSelectedProjectId(null)
-                setPage('page2')
-                window.history.pushState({ page: 'page2' }, '')
-              }}
-            >
-              Страница 2
-            </Button>
+            {/* кнопки */}
           </nav>
         </div>
       </header>
