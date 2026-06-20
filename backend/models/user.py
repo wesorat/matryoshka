@@ -1,11 +1,9 @@
 from datetime import datetime
-from enum import Enum
-from typing import TYPE_CHECKING, Generic
+
 
 from fastapi_users.db import SQLAlchemyBaseUserTable
-from fastapi_users.models import ID
-from sqlalchemy import Integer, String, DateTime, Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Integer, String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -20,11 +18,19 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     bio: Mapped[str] = mapped_column(String(length=500))
     skills: Mapped[str] = mapped_column(String(length=500))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=get_datetime_utc_now
+        DateTime(timezone=True),
+        nullable=False,
+        default=get_datetime_utc_now,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=get_datetime_utc_now,
         onupdate=get_datetime_utc_now,
+    )
+
+    projects: Mapped[list["Projects"]] = relationship("Projects", back_populates="owner")
+    project_members: Mapped[list["MemberRoles"]] = relationship(
+        "MemberRoles",
+        back_populates="user"
     )
