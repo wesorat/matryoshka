@@ -33,6 +33,9 @@
     min-width: 250px;
     transition: height 0.2s ease;
 
+    cursor: pointer;
+    user-select: none;
+
     svg {
       display: block;
       width: 100%;

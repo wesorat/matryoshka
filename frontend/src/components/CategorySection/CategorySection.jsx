@@ -5,14 +5,14 @@ function CategorySection({
   title = 'Natural & Exact Sciences',
   actionText = 'Еще',
   onAction,
-  showAction = true,  // ← добавляем параметр
+  showAction = true,
 }) {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
         <div className={styles.headingRow}>
           <h2 className={styles.title}>{title}</h2>
-          {showAction && (  // ← условный рендер кнопки
+          {showAction && ( 
             <Button
               type="button"
               variant="outline"

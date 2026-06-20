@@ -4,7 +4,6 @@ import Logo from '../components/Logo'
 import Footer from '../components/Footer'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
-import Page2 from '../pages/Page2.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
 import { defaultProjects } from '../data/slides'
 
@@ -95,6 +94,7 @@ function App() {
         {page === 'home' && <HomePage onProjectClick={handleProjectClick} />}
         {page === 'page2' && <Page2 />}
         {page === 'project' && (<ProjectPage project={selectedProject} onBack={handleBackToHome} />)}
+        
       </main>
 
       <Footer />
