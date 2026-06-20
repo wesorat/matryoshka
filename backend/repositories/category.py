@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 from sqlalchemy import delete, select
 
 from core.dependencies import SessionDep
@@ -12,7 +5,6 @@ from models.category import Category
 
 
 class CategoryRepository:
-
 
     def __init__(self, session: SessionDep):
         self.session = session
@@ -31,6 +23,3 @@ class CategoryRepository:
     async def delete(self, id: int) -> int:
         res = await self.session.execute(delete(Category).where(Category.id == id))
         return res.rowcount
-
-
-

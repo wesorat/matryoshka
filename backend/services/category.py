@@ -1,12 +1,8 @@
-
-
-
-from utils.slugify import slugify
-
 from core.dependencies import SessionDep
 from models.category import Category
 from repositories.category import CategoryRepository
 from schemas.category import CategoryCreate, CategoryRead
+from utils.slugify import slugify
 
 
 class CategoryService:
@@ -30,7 +26,6 @@ class CategoryService:
     async def get(self, id: int) -> Category:
         return await self.repo.get(id)
 
-
     async def get_all(self) -> list[Category]:
         return await self.repo.get_all()
 
@@ -38,7 +33,3 @@ class CategoryService:
         count = await self.repo.delete(id)
         await self.session.commit()
         return count
-
-
-
-
