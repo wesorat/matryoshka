@@ -1,5 +1,6 @@
 @use './variables' as vars;
 
 body {
+  margin: 0;
   background-color: vars.$bg-main;
 }
