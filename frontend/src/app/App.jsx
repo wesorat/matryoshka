@@ -92,7 +92,6 @@ function App() {
 
       <main className="appContent">
         {page === 'home' && <HomePage onProjectClick={handleProjectClick} />}
-        {page === 'page2' && <Page2 />}
         {page === 'project' && (<ProjectPage project={selectedProject} onBack={handleBackToHome} />)}
         
       </main>
