@@ -1,8 +1,9 @@
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
+import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import styles from './CatPage.module.scss';
 
-function CatPage({ category, onBack }) {
+function CatPage({ category, projects = [], onBack, onProjectClick = () => {} }) {
   if (!category) {
     return (
       <section className={styles.empty}>
@@ -24,8 +25,9 @@ function CatPage({ category, onBack }) {
           Назад к списку
         </Button>
       </div>
-        <CategorySection />
-        <ProjectCards onProjectClick={onProjectClick} />
+
+      <CategorySection title={category.title} showAction={false} />
+      <ProjectCards projects={projects} onProjectClick={onProjectClick} />
     </section>
   );
 }

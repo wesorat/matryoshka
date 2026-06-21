@@ -6,15 +6,18 @@
   left: 0;
   right: 0;
   width: 100%;
-  height: 25vh;
-  min-height: 70px;
-  max-height: 200px;
+  // clamp вместо 25vh — не пересчитывается при скролле на мобилах
+  height: clamp(70px, 12vw, 200px);
   display: flex;
   align-items: center;
   justify-content: center;
+  // [COLOR] Header background (default). Change to another variable or value.
   background: vars.$basic-light;
   z-index: 20;
+  overflow: hidden;
+  // только то, что реально анимируется; transform убран — он не меняется через JS
   will-change: height, background-color;
+  backface-visibility: hidden;
   transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 
   &__inner {
@@ -31,7 +34,7 @@
     max-height: 1250px;
     width: auto;
     min-width: 250px;
-    transition: height 0.2s ease;
+    transition: height 0.3s ease;
 
     cursor: pointer;
     user-select: none;
@@ -44,19 +47,25 @@
     }
   }
 
-  .appHeader__logoSvg {
-  .logo-letter {
-    transition: transform 0.2s ease;
-    transform: translateX(calc(var(--letter-index) * 0px));
+  &__logoSvg {
+    .logo-letter {
+      transition: transform 0.2s ease, color 0.2s ease, fill 0.2s ease;
+      transform: translateX(0);
+      // [COLOR] Logo default color (non-accent)
+      // color: vars.$text-main;
+      color: vars.$basic-accent;
+      fill: currentColor;
+    }
   }
-}
 
-.appHeader__logoSvg--wide {
-  .logo-letter {
-    // 9 букв, расходятся симметрично от центра
-    transform: translateX(calc((var(--letter-index) - 4.5) * 10px));
+  &__logoSvg--wide {
+    .logo-letter {
+      // [COLOR] Logo "wide" (accent) — цвет букв в расширенном состоянии
+      // color: vars.$basic-accent;
+      color: vars.$text-main;
+      transform: translateX(calc((var(--letter-index, 0) - 4.5) * 10px));
+    }
   }
-}
 
   &__nav {
     position: absolute;
@@ -69,7 +78,6 @@
   &__link {
     border: none;
     background: transparent;
-    color: vars.$text-main;
     font: inherit;
     font-weight: 700;
     cursor: pointer;
@@ -85,18 +93,33 @@
   }
 
   &__link--active {
+    // [COLOR] Active link text color (accent)
     color: vars.$basic-accent;
-    background: rgba(246, 36, 64, 0.12);
+    // [COLOR] Active link background. Consider using a transparent version of vars.$basic-accent
+    background: vars.$bg-main;
   }
 }
 
 .appHeader--shrunk {
   height: 70px;
-  background: vars.$basic-dark;
+  // [COLOR] Header background when shrunk
+  background: vars.$basic-accent;
 
   .appHeader__logo {
     height: 54px;
+    color: vars.$bg-main;
   }
+
+  .appHeader__logoSvg {
+    .logo-letter {
+      color: vars.$text-main;
+    }
+  }
+}
+
+.appHeader--shrunk .appHeader__logoSvg--wide .logo-letter {
+  // [COLOR] Если и сжатый хедер, и модификатор wide одновременно
+  color: vars.$bg-main;
 }
 
 .appContent {
