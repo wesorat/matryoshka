@@ -36,6 +36,24 @@ export const slides = [
   },
 ];
 
+export const categories = [
+  {
+    id: 'science',
+    title: 'Естественные науки',
+    projectIds: [1, 2],
+  },
+  {
+    id: 'genetics',
+    title: 'Генетика будущего',
+    projectIds: [3],
+  },
+  {
+    id: 'nanotech',
+    title: 'Нанотехнологии',
+    projectIds: [4],
+  },
+];
+
 export const defaultProjects = [
   {
     id: 1,

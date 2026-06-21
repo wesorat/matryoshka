@@ -22,7 +22,7 @@ const Logo = ({ color = 'black', width, height, className = '', letterSpacing = 
       height={height}
       style={{ width: '100%', height: '100%' }}
       viewBox="0 0 112 41"
-      fill="none"
+      fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
@@ -30,7 +30,6 @@ const Logo = ({ color = 'black', width, height, className = '', letterSpacing = 
         <path
           key={index}
           d={d}
-          fill={color}
           className="logo-letter"
           style={{ '--letter-index': index }}
         />

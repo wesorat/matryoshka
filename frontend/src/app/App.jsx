@@ -5,26 +5,32 @@ import Footer from '../components/Footer'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
-import { defaultProjects } from '../data/slides'
+import CatPage from '../pages/CatPage.jsx'
+import { defaultProjects, categories } from '../data/slides'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
   const [selectedProjectId, setSelectedProjectId] = useState(null)
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
   useEffect(() => {
     let ticking = false
-    const threshold = 20
-    
+    const threshold = 800      // было 20 — слишком мало, любой "рваный" скролл пересекал границу
+    const hysteresis = 100     // было 8 — зона нечувствительности увеличена
+
     const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const newState = window.scrollY > threshold
-          setIsShrunk(newState)
-          ticking = false
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        const currentScroll = window.scrollY
+        setIsShrunk((prevShrunk) => {
+          if (prevShrunk && currentScroll < threshold - hysteresis) return false
+          if (!prevShrunk && currentScroll > threshold) return true
+          return prevShrunk
         })
-        ticking = true
-      }
+        ticking = false
+      })
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -38,13 +44,16 @@ function App() {
   useEffect(() => {
     const handlePopState = (event) => {
       if (event.state?.page === 'project') {
+        setSelectedCategoryId(null)
         setSelectedProjectId(event.state.projectId)
         setPage('project')
-      } else if (event.state?.page === 'page2') {
+      } else if (event.state?.page === 'category') {
         setSelectedProjectId(null)
-        setPage('page2')
+        setSelectedCategoryId(event.state.categoryId)
+        setPage('category')
       } else {
         setSelectedProjectId(null)
+        setSelectedCategoryId(null)
         setPage('home')
       }
     }
@@ -52,6 +61,13 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategoryId(categoryId)
+    setSelectedProjectId(null)
+    setPage('category')
+    window.history.pushState({ page: 'category', categoryId }, '')
+  }
 
   const handleProjectClick = (projectId) => {
     setSelectedProjectId(projectId)
@@ -61,12 +77,14 @@ function App() {
 
   const handleBackToHome = () => {
     setSelectedProjectId(null)
+    setSelectedCategoryId(null)
     setPage('home')
     window.history.pushState({ page: 'home' }, '')
   }
 
   const handleLogoClick = () => {
     setSelectedProjectId(null)
+    setSelectedCategoryId(null)
     setPage('home')
     window.history.pushState({ page: 'home' }, '')
   }
@@ -75,13 +93,21 @@ function App() {
     (project) => project.id === selectedProjectId,
   )
 
+  const selectedCategory = categories.find(
+    (category) => category.id === selectedCategoryId,
+  )
+
+  const categoryProjects = selectedCategory
+    ? defaultProjects.filter((project) => selectedCategory.projectIds.includes(project.id))
+    : []
+
   return (
     <>
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
           <div className="appHeader__logo" onClick={handleLogoClick}>
             <Logo
-              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'} 
+              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
             />
           </div>
           <nav className="appHeader__nav">
@@ -91,10 +117,23 @@ function App() {
       </header>
 
       <main className="appContent">
-        {page === 'home' && <HomePage onProjectClick={handleProjectClick} />}
-        {page === 'page2' && <Page2 />}
-        {page === 'project' && (<ProjectPage project={selectedProject} onBack={handleBackToHome} />)}
-        
+        {page === 'home' && (
+          <HomePage
+            onCategoryClick={handleCategoryClick}
+            onProjectClick={handleProjectClick}
+          />
+        )}
+        {page === 'category' && (
+          <CatPage
+            category={selectedCategory}
+            projects={categoryProjects}
+            onBack={handleBackToHome}
+            onProjectClick={handleProjectClick}
+          />
+        )}
+        {page === 'project' && (
+          <ProjectPage project={selectedProject} onBack={handleBackToHome} />
+        )}
       </main>
 
       <Footer />

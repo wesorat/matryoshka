@@ -1,11 +1,12 @@
+@use "sass:color";
 // ==========================================================================
 // 1. БАЗОВАЯ ПАЛИТРА (Color Palette)
 // ==========================================================================
 $basic-light:       #fffaf3;
-$basic-semilight:   #fff2db;
-$basic-dark:        #ffe5bf; 
-$basic-extra-dark:  scale-color($basic-dark, $lightness: -10%);
-$basic-accent:      #f62440; 
+$basic-semilight:   #fcd99c;
+$basic-dark:        #fac87e; 
+$basic-extra-dark:  color.scale($basic-dark, $lightness: -10%);
+$basic-accent:      #dd9428; 
 
 //$basic-light:         #bbdce5;
 //$basic-semilight:     #eceedf; 
@@ -16,15 +17,15 @@ $basic-accent:      #f62440;
 $bg-main:          $basic-light;
 
 // Текст (Typography)
-$text-main:        #2C2C2C; 
-$text-muted:       #757575;
+$text-main:        #1a1a1a; 
+$text-muted:       5a5a5a;
 $text-light:       $basic-semilight;
 
 // Компоненты (Кнопки, ссылки, границы)
 $link-color:             $basic-accent;
-$border-color:           scale-color($basic-dark, $lightness: -10%);
+$border-color:           color.scale($basic-dark, $lightness: -10%);
 $button-color:           $basic-dark;
-$button-color-hover:     scale-color($basic-dark, $lightness: -10%);
+$button-color-hover:     color.scale($basic-dark, $lightness: -10%);
 // ==========================================================================
 // 3. ВСПОМОГАТЕЛЬНЫЕ ПЕРЕМЕННЫЕ (Шрифты, Отступы и т.д.)
 // ==========================================================================

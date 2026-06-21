@@ -82,7 +82,7 @@
   right: 12px;
   padding: 6px 10px;
   background: vars.$basic-light;
-  color: vars.$basic-extra-dark;
+  color: vars.$text-main;
   font-weight: vars.$basic-dark;
   border-radius: 8px;
   z-index: 5;
@@ -90,6 +90,7 @@
 
 .captionTitle {
   @include mixins.h2-heading;
+  color: vars.$text-main;
   margin: 0;
   font-size: 20px;
   font-weight: 700;
@@ -97,6 +98,7 @@
 
 .captionDescription {
   @include mixins.h2-heading;
+  color: vars.$text-main;
   margin: 0;
   font-size: 14px;
   opacity: 0.92;
@@ -120,7 +122,7 @@
   padding: 0 24px;
   border: 1px solid vars.$button-color;
   background: vars.$button-color;
-  color: vars.$button-color-hover;
+   color: vars.$bg-main;
   font-size: 24px;
   line-height: 1;
   border-radius: 15px;
@@ -130,7 +132,7 @@
 
 .navButton:hover {
   background: vars.$button-color-hover;
-  color: vars.$button-color;
+   color: vars.$bg-main;
 }
 
 
