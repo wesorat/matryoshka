@@ -2,7 +2,7 @@ from core.dependencies import SessionDep
 from models.category import Category
 from repositories.category import CategoryRepository
 from schemas.category import CategoryCreate, CategoryRead
-from utils.slugify import slugify
+from slugify import slugify
 
 
 class CategoryService:

@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 from sqlalchemy import DateTime
 from sqlalchemy import Enum as SQLEnum
@@ -20,6 +21,7 @@ class Projects(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
+    slug: Mapped[str] = mapped_column(String(length=200), nullable=False)
     description: Mapped[str] = mapped_column(String)
     image_url: Mapped[str] = mapped_column(String(length=500))
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
@@ -38,6 +40,8 @@ class Projects(Base):
         default=get_datetime_utc_now,
         onupdate=get_datetime_utc_now,
     )
+
+    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects")
 
 
 class MemberRoles(Base):

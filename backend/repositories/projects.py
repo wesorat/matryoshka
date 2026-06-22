@@ -1,8 +1,11 @@
 from sqlalchemy import delete, or_, select
+from sqlalchemy.orm import joinedload
 
 from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
+from models.category import Category
 from models.project import Projects, ProjectStatus
+from slugify import slugify
 
 
 class ProjectsRepository:
@@ -10,6 +13,7 @@ class ProjectsRepository:
         self.session = session
 
     async def create(self, project: Projects) -> Projects:
+        project.slug = await self.generate_unique_slug(project.title)
         self.session.add(project)
         return project
 
@@ -28,13 +32,33 @@ class ProjectsRepository:
             raise ProjectNotFound(id)
         return project
 
-    async def get_all(self, user_id: int) -> list[Projects]:
+    async def get_by_slug(self, user_id: int, slug: str) -> Projects:
         res = await self.session.execute(
             select(Projects).where(
+                Projects.slug == slug,
                 or_(
                     Projects.status == ProjectStatus.PUBLISHED,
                     Projects.owner_id == user_id,
-                )
+                ),
+            )
+        )
+        project = res.scalar_one_or_none()
+        if project is None:
+            raise ProjectNotFound(id)
+        return project
+
+    async def get_all(self) -> list[Projects]:
+        res = await self.session.execute(
+            select(Projects).where(
+                Projects.status == ProjectStatus.PUBLISHED,
+            )
+        )
+        return res.scalars().all()
+
+    async def get_my(self, user_id: int) -> list[Projects]:
+        res = await self.session.execute(
+            select(Projects).where(
+                Projects.owner_id == user_id,
             )
         )
         return res.scalars().all()
@@ -50,7 +74,26 @@ class ProjectsRepository:
         if project is None:
             raise ProjectNotFound(project_id)
 
-        allowed_fields = {"title", "description", "image_url", "category_id", "status"}
+        allowed_fields = {"title", "description", "image_url", "category_id", "status", "slug"}
+
+        for key, value in data.items():
+            if key in allowed_fields and value is not None:
+                setattr(project, key, value)
+
+        return project
+
+    async def update_by_slug(self, user_id: int, project_slug: str, data: dict) -> Projects:
+        res = await self.session.execute(
+            select(Projects).where(
+                Projects.slug == project_slug,
+                Projects.owner_id == user_id,
+            )
+        )
+        project = res.scalar_one_or_none()
+        if project is None:
+            raise ProjectNotFound(project_slug)
+
+        allowed_fields = {"title", "description", "image_url", "category_id", "status", "slug"}
 
         for key, value in data.items():
             if key in allowed_fields and value is not None:
@@ -68,26 +111,40 @@ class ProjectsRepository:
 
         return res.rowcount
 
-    async def get_by_category(self, user_id: int, category_id: int) -> list[Projects]:
+    async def delete_by_slug(self, user_id: int, slug: str) -> int:
+        res = await self.session.execute(
+            delete(Projects).where(
+                Projects.slug == slug,
+                Projects.owner_id == user_id,
+            )
+        )
+
+        return res.rowcount
+
+    async def get_by_category(self, category_id: int) -> list[Projects]:
         res = await self.session.execute(
             select(Projects).where(
                 Projects.category_id == category_id,
-                or_(
-                    Projects.status == ProjectStatus.PUBLISHED,
-                    Projects.owner_id == user_id,
-                ),
+                Projects.status == ProjectStatus.PUBLISHED,
             )
         )
         return res.scalars().all()
 
-    async def search_by_title(self, user_id: int, title: str) -> list[Projects]:
+    async def get_by_category_by_slug(self, category_slug: int) -> list[Projects]:
+        res = await self.session.execute(select(Projects).options(
+            joinedload(Projects.category)
+            ).join(Projects.category)
+            .where(
+                Category.slug == category_slug
+                )
+        )
+        return res.scalars().all()
+
+    async def search_by_title(self, title: str) -> list[Projects]:
         res = await self.session.execute(
             select(Projects).where(
                 Projects.title.ilike(f"%{title}%"),
-                or_(
-                    Projects.status == ProjectStatus.PUBLISHED,
-                    Projects.owner_id == user_id,
-                ),
+                Projects.status == ProjectStatus.PUBLISHED,
             )
         )
         return res.scalars().all()
@@ -107,3 +164,37 @@ class ProjectsRepository:
 
         project.status = status
         return project
+
+    async def update_status_by_slug(
+        self, user_id: int, slug: str, status: ProjectStatus
+    ) -> Projects:
+        res = await self.session.execute(
+            select(Projects).where(
+                Projects.slug == slug,
+                Projects.owner_id == user_id,
+            )
+        )
+        project = res.scalar_one_or_none()
+        if project is None:
+            raise ProjectNotFound(slug)
+
+        project.status = status
+        return project
+
+    async def generate_unique_slug(self, title: str) -> str:
+        base_slug = slugify(title)
+        slug = base_slug
+        counter = 1
+
+        while True:
+            stmt = select(Projects).where(Projects.slug == slug)
+            result = await self.session.execute(stmt)
+            existing = result.scalar_one_or_none()
+
+            if not existing:
+                break
+
+            counter += 1
+            slug = f"{base_slug}-{counter}"
+
+        return slug
