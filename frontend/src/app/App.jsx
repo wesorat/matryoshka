@@ -6,6 +6,7 @@ import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
+import UserPage from '../pages/UserPage.jsx'
 import { defaultProjects, categories } from '../data/slides'
 
 function App() {
@@ -32,7 +33,7 @@ function App() {
         ticking = false
       })
     }
-
+    //
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
@@ -61,14 +62,14 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
-
+  //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
     setSelectedProjectId(null)
     setPage('category')
     window.history.pushState({ page: 'category', categoryId }, '')
   }
-
+  //Переключение на выбранный проект из карточек
   const handleProjectClick = (projectId) => {
     setSelectedProjectId(projectId)
     setPage('project')
@@ -82,6 +83,21 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
+  // переход на страницу пользователя по projectId (демонстрация)
+  useEffect(() => {
+    const handleUserOpen = (state) => {
+      if (state?.page === 'user') {
+        // в реальном приложении здесь мы бы нашли автора по projectId
+        setPage('user')
+      }
+    }
+
+    // слушаем popstate, уже установлен в другом effect, но здесь дополнительная обработка
+    const onPop = (e) => handleUserOpen(e.state)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  //Переключение на главную через лого в шапке
   const handleLogoClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
@@ -96,6 +112,9 @@ function App() {
   const selectedCategory = categories.find(
     (category) => category.id === selectedCategoryId,
   )
+
+  const sampleUser = { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
+  const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
 
   const categoryProjects = selectedCategory
     ? defaultProjects.filter((project) => selectedCategory.projectIds.includes(project.id))
@@ -130,6 +149,9 @@ function App() {
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
           />
+        )}
+        {page === 'user' && (
+          <UserPage user={sampleUser} projects={userProjects} onBack={handleBackToHome} onProjectClick={handleProjectClick} />
         )}
         {page === 'project' && (
           <ProjectPage project={selectedProject} onBack={handleBackToHome} />

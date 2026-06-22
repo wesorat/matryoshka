@@ -20,7 +20,40 @@ function ProjectPage({ project, onBack }) {
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>{project.title}</h1>
-          <p className={styles.subtitle}>{project.subtitle}</p>
+          <p className={styles.subtitle}>
+            {project.subtitle && (() => {
+              const parts = project.subtitle.split('·').map((s) => s.trim())
+              const first = parts[0]
+              const rest = parts.slice(1).join(' · ')
+              const authorMatch = /Автор\s*(.+)/i.exec(rest)
+              const authorName = authorMatch ? authorMatch[1].trim() : null
+
+              return (
+                <>
+                  <span>{first}</span>
+                  {authorName ? (
+                    <span>
+                      {' · '}
+                      <button
+                        type="button"
+                        className={styles.author}
+                        onClick={() => {
+                          const userPageState = { page: 'user', projectId: project.id }
+                          window.history.pushState(userPageState, '')
+                          const event = new PopStateEvent('popstate', { state: userPageState })
+                          window.dispatchEvent(event)
+                        }}
+                      >
+                        {authorName}
+                      </button>
+                    </span>
+                  ) : (
+                    rest ? <span>{' · ' + rest}</span> : null
+                  )}
+                </>
+              )
+            })()}
+          </p>
         </div>
         <Button type="button" variant="outline" onClick={onBack}>
           Назад к списку
@@ -28,6 +61,8 @@ function ProjectPage({ project, onBack }) {
       </div>
 
       <HeroGallery slides={project.slides} />
+      <div className={styles.metaRow}>
+      </div>
 
       <CategorySection title="Практическая польза" showAction={false} />
       <div className={styles.textContent}>
