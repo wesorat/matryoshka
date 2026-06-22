@@ -16,8 +16,8 @@ function App() {
 
   useEffect(() => {
     let ticking = false
-    const threshold = 800      // было 20 — слишком мало, любой "рваный" скролл пересекал границу
-    const hysteresis = 100     // было 8 — зона нечувствительности увеличена
+    const threshold = 40      // было 20 — слишком мало, любой "рваный" скролл пересекал границу
+    const hysteresis = 10     // было 8 — зона нечувствительности увеличена
 
     const handleScroll = () => {
       if (ticking) return
