@@ -7,13 +7,18 @@ import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
-import { defaultProjects, categories } from '../data/slides'
+import { defaultProjects } from '../data/slides'
+import { fetchCategories, fetchProjectsByCategory } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoryProjects, setCategoryProjects] = useState([])
+  const [categoryLoading, setCategoryLoading] = useState(false)
 
   useEffect(() => {
     let ticking = false
@@ -62,6 +67,29 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    fetchCategories()
+      .then((items) => {
+        if (mounted) {
+          setCategories(items)
+        }
+      })
+      .catch((error) => {
+        console.error('Не удалось загрузить категории:', error)
+      })
+      .finally(() => {
+        if (mounted) {
+          setCategoriesLoading(false)
+        }
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
   //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
@@ -105,9 +133,7 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
-  const selectedProject = defaultProjects.find(
-    (project) => project.id === selectedProjectId,
-  )
+  const selectedProject = null
 
   const selectedCategory = categories.find(
     (category) => category.id === selectedCategoryId,
@@ -116,9 +142,28 @@ function App() {
   const sampleUser = { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
   const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
 
-  const categoryProjects = selectedCategory
-    ? defaultProjects.filter((project) => selectedCategory.projectIds.includes(project.id))
-    : []
+  useEffect(() => {
+    if (!selectedCategoryId) {
+      setCategoryProjects([])
+      return
+    }
+
+    let mounted = true
+    setCategoryLoading(true)
+
+    fetchProjectsByCategory(selectedCategoryId)
+      .then((items) => {
+        if (mounted) setCategoryProjects(items)
+      })
+      .catch((err) => console.error('Ошибка загрузки проектов по категории', err))
+      .finally(() => {
+        if (mounted) setCategoryLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [selectedCategoryId])
 
   return (
     <>
@@ -138,8 +183,9 @@ function App() {
       <main className="appContent">
         {page === 'home' && (
           <HomePage
+            categories={categories}
+            loading={categoriesLoading}
             onCategoryClick={handleCategoryClick}
-            onProjectClick={handleProjectClick}
           />
         )}
         {page === 'category' && (
