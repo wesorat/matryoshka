@@ -22,8 +22,8 @@ class Projects(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
     slug: Mapped[str] = mapped_column(String(length=200), nullable=False)
-    description: Mapped[str] = mapped_column(String)
-    image_url: Mapped[str] = mapped_column(String(length=500))
+    description: Mapped[str] = mapped_column(String, default="")
+    image_url: Mapped[str] = mapped_column(String(length=500), default="")
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     category_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("project_category.id"), nullable=True
@@ -43,6 +43,11 @@ class Projects(Base):
 
     category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects")
 
+    member_roles = relationship("MemberRoles", back_populates="projects")
+
+    @property
+    def members(self):
+        return [i.users for i in self.member_roles]
 
 class MemberRoles(Base):
     __tablename__ = "member_roles"
@@ -56,3 +61,6 @@ class MemberRoles(Base):
     role: Mapped[str] = mapped_column(String(length=100), nullable=False)
 
     __table_args__ = (PrimaryKeyConstraint("user_id", "project_id"),)
+
+    projects = relationship("Projects", back_populates="member_roles")
+    users = relationship("User", back_populates="roles")

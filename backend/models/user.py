@@ -27,3 +27,10 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         default=get_datetime_utc_now,
         onupdate=get_datetime_utc_now,
     )
+
+    roles = relationship("MemberRoles", back_populates="users")
+
+    @property
+    def projects(self):
+        return [i.projects for i in self.roles]
+

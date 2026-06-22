@@ -1,12 +1,19 @@
 
+import os
+from pathlib import Path
+from typing import Optional
+
 from anyio import current_effective_deadline
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 from api.v1.dependencies import CurrentUserDep, CurrentUserOptionalDep, ProjectServiceDep
+from core.config import FILES_DIR
 from core.exceptions import ProjectNotFound
 from models.user import User
 from schemas.projects import (ProjectsCreate, ProjectsRead, ProjectsUpdate,
                             ProjectUpdateStatus)
+from services.storage import storage
 
 project_router = APIRouter(
     prefix="/projects",
@@ -16,10 +23,12 @@ project_router = APIRouter(
 
 @project_router.post("/", response_model=ProjectsRead)
 async def create_project(
-    project: ProjectsCreate, current_user: CurrentUserDep, service: ProjectServiceDep
+    current_user: CurrentUserDep, service: ProjectServiceDep, project: ProjectsCreate = Depends(), file: Optional[UploadFile] = File(None)
 ):
-    created_project = await service.create(project, current_user.id)
+
+    created_project = await service.create(project, current_user.id, file)
     return created_project
+
 
 
 @project_router.get("/", response_model=list[ProjectsRead])
@@ -27,6 +36,17 @@ async def get_projects(service: ProjectServiceDep):
     projects = await service.get_all()
     return projects
 
+@project_router.get("/uploads/{filepath}")
+async def get_file(filepath: str):
+    file_path = storage._full_path(filepath)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Изображение не найдено")
+
+    return FileResponse(
+        path=file_path,
+        filename=filepath
+    )
 
 @project_router.get("/my", response_model=list[ProjectsRead])
 async def get_my_projects(current_user: CurrentUserDep, service: ProjectServiceDep):

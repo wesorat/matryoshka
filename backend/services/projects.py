@@ -1,10 +1,15 @@
-from typing import List
+from pathlib import Path
+from typing import List, Optional
+
+from fastapi import UploadFile
+from slugify import slugify
 
 from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.project import Projects, ProjectStatus
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectsCreate, ProjectsUpdate
+from services.storage import storage
 
 
 class ProjectService:
@@ -12,14 +17,25 @@ class ProjectService:
         self.session = session
         self.repo = ProjectsRepository(session)
 
-    async def create(self, project: ProjectsCreate, user_id: int) -> Projects:
+    async def create(self, project: ProjectsCreate, user_id: int, file:Optional[UploadFile]) -> Projects:
+
+
         project_dict = project.model_dump()
 
         created_project = Projects(**project_dict)
         created_project.owner_id = user_id
 
+        if file:
+            ext = Path(file.filename).suffix
+            filename = f"{slugify(project.title)}{ext}"
+            content = await file.read()
+            storage.save(filename, content)
+            created_project.image_url = filename
+
         await self.repo.create(created_project)
         await self.session.commit()
+
+
 
         return created_project
 
