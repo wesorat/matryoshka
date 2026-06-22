@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from sqlalchemy.exc import IntegrityError
 
 from api.v1.dependencies import CategoryServiceDep, CurrentUserDep
 from core.dependencies import SessionDep
@@ -16,8 +17,15 @@ async def create(
     category_service: CategoryServiceDep,
     category: CategoryCreate,
 ):
-    category = await category_service.create(category)
-    return category
+    try:
+        category = await category_service.create(category)
+
+        return category
+    except IntegrityError as e:
+        if 'UNIQUE' in str(e.orig) or 'duplicate' in str(e.orig).lower():
+            raise HTTPException(status_code=409, detail=f"Категорий {category} уже существует")
+        else:
+            raise e
 
 
 @category_router.get("/{id}", summary="Get category", response_model=CategoryRead)

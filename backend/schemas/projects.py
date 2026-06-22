@@ -26,15 +26,15 @@ class ProjectsUpdate(BaseModel):
 class ProjectsRead(BaseModel):
     id: int
     title: str
+    slug: str
     description: str
     image_url: str = ""
     owner_id: int
-    category_id: int
+    category_id: Optional[int]
     status: ProjectStatus
     created_at: datetime
     updated_at: datetime
 
 
 class ProjectUpdateStatus(BaseModel):
-    id: int
     status: ProjectStatus
