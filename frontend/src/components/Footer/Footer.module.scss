@@ -5,6 +5,7 @@
   background-color: #000;
   padding: 60px 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  
 
   &__inner {
     width: min(100%, 1180px);
@@ -19,11 +20,12 @@
     flex-shrink: 0;
     height: 60px;
     width: auto;
+    color: vars.$bg-main; 
   }
 
   &__copyright {
     @include mixins.text-ordinary;
-    color: white;
+    color: vars.$bg-main;
     font-size: 14px;
     font-weight: 400;
     margin-left: auto;

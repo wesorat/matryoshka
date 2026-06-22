@@ -20,7 +20,7 @@ const Logo = ({ color = 'black', width, height, className = '', letterSpacing = 
     <svg
       width={width}
       height={height}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', color: color }}
       viewBox="0 0 112 41"
       fill="currentColor"
       xmlns="http://www.w3.org/2000/svg"
