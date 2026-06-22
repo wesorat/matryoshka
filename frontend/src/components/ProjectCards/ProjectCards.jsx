@@ -1,7 +1,7 @@
 import styles from './ProjectCards.module.scss';
 import { defaultProjects } from '../../data/slides';
 
-function ProjectCards({ projects = defaultProjects, onProjectClick = () => {} }) {
+function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {} }) {
   const visibleProjects = projects.slice(0, 4);
 
   const handleKeyDown = (event, projectId) => {
@@ -31,7 +31,37 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {} })
               />
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{project.title}</h3>
-                <p className={styles.cardSubtitle}>{project.subtitle}</p>
+                <p className={styles.cardSubtitle}>
+                  {(() => {
+                    if (!project.subtitle) return null
+                    const parts = project.subtitle.split('·').map((s) => s.trim())
+                    const first = parts[0]
+                    const rest = parts.slice(1).join(' · ')
+                    // пытаемся найти имя автора в оставшейся части
+                    const authorMatch = /Автор\s*(.+)/i.exec(rest)
+                    const authorName = authorMatch ? authorMatch[1].trim() : null
+
+                    return (
+                      <>
+                        <span>{first}</span>
+                        {authorName ? (
+                          <span>
+                            {' · '}
+                            <button
+                              type="button"
+                              className={styles.author}
+                              onClick={(e) => { e.stopPropagation(); onUserClick(project.id); }}
+                            >
+                              {authorName}
+                            </button>
+                          </span>
+                        ) : (
+                          rest ? <span>{' · ' + rest}</span> : null
+                        )}
+                      </>
+                    )
+                  })()}
+                </p>
               </div>
             </article>
           ))}

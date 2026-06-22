@@ -19,15 +19,24 @@ function CatPage({ category, projects = [], onBack, onProjectClick = () => {} })
     <section className={styles.page}>
       <div className={styles.headerRow}>
         <div>
-          <h1 className={styles.title}>{category.title}</h1>
+          <h1 className={styles.title}>{category.name}</h1>
         </div>
         <Button type="button" variant="outline" onClick={onBack}>
           Назад к списку
         </Button>
       </div>
 
-      <CategorySection title={category.title} showAction={false} />
-      <ProjectCards projects={projects} onProjectClick={onProjectClick} />
+      <CategorySection title={category.name} showAction={false} />
+      <ProjectCards
+        projects={projects}
+        onProjectClick={onProjectClick}
+        onUserClick={(projectId) => {
+          const userPageState = { page: 'user', projectId };
+          window.history.pushState(userPageState, '');
+          const event = new PopStateEvent('popstate', { state: userPageState });
+          window.dispatchEvent(event);
+        }}
+      />
     </section>
   );
 }

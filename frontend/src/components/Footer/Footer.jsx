@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className={styles.footer}>
       <div className={styles.footer__inner}>
         <div className={styles.footer__logo}>
-          <Logo color="white" width={80} height={30} />
+          <Logo color={styles.footer__logo} />
         </div>
         <div className={styles.footer__copyright}>
           © {currentYear} Все права защищены
