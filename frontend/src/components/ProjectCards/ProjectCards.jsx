@@ -25,7 +25,7 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
               onKeyDown={(event) => handleKeyDown(event, project.id)}
             >
               <img
-                src={project.image}
+                src={project.image || project.image_url}
                 alt={project.title}
                 className={styles.cardImage}
               />
@@ -33,8 +33,9 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
                 <h3 className={styles.cardTitle}>{project.title}</h3>
                 <p className={styles.cardSubtitle}>
                   {(() => {
-                    if (!project.subtitle) return null
-                    const parts = project.subtitle.split('·').map((s) => s.trim())
+                    const subtitleText = project.subtitle || project.description
+                    if (!subtitleText) return null
+                    const parts = subtitleText.split('·').map((s) => s.trim())
                     const first = parts[0]
                     const rest = parts.slice(1).join(' · ')
                     // пытаемся найти имя автора в оставшейся части

@@ -8,7 +8,7 @@ import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjectsByCategory } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
@@ -17,6 +17,8 @@ function App() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
 
@@ -90,6 +92,29 @@ function App() {
       mounted = false
     }
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    fetchProjects()
+      .then((items) => {
+        if (mounted) {
+          setProjects(items)
+        }
+      })
+      .catch((error) => {
+        console.error('Не удалось загрузить проекты:', error)
+      })
+      .finally(() => {
+        if (mounted) {
+          setProjectsLoading(false)
+        }
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
   //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
@@ -142,6 +167,12 @@ function App() {
   const sampleUser = { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
   const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
 
+  const displayedCategoryProjects = categoryLoading
+    ? []
+    : categoryProjects.length > 0
+    ? categoryProjects
+    : projects.filter((project) => project.category_id === selectedCategoryId)
+
   useEffect(() => {
     if (!selectedCategoryId) {
       setCategoryProjects([])
@@ -185,13 +216,17 @@ function App() {
           <HomePage
             categories={categories}
             loading={categoriesLoading}
+            projects={projects}
+            projectsLoading={projectsLoading}
             onCategoryClick={handleCategoryClick}
+            onProjectClick={handleProjectClick}
           />
         )}
         {page === 'category' && (
           <CatPage
             category={selectedCategory}
-            projects={categoryProjects}
+            projects={displayedCategoryProjects}
+            loading={categoryLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
           />

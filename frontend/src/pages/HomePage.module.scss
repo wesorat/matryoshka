@@ -1,0 +1,5 @@
+@use '../styles/mixins' as mixins;
+
+.emptyText {
+  @include mixins.text-ordinary;
+}
