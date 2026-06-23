@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from models import project
 from models.project import ProjectStatus
@@ -34,6 +34,13 @@ class ProjectsRead(BaseModel):
     status: ProjectStatus
     created_at: datetime
     updated_at: datetime
+
+    @computed_field
+    @property
+    def full_image_url(self) -> str:
+        if not self.image_url:
+            return ""
+        return f"/projects/uploads/{self.image_url}"
 
 
 class ProjectUpdateStatus(BaseModel):
