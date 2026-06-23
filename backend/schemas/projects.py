@@ -35,7 +35,7 @@ class ProjectsRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    
+
 
 
 class ProjectUpdateStatus(BaseModel):
