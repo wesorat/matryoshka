@@ -2,7 +2,7 @@ import Button from '../Buttons/Button';
 import styles from './CategorySection.module.scss';
 
 function CategorySection({
-  title = 'Natural & Exact Sciences',
+  title = '',
   actionText = 'Еще',
   onAction,
   showAction = true,

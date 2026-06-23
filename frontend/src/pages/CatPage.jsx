@@ -3,7 +3,7 @@ import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import styles from './CatPage.module.scss';
 
-function CatPage({ category, projects = [], onBack, onProjectClick = () => {} }) {
+function CatPage({ category, projects = [], loading = false, onBack, onProjectClick = () => {} }) {
   if (!category) {
     return (
       <section className={styles.empty}>
@@ -27,16 +27,26 @@ function CatPage({ category, projects = [], onBack, onProjectClick = () => {} })
       </div>
 
       <CategorySection title={category.name} showAction={false} />
-      <ProjectCards
-        projects={projects}
-        onProjectClick={onProjectClick}
-        onUserClick={(projectId) => {
-          const userPageState = { page: 'user', projectId };
-          window.history.pushState(userPageState, '');
-          const event = new PopStateEvent('popstate', { state: userPageState });
-          window.dispatchEvent(event);
-        }}
-      />
+      {loading ? (
+        <section className={styles.loading}>
+          <p>Загрузка проектов...</p>
+        </section>
+      ) : projects.length === 0 ? (
+        <section className={styles.emptyList}>
+          <p>Проекты в этой категории не найдены.</p>
+        </section>
+      ) : (
+        <ProjectCards
+          projects={projects}
+          onProjectClick={onProjectClick}
+          onUserClick={(projectId) => {
+            const userPageState = { page: 'user', projectId };
+            window.history.pushState(userPageState, '');
+            const event = new PopStateEvent('popstate', { state: userPageState });
+            window.dispatchEvent(event);
+          }}
+        />
+      )}
     </section>
   );
 }

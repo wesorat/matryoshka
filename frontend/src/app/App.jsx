@@ -8,15 +8,18 @@ import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjectsByCategory } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+  const [user, setUser] = useState(null)
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
 
@@ -90,6 +93,29 @@ function App() {
       mounted = false
     }
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    fetchProjects()
+      .then((items) => {
+        if (mounted) {
+          setProjects(items)
+        }
+      })
+      .catch((error) => {
+        console.error('Не удалось загрузить проекты:', error)
+      })
+      .finally(() => {
+        if (mounted) {
+          setProjectsLoading(false)
+        }
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
   //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
@@ -105,6 +131,37 @@ function App() {
   }
 
   const handleBackToHome = () => {
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('home')
+    window.history.pushState({ page: 'home' }, '')
+  }
+
+  const handleLoginClick = () => {
+    setUser({ name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' })
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('user')
+    window.history.pushState({ page: 'user' }, '')
+  }
+
+  const handleSignUpClick = () => {
+    setUser({ name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' })
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('user')
+    window.history.pushState({ page: 'user' }, '')
+  }
+
+  const handleAccountClick = () => {
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('user')
+    window.history.pushState({ page: 'user' }, '')
+  }
+
+  const handleLogout = () => {
+    setUser(null)
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
     setPage('home')
@@ -133,14 +190,20 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
-  const selectedProject = null
+  const selectedProject = projects.find((project) => project.id === selectedProjectId)
 
   const selectedCategory = categories.find(
     (category) => category.id === selectedCategoryId,
   )
 
-  const sampleUser = { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
+  const sampleUser = user || { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
   const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
+
+  const displayedCategoryProjects = categoryLoading
+    ? []
+    : categoryProjects.length > 0
+    ? categoryProjects
+    : projects.filter((project) => project.category_id === selectedCategoryId)
 
   useEffect(() => {
     if (!selectedCategoryId) {
@@ -175,7 +238,20 @@ function App() {
             />
           </div>
           <nav className="appHeader__nav">
-            {/* кнопки */}
+            {user ? (
+              <Button type="button" variant="link" onClick={handleAccountClick}>
+                Мой аккаунт
+              </Button>
+            ) : (
+              <>
+                <Button type="button" variant="link" onClick={handleSignUpClick}>
+                  sign up
+                </Button>
+                <Button type="button" variant="link" onClick={handleLoginClick}>
+                  log in
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -185,19 +261,29 @@ function App() {
           <HomePage
             categories={categories}
             loading={categoriesLoading}
+            projects={projects}
+            projectsLoading={projectsLoading}
             onCategoryClick={handleCategoryClick}
+            onProjectClick={handleProjectClick}
           />
         )}
         {page === 'category' && (
           <CatPage
             category={selectedCategory}
-            projects={categoryProjects}
+            projects={displayedCategoryProjects}
+            loading={categoryLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
           />
         )}
         {page === 'user' && (
-          <UserPage user={sampleUser} projects={userProjects} onBack={handleBackToHome} onProjectClick={handleProjectClick} />
+          <UserPage
+            user={sampleUser}
+            projects={userProjects}
+            onBack={handleBackToHome}
+            onProjectClick={handleProjectClick}
+            onLogout={handleLogout}
+          />
         )}
         {page === 'project' && (
           <ProjectPage project={selectedProject} onBack={handleBackToHome} />

@@ -7,7 +7,7 @@
   right: 0;
   width: 100%;
   // clamp вместо 25vh — не пересчитывается при скролле на мобилах
-  height: clamp(70px, 12vw, 200px);
+  height: clamp(100px, 12vw, 200px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +125,7 @@
 .appContent {
   display: block;
   width: min(1180px, 100%);
-  margin: 120px auto 0;
+  margin: 0px auto 0;
   padding: 0 0px;
   box-sizing: border-box;
 }
