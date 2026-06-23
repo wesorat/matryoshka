@@ -19,9 +19,11 @@ function UserPage({ user = {}, projects = [], onBack = () => {}, onProjectClick 
           </div>
 
           <div className={styles.actions}>
-            <Button type="button">Опубликовать</Button>
             <Button type="button" variant="outline">Создать проект</Button>
             <Button type="button" variant="outline">Статистика</Button>
+            <Button type="button" variant="outline" onClick={onLogout}>
+              Выйти
+            </Button>
           </div>
         </aside>
 
