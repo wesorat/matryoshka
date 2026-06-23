@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from models import project
 from models.project import ProjectStatus
@@ -34,6 +34,8 @@ class ProjectsRead(BaseModel):
     status: ProjectStatus
     created_at: datetime
     updated_at: datetime
+
+    
 
 
 class ProjectUpdateStatus(BaseModel):
