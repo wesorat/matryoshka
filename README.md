@@ -16,14 +16,11 @@
 Локальная проверка:
 
 ```bash
-DB_PASSWORD=local-dev-password \
-SECRET=local-dev-secret \
-docker compose -f docker-compose.prod.yml up --build -d
+docker compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
 curl http://localhost:8080/
 curl http://localhost:8080/api/health
-docker compose -f docker-compose.prod.yml down
+docker compose --env-file .env.prod -f docker-compose.prod.yml down
 ```
 
 `DB_PASSWORD` и `SECRET` обязательны и не имеют production-дефолтов.
-PostgreSQL и backend наружу не публикуются. Для HTTPS используйте
-`frontend/Caddyfile.https.example` после настройки домена и DNS.
+PostgreSQL и backend наружу не публикуются.
