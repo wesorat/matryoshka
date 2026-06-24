@@ -7,12 +7,14 @@ import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
+import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
 import { fetchCategories, fetchProjects, fetchProjectsByCategory } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
+  const [logType, setLogType] = useState(null)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
   const [user, setUser] = useState(null)
@@ -41,7 +43,7 @@ function App() {
         ticking = false
       })
     }
-    //
+    
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
@@ -138,19 +140,18 @@ function App() {
   }
 
   const handleLoginClick = () => {
-    setUser({ name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' })
-    setSelectedProjectId(null)
-    setSelectedCategoryId(null)
-    setPage('user')
-    window.history.pushState({ page: 'user' }, '')
+    setPage('log')
+    setLogType('login')
   }
 
   const handleSignUpClick = () => {
-    setUser({ name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' })
-    setSelectedProjectId(null)
-    setSelectedCategoryId(null)
-    setPage('user')
-    window.history.pushState({ page: 'user' }, '')
+    setPage('log')
+    setLogType('signup')
+  }
+
+  const handleLogClose = () => {
+    setPage('home')
+    setLogType(null)
   }
 
   const handleAccountClick = () => {
@@ -284,6 +285,9 @@ function App() {
             onProjectClick={handleProjectClick}
             onLogout={handleLogout}
           />
+        )}
+        {page === 'log' && (
+          <LogPage type={logType} onBack={handleLogClose} />
         )}
         {page === 'project' && (
           <ProjectPage project={selectedProject} onBack={handleBackToHome} />

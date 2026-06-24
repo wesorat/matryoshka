@@ -1,0 +1,33 @@
+from fastapi import APIRouter, HTTPException
+from sqlalchemy.exc import IntegrityError
+
+from api.v1.dependencies import CommentsServiceDep, CurrentUserDep, LikesServiceDep
+
+from schemas.comments import CommentsRead, CommentsCreate
+
+comments_router = APIRouter(
+    prefix="/comments",
+    tags=["Comments"],
+)
+
+
+@comments_router.post("/", summary="Create comment", response_model=CommentsRead)
+async def create(
+    comment_service: CommentsServiceDep,
+    user: CurrentUserDep,
+    comment: CommentsCreate
+):
+    user_id = user.id
+    created_comment = await comment_service.create(user_id, comment)
+    return created_comment
+
+
+@comments_router.delete("/", summary="Delete comment")
+async def delete(
+    comment_service: CommentsServiceDep,
+    user: CurrentUserDep,
+    comment_id: int,
+):
+    count = await comment_service.delete(user.id, comment_id)
+
+    return {"count_deleted": count}

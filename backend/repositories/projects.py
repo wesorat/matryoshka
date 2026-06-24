@@ -1,11 +1,14 @@
 from sqlalchemy import delete, or_, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
+from models.comments import Comments
 from models.project import Projects, ProjectStatus
 from slugify import slugify
+
+from schemas.projects import ProjectsReadWithComents
 
 
 class ProjectsRepository:
@@ -17,9 +20,10 @@ class ProjectsRepository:
         self.session.add(project)
         return project
 
-    async def get(self, user_id: int, id: int) -> Projects:
+    async def get(self, user_id: int, id: int) -> ProjectsReadWithComents:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.id == id,
                 or_(
                     Projects.status == ProjectStatus.PUBLISHED,
@@ -30,11 +34,19 @@ class ProjectsRepository:
         project = res.scalar_one_or_none()
         if project is None:
             raise ProjectNotFound(id)
+
+        await self.session.execute(
+            select(Comments)
+            .where(Comments.project_id == id)
+            .order_by(Comments.created_at.desc())
+        )
+        await self.session.refresh(project, attribute_names=['comments'])
         return project
 
-    async def get_by_slug(self, user_id: int, slug: str) -> Projects:
+    async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadWithComents:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.slug == slug,
                 or_(
                     Projects.status == ProjectStatus.PUBLISHED,
@@ -44,8 +56,17 @@ class ProjectsRepository:
         )
         project = res.scalar_one_or_none()
         if project is None:
-            raise ProjectNotFound(id)
+            raise ProjectNotFound(slug)
+
+        await self.session.execute(
+            select(Comments)
+            .where(Comments.project_id == project.id)
+            .order_by(Comments.created_at.desc())
+        )
+        await self.session.refresh(project, attribute_names=['comments'])
         return project
+
+
 
     async def get_all(self) -> list[Projects]:
         res = await self.session.execute(
