@@ -1,11 +1,13 @@
 from sqlalchemy import delete, or_, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
 from models.project import Projects, ProjectStatus
 from slugify import slugify
+
+from schemas.projects import ProjectsReadWithComents
 
 
 class ProjectsRepository:
@@ -17,10 +19,13 @@ class ProjectsRepository:
         self.session.add(project)
         return project
 
-    async def get(self, user_id: int, id: int) -> Projects:
+    async def get(self, user_id: int, id: int) -> ProjectsReadWithComents:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .options(selectinload(Projects.comments))
+            .where(
                 Projects.id == id,
+
                 or_(
                     Projects.status == ProjectStatus.PUBLISHED,
                     Projects.owner_id == user_id,

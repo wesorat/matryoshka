@@ -5,6 +5,7 @@ from pydantic import BaseModel, computed_field
 
 from models import project
 from models.project import ProjectStatus
+from schemas.comments import CommentsRead
 
 
 class ProjectsCreate(BaseModel):
@@ -37,7 +38,20 @@ class ProjectsRead(BaseModel):
     updated_at: datetime
 
 
-
-
 class ProjectUpdateStatus(BaseModel):
     status: ProjectStatus
+
+
+class ProjectsReadWithComents(BaseModel):
+    id: int
+    title: str
+    slug: str
+    description: str
+    image_url: str = ""
+    owner_id: int
+    category_id: Optional[int]
+    status: ProjectStatus
+    like_count: int
+    comments: list[CommentsRead]
+    created_at: datetime
+    updated_at: datetime

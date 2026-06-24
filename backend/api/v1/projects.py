@@ -11,7 +11,7 @@ from api.v1.dependencies import CurrentUserDep, CurrentUserOptionalDep, ProjectS
 from core.config import FILES_DIR
 from core.exceptions import ProjectNotFound
 from models.user import User
-from schemas.projects import (ProjectsCreate, ProjectsRead, ProjectsUpdate,
+from schemas.projects import (ProjectsCreate, ProjectsRead, ProjectsReadWithComents, ProjectsUpdate,
                             ProjectUpdateStatus)
 from services.storage import storage
 
@@ -53,7 +53,7 @@ async def get_my_projects(current_user: CurrentUserDep, service: ProjectServiceD
     projects = await service.get_my(current_user.id)
     return projects
 
-@project_router.get("/{project_id:int}", response_model=ProjectsRead)
+@project_router.get("/{project_id:int}", response_model=ProjectsReadWithComents)
 async def get_project(
     project_id: int, current_user: CurrentUserOptionalDep, service: ProjectServiceDep
 ):
@@ -66,7 +66,7 @@ async def get_project(
 
 
 
-@project_router.get("/{project_slug:str}", response_model=ProjectsRead)
+@project_router.get("/{project_slug:str}", response_model=ProjectsReadWithComents)
 async def get_project_slug(
     project_slug: str, current_user: CurrentUserOptionalDep, service: ProjectServiceDep
 ):

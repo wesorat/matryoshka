@@ -8,7 +8,7 @@ from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.project import Projects, ProjectStatus
 from repositories.projects import ProjectsRepository
-from schemas.projects import ProjectsCreate, ProjectsUpdate
+from schemas.projects import ProjectsCreate, ProjectsReadWithComents, ProjectsUpdate
 from services.storage import storage
 
 
@@ -39,7 +39,7 @@ class ProjectService:
 
         return created_project
 
-    async def get(self, user_id: int, project_id: int) -> Projects:
+    async def get(self, user_id: int, project_id: int) -> ProjectsReadWithComents:
         return await self.repo.get(user_id, project_id)
 
     async def get_by_slug(self, user_id: int, slug: str) -> Projects:
