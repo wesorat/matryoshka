@@ -47,6 +47,8 @@ class TestDataGenerator:
         self.users = []
         self.categories = []
         self.projects = []
+        self.comments = []
+        self.likes = []
         self.cookies = {}
         # Создаем папку для временных изображений
         self.temp_dir = "temp_images"
@@ -217,15 +219,10 @@ class TestDataGenerator:
         # Генерируем изображение
         image_bytes = self.generate_project_image(title)
 
-        # Создаем multipart/form-data запрос
         # Параметры запроса (query parameters)
         params = {}
 
-        # Данные формы
-        data = {}
-
-        # Добавляем параметры в data или params в зависимости от API
-        # Согласно документации, title, description, category_id, status - это query параметры
+        # Добавляем параметры
         params["title"] = title
         if description:
             params["description"] = description
@@ -256,8 +253,115 @@ class TestDataGenerator:
                 print(f"Response: {e.response.text}")
             return None
 
+    def create_comment(self, user_info: Dict[str, Any], project_id: int, text: str) -> Dict[str, Any]:
+        """Создание комментария к проекту"""
+        url = f"{self.base_url}/comments/"
+        payload = {
+            "text": text,
+            "project_id": project_id
+        }
+
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                cookies=user_info.get("cookies", {})
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error creating comment: {e}")
+            if hasattr(e, 'response') and e.response:
+                print(f"Status code: {e.response.status_code}")
+                print(f"Response: {e.response.text}")
+            return None
+
+    def create_like(self, user_info: Dict[str, Any], project_id: int) -> bool:
+        """Создание лайка для проекта"""
+        url = f"{self.base_url}/likes/"
+        params = {"project_id": project_id}
+
+        try:
+            response = requests.post(
+                url,
+                params=params,
+                cookies=user_info.get("cookies", {})
+            )
+            response.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"Error creating like: {e}")
+            if hasattr(e, 'response') and e.response:
+                print(f"Status code: {e.response.status_code}")
+                print(f"Response: {e.response.text}")
+            return False
+
+    def generate_comments_for_project(self, project: Dict[str, Any], num_comments: int):
+        """Генерация комментариев для проекта"""
+        print(f"  Generating {num_comments} comments for project: {project['title']}")
+
+        # Выбираем случайных пользователей для комментирования
+        available_users = [u for u in self.users if u['id'] != project.get('owner_id')]
+        if not available_users:
+            print("    No other users available for commenting")
+            return
+
+        for i in range(num_comments):
+            # Выбираем случайного пользователя
+            user = random.choice(available_users)
+
+            # Генерируем текст комментария
+            comment_texts = [
+                fake.sentence(nb_words=10),
+                fake.paragraph(nb_sentences=2),
+                f"Great project! {fake.sentence(nb_words=5)}",
+                f"Interesting work! {fake.sentence(nb_words=6)}",
+                f"Nice! {fake.sentence(nb_words=4)}",
+                fake.sentence(nb_words=8),
+                f"I like this project because {fake.sentence(nb_words=7)}",
+                f"Good job! {fake.sentence(nb_words=5)}",
+                fake.paragraph(nb_sentences=1),
+                f"Looking forward to seeing more! {fake.sentence(nb_words=4)}"
+            ]
+            text = random.choice(comment_texts)
+
+            # Создаем комментарий
+            comment = self.create_comment(user, project['id'], text)
+            if comment:
+                self.comments.append(comment)
+                print(f"    Created comment by {user['name']}: {text[:50]}...")
+
+            # Небольшая задержка
+            time.sleep(0.1)
+
+    def generate_likes_for_project(self, project: Dict[str, Any], num_likes: int):
+        """Генерация лайков для проекта"""
+        print(f"  Generating {num_likes} likes for project: {project['title']}")
+
+        # Выбираем случайных пользователей для лайков
+        available_users = [u for u in self.users if u['id'] != project.get('owner_id')]
+        if not available_users:
+            print("    No other users available for likes")
+            return
+
+        # Выбираем уникальных пользователей для лайков
+        num_likes = min(num_likes, len(available_users))
+        selected_users = random.sample(available_users, num_likes)
+
+        for user in selected_users:
+            # Создаем лайк
+            if self.create_like(user, project['id']):
+                self.likes.append({
+                    "user_id": user['id'],
+                    "project_id": project['id']
+                })
+                print(f"    Created like by {user['name']}")
+
+            # Небольшая задержка
+            time.sleep(0.1)
+
     def generate_project_data(self, user_info: Dict[str, Any], num_projects: int = 10):
-        """Генерация проектов для пользователя"""
+        """Генерация проектов для пользователя с комментариями и лайками"""
         print(f"\nGenerating projects for user: {user_info['name']}")
 
         for i in range(num_projects):
@@ -290,6 +394,23 @@ class TestDataGenerator:
                 print(f"  Created project: {project['title']} (status: {project['status']}, has image: {bool(project.get('image_url'))})")
                 if project.get('image_url'):
                     print(f"    Image URL: {project['image_url']}")
+
+                # Добавляем комментарии и лайки только для опубликованных проектов
+                if project['status'] == 'published' and len(self.users) > 1:
+                    # Количество комментариев: от 0 до 5
+                    num_comments = random.randint(0, 5)
+                    if num_comments > 0:
+                        self.generate_comments_for_project(project, num_comments)
+
+                    # Количество лайков: от 0 до 3
+                    num_likes = random.randint(0, 3)
+                    if num_likes > 0:
+                        self.generate_likes_for_project(project, num_likes)
+                else:
+                    if project['status'] != 'published':
+                        print(f"    Skipping comments/likes for draft project")
+                    elif len(self.users) <= 1:
+                        print(f"    Not enough users for comments/likes")
             else:
                 print(f"  Failed to create project: {title}")
 
@@ -330,6 +451,8 @@ class TestDataGenerator:
         print(f"Categories: {len(self.categories)}")
         print(f"Users: {len(self.users)}")
         print(f"Projects: {len(self.projects)}")
+        print(f"Comments: {len(self.comments)}")
+        print(f"Likes: {len(self.likes)}")
 
         # Статистика по статусам проектов
         if self.projects:
@@ -351,13 +474,28 @@ class TestDataGenerator:
             print(f"\nUser: {user_info['name']} (ID: {user_info['id']})")
             print(f"  Email: {user_info['email']}")
             print(f"  Projects: {len(user_projects)}")
-            for project in user_projects[:5]:  # Показываем первые 5 проектов
+
+            # Показываем комментарии и лайки для проектов
+            for project in user_projects[:3]:  # Показываем первые 3 проекта
                 image_status = "✅" if project.get('image_url') else "❌"
                 print(f"    {image_status} {project['title']} ({project.get('status', 'unknown')})")
+
+                # Считаем комментарии и лайки для этого проекта
+                project_comments = [c for c in self.comments if c.get('project_id') == project['id']]
+                project_likes = [l for l in self.likes if l.get('project_id') == project['id']]
+
+                if project_comments:
+                    print(f"       Comments: {len(project_comments)}")
+                    for comment in project_comments[:2]:  # Показываем первые 2 комментария
+                        print(f"         - {comment.get('text', '')[:50]}...")
+                if project_likes:
+                    print(f"       Likes: {len(project_likes)}")
+
                 if project.get('image_url'):
                     print(f"       Image: {project['image_url']}")
-            if len(user_projects) > 5:
-                print(f"    ... and {len(user_projects) - 5} more projects")
+
+            if len(user_projects) > 3:
+                print(f"    ... and {len(user_projects) - 3} more projects")
 
 def main():
     # Создаем экземпляр генератора

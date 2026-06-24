@@ -44,14 +44,18 @@ class Projects(Base):
     )
 
 
-    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects")
+    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects", lazy="selectin")
 
     member_roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="projects")
 
     comments:  Mapped[list["Comments"]] = relationship("Comments", back_populates="project")
     likes:  Mapped[list["Likes"]] = relationship("Likes", back_populates="project")
 
-
+    owner: Mapped["User"] = relationship(
+        "User",
+        back_populates="own_projects",
+        lazy="selectin"
+    )
     @property
     def members(self):
         return [i.users for i in self.member_roles]

@@ -19,6 +19,14 @@ class UserRead(schemas.BaseUser[ID]):
     is_verified: bool = Field(default=False, exclude=True)
 
 
+class UserReadMain(BaseModel):
+    id: int
+    name: str
+    avatar: str
+
+
+
+
 class UserCreate(schemas.BaseUserCreate):
     name: str
     avatar: Optional[str] = None

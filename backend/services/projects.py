@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List, Optional
+import uuid
 
 from fastapi import UploadFile
 from slugify import slugify
@@ -27,13 +28,14 @@ class ProjectService:
 
         if file:
             ext = Path(file.filename).suffix
-            filename = f"{slugify(project.title)}{ext}"
+            filename = f"{uuid.uuid4()}{ext}"
             content = await file.read()
             storage.save(filename, content)
             created_project.image_url = filename
 
         await self.repo.create(created_project)
         await self.session.commit()
+        await self.session.refresh(created_project)
 
 
 
@@ -42,7 +44,7 @@ class ProjectService:
     async def get(self, user_id: int, project_id: int) -> ProjectsReadWithComents:
         return await self.repo.get(user_id, project_id)
 
-    async def get_by_slug(self, user_id: int, slug: str) -> Projects:
+    async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadWithComents:
         return await self.repo.get_by_slug(user_id, slug)
 
     async def get_all(self) -> List[Projects]:

@@ -3,9 +3,10 @@ from typing import Optional
 
 from pydantic import BaseModel, computed_field
 
-from models import project
 from models.project import ProjectStatus
+from schemas.category import CategoryRead
 from schemas.comments import CommentsRead
+from schemas.user import UserRead
 
 
 class ProjectsCreate(BaseModel):
@@ -30,8 +31,8 @@ class ProjectsRead(BaseModel):
     slug: str
     description: str
     image_url: str = ""
-    owner_id: int
-    category_id: Optional[int]
+    owner: UserRead
+    category: Optional[CategoryRead] = None
     status: ProjectStatus
     like_count: int
     created_at: datetime
@@ -48,8 +49,8 @@ class ProjectsReadWithComents(BaseModel):
     slug: str
     description: str
     image_url: str = ""
-    owner_id: int
-    category_id: Optional[int]
+    owner: UserRead
+    category: Optional[CategoryRead] = None
     status: ProjectStatus
     like_count: int
     comments: list[CommentsRead]
