@@ -43,7 +43,7 @@ function App() {
         ticking = false
       })
     }
-    //
+    
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
