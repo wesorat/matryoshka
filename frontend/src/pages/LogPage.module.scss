@@ -1,0 +1,209 @@
+@use '../styles/variables' as vars;
+@use '../styles/mixins' as mixins;
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin focus-ring {
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px vars.$basic-accent;
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  padding: vars.$base-spacing;
+  @include flex-center;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.dialog {
+  width: 100%;
+  max-width: 28rem;
+  background-color: vars.$bg-main;
+  border: 1px solid vars.$border-color;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  position: relative;
+  max-height: 95vh;
+  overflow-y: auto;
+  outline: none;
+  padding: vars.$base-spacing;
+
+  @media (min-width: 768px) {
+    padding: calc(vars.$base-spacing * 1.5);
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  @include focus-ring;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    cursor: pointer;
+    // Если text-muted строка (в твоем файле опечатка "5a5a5a" без #), 
+    // убедись, что в _variables.scss стоит #5a5a5a
+    fill: vars.$text-muted; 
+    transition: fill 0.2s;
+
+    &:hover {
+      fill: vars.$basic-accent;
+    }
+  }
+}
+
+.header {
+  text-align: center;
+  margin-top: vars.$base-spacing;
+
+  h3 {
+    @include mixins.h2-heading;
+    color: vars.$text-main;
+    margin: 0;
+  }
+
+  p {
+    @include mixins.text-ordinary;
+    font-size: 14px; // Слегка увеличиваем поверх базовых 12px для читаемости
+    color: vars.$text-muted;
+    margin-top: 0.75rem;
+  }
+}
+
+.formContainer {
+  margin-top: 1.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: vars.$base-spacing;
+}
+
+.inputGroup {
+  position: relative;
+
+  label {
+    @include mixins.text-ordinary;
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+    color: vars.$text-main;
+    font-weight: 500;
+    display: inline-block;
+  }
+}
+
+.input {
+  font-family: vars.$font-secondary;
+  padding: 0.625rem 0.75rem;
+  font-size: 14px;
+  color: vars.$text-main;
+  border-radius: 0.375rem;
+  background-color: #ffffff; // Оставил белым, чтобы инпут выделялся на фоне $bg-main
+  width: 100%;
+  border: 1px solid vars.$border-color;
+  box-sizing: border-box;
+  @include focus-ring;
+
+  &:focus {
+    border-color: vars.$basic-accent;
+  }
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  top: 1.85rem;
+  right: 0.5rem;
+  padding: 0.125rem;
+  display: flex;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  @include focus-ring;
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: vars.$text-muted;
+  }
+}
+
+.submitBtn {
+  font-family: vars.$font-secondary;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: vars.$text-main;
+  border: 1px solid vars.$border-color;
+  background-color: vars.$button-color;
+  transition: all 0.2s;
+  @include focus-ring;
+
+  &:hover {
+    background-color: vars.$button-color-hover;
+  }
+}
+
+.footer {
+  margin-top: 1.5rem;
+  text-align: center;
+
+  p {
+    @include mixins.text-ordinary;
+    font-size: 14px;
+    color: vars.$text-muted;
+  }
+
+  a {
+    font-family: vars.$font-secondary;
+    font-weight: 500;
+    color: vars.$link-color;
+    margin-left: 0.25rem;
+    display: inline;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    @include focus-ring;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
