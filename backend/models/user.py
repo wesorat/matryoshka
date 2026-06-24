@@ -30,6 +30,13 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     roles = relationship("MemberRoles", back_populates="users")
 
+    own_projects: Mapped[list["Projects"]] = relationship(
+        "Projects",
+        back_populates="owner",
+    )
+    comments: Mapped["Comments"] = relationship("Comments", back_populates="user", lazy="selectin")
+
+
     @property
     def projects(self):
         return [i.projects for i in self.roles]

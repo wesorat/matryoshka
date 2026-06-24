@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 
+from schemas.user import UserRead, UserReadMain
+from datetime import datetime
+
 
 
 class CommentsCreate(BaseModel):
@@ -9,7 +12,8 @@ class CommentsCreate(BaseModel):
 class CommentsRead(BaseModel):
     id: int
     text: str
-    user_id: int
+    user: UserReadMain
     project_id: int
+    created_at: datetime
 
 

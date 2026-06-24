@@ -22,3 +22,4 @@ class Comments(Base):
     )
 
     project: Mapped["Projects"] = relationship("Projects", back_populates="comments")
+    user: Mapped["User"] = relationship("User", back_populates="comments", lazy="selectin")
