@@ -6,6 +6,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from models.comments import Comments
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -20,6 +21,7 @@ class Projects(Base):
     __tablename__ = "projects"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    like_count: Mapped[int] = mapped_column(Integer, default=0)
     title: Mapped[str] = mapped_column(String(length=200), nullable=False)
     slug: Mapped[str] = mapped_column(String(length=200), nullable=False)
     description: Mapped[str] = mapped_column(String, default="")
@@ -41,9 +43,14 @@ class Projects(Base):
         onupdate=get_datetime_utc_now,
     )
 
+
     category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects")
 
-    member_roles = relationship("MemberRoles", back_populates="projects")
+    member_roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="projects")
+
+    comments:  Mapped[list["Comments"]] = relationship("Comments", back_populates="project")
+    likes:  Mapped[list["Likes"]] = relationship("Likes", back_populates="project")
+
 
     @property
     def members(self):

@@ -32,6 +32,7 @@ class ProjectsRead(BaseModel):
     owner_id: int
     category_id: Optional[int]
     status: ProjectStatus
+    like_count: int
     created_at: datetime
     updated_at: datetime
 

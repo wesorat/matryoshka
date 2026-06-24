@@ -3,6 +3,8 @@ from fastapi import Depends
 from api.v1.category import category_router
 from api.v1.projects import project_router
 from api.v1.user import user_router
+from api.v1.likes import likes_router
+from api.v1.comments import comments_router
 from models.user import User
 from schemas.user import UserCreate, UserRead, UserUpdate
 from services.auth import auth_backend, fastapi_users
@@ -12,6 +14,8 @@ def include_routers(app):
     app.include_router(user_router)
     app.include_router(category_router)
     app.include_router(project_router)
+    app.include_router(likes_router)
+    app.include_router(comments_router)
 
     app.include_router(
         fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]

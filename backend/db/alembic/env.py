@@ -7,6 +7,8 @@ from db.base import Base
 from models.category import Category
 from models.project import MemberRoles, Projects
 from models.user import User
+from models.likes import Likes
+from models.comments import Comments
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
