@@ -7,6 +7,11 @@ from api.v1.routers import include_routers
 
 def create_app() -> FastAPI:
     app = FastAPI()
+
+    @app.get("/health", tags=["health"])
+    async def health():
+        return {"status": "ok"}
+
     include_routers(app)
 
     app.add_middleware(
