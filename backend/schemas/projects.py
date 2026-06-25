@@ -6,6 +6,7 @@ from pydantic import BaseModel, computed_field
 from models.project import ProjectStatus
 from schemas.category import CategoryRead
 from schemas.comments import CommentsRead
+from schemas.media import MediaRead
 from schemas.user import UserRead
 
 
@@ -43,7 +44,7 @@ class ProjectUpdateStatus(BaseModel):
     status: ProjectStatus
 
 
-class ProjectsReadWithComents(BaseModel):
+class ProjectsReadOne(BaseModel):
     id: int
     title: str
     slug: str
@@ -52,6 +53,7 @@ class ProjectsReadWithComents(BaseModel):
     owner: UserRead
     category: Optional[CategoryRead] = None
     status: ProjectStatus
+    medias: list[MediaRead]
     like_count: int
     comments: list[CommentsRead]
     created_at: datetime

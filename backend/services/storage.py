@@ -24,4 +24,5 @@ class Storage:
         if path.exists():
             path.unlink()
 
-storage = Storage(FILES_DIR / 'uploads')
+
+storage = Storage(FILES_DIR / "uploads")

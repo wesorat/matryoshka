@@ -1,4 +1,3 @@
-
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import joinedload
 
@@ -21,10 +20,7 @@ class CategoryRepository:
 
     async def get_all(self, count: int = 15) -> list[dict]:
         res = await self.session.execute(
-            select(
-                Category,
-                func.sum(Projects.like_count).label('total_likes')
-            )
+            select(Category, func.sum(Projects.like_count).label("total_likes"))
             .join(Projects, Category.id == Projects.category_id)
             .group_by(Category.id)
             .order_by(func.sum(Projects.like_count).desc())
@@ -32,10 +28,7 @@ class CategoryRepository:
         )
         result = []
         for category, total_likes in res.all():
-            result.append({
-                **category.__dict__,
-                'total_likes': total_likes
-            })
+            result.append({**category.__dict__, "total_likes": total_likes})
         return result
 
     async def delete(self, id: int) -> int:

@@ -16,4 +16,3 @@ class CategoryReadWithLikes(BaseModel):
     name: str
     slug: str
     total_likes: int
-

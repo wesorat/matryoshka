@@ -25,8 +25,6 @@ class UserReadMain(BaseModel):
     avatar: str
 
 
-
-
 class UserCreate(schemas.BaseUserCreate):
     name: str
     avatar: Optional[str] = None

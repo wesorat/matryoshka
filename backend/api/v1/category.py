@@ -22,8 +22,10 @@ async def create(
 
         return category
     except IntegrityError as e:
-        if 'UNIQUE' in str(e.orig) or 'duplicate' in str(e.orig).lower():
-            raise HTTPException(status_code=409, detail=f"Категорий {category} уже существует")
+        if "UNIQUE" in str(e.orig) or "duplicate" in str(e.orig).lower():
+            raise HTTPException(
+                status_code=409, detail=f"Категорий {category} уже существует"
+            )
         else:
             raise e
 
@@ -43,7 +45,6 @@ async def get(
 async def get_all(
     category_service: CategoryServiceDep,
     count: int = 15,
-
 ):
     categories = await category_service.get_all(count)
     return categories

@@ -13,4 +13,6 @@ class Category(Base):
         String(length=100), nullable=False, unique=True, index=True
     )
 
-    projects: Mapped[list["Projects"]] = relationship("Projects", back_populates="category")
+    projects: Mapped[list["Projects"]] = relationship(
+        "Projects", back_populates="category"
+    )

@@ -22,10 +22,14 @@ async def create(
         like = await like_service.create(user_id, project_id)
         return like
     except IntegrityError as e:
-        if 'UNIQUE' in str(e.orig) or 'duplicate' in str(e.orig).lower():
-            raise HTTPException(status_code=409, detail=f"Like user_id={user_id} project_id={project_id} уже существует")
+        if "UNIQUE" in str(e.orig) or "duplicate" in str(e.orig).lower():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Like user_id={user_id} project_id={project_id} уже существует",
+            )
         else:
             raise e
+
 
 @likes_router.delete("/", summary="Delete like")
 async def delete(
