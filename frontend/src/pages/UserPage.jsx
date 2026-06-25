@@ -2,7 +2,8 @@ import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
 import Button from '../components/Buttons/Button.jsx'
 import styles from './UserPage.module.scss'
 
-function UserPage({ user = {}, projects = [], onBack = () => {}, onProjectClick = () => {} }) {
+// Добавили onLogout и loading в деструктуризацию пропсов
+function UserPage({ user = {}, projects = [], loading = false, onBack = () => {}, onProjectClick = () => {}, onLogout = () => {} }) {
   const { name = 'Имя Пользователя', avatar } = user
 
   return (
@@ -33,7 +34,11 @@ function UserPage({ user = {}, projects = [], onBack = () => {}, onProjectClick 
             <Button type="button" variant="outline" onClick={onBack}>Назад</Button>
           </div>
 
-          <ProjectCards projects={projects} onProjectClick={onProjectClick} />
+          {loading ? (
+             <p>Загрузка проектов...</p>
+          ) : (
+             <ProjectCards projects={projects} onProjectClick={onProjectClick} />
+          )}
         </main>
       </div>
     </section>

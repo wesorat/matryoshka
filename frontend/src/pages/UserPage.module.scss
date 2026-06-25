@@ -2,18 +2,26 @@
 @use '../styles/mixins' as mixins;
 
 .page {
-//   padding: 32px 20px;
+  padding: 32px 0; 
+  width: 100%;
 }
 
 .container {
   display: flex;
   gap: 24px;
   align-items: flex-start;
+  width: 100%;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .sidebar {
   width: 20%;
   min-width: 180px;
+  @media (max-width: 768px) {
+    width: 100%; // На мобилках сайдбар займет всю ширину
+  }
 }
 
 .profile {
@@ -35,6 +43,7 @@
 }
 
 .name {
+  @include mixins.text-ordinary;
   margin: 0;
   font-size: 1.1rem;
 }
@@ -48,6 +57,9 @@
 
 .content {
   width: 80%;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 
 .headerRow {

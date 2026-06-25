@@ -12,18 +12,23 @@ html, body {
 #root {
   display: flex;
   flex-direction: column;
-  min-height: 100%; // Контент сможет растягивать страницу дальше, если его много
+  min-height: 100vh;
 }
 
 // Стили для твоего главного контента
 main.appContent {
-  flex: 1 0 auto; // Растягивается на все доступное пространство между header и footer
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  position: relative; // Если внутри понадобятся абсолютно позиционированные элементы
-  width: 100%;
+  position: relative;
+  
+  // Ограничиваем по ширине и центрируем
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  // Добавляем боковые отступы 20px, чтобы контент не лип к экранам мобилок
+  padding: 0 20px; 
+  box-sizing: border-box;
 }
-
 // Необязательно, но полезно для стабильности футера
 footer {
   flex: 0 0 auto; // Запрещает футеру сжиматься

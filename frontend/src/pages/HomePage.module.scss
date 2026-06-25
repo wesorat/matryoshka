@@ -1,9 +1,10 @@
 @use '../styles/mixins' as mixins;
+@use '../styles/variables' as vars;
 
 .emptyText {
   @include mixins.text-ordinary;
   text-align: center;
   padding: 40px 0;
   font-size: 1.5rem;
-  color: #666;
+  color: vars.$text-main;
 }
