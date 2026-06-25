@@ -12,7 +12,7 @@ from schemas.user import UserRead
 class ProjectsCreate(BaseModel):
     title: str
     description: str = ""
-    image_url: Optional[str] = None
+    # image_url: Optional[str] = None
     category_id: Optional[int] = None
     status: ProjectStatus = ProjectStatus.DRAFT
 

@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from api.v1.dependencies import CategoryServiceDep, CurrentUserDep
 from core.dependencies import SessionDep
-from schemas.category import CategoryCreate, CategoryRead
+from schemas.category import CategoryCreate, CategoryRead, CategoryReadWithLikes
 from services.category import CategoryService
 
 category_router = APIRouter(
@@ -38,12 +38,14 @@ async def get(
 
 
 @category_router.get(
-    "/", summary="Get all categories", response_model=list[CategoryRead]
+    "/", summary="Get all categories", response_model=list[CategoryReadWithLikes]
 )
 async def get_all(
     category_service: CategoryServiceDep,
+    count: int = 15,
+
 ):
-    categories = await category_service.get_all()
+    categories = await category_service.get_all(count)
     return categories
 
 

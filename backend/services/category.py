@@ -1,7 +1,7 @@
 from core.dependencies import SessionDep
 from models.category import Category
 from repositories.category import CategoryRepository
-from schemas.category import CategoryCreate, CategoryRead
+from schemas.category import CategoryCreate, CategoryRead, CategoryReadWithLikes
 from slugify import slugify
 
 
@@ -26,8 +26,9 @@ class CategoryService:
     async def get(self, id: int) -> Category:
         return await self.repo.get(id)
 
-    async def get_all(self) -> list[Category]:
-        return await self.repo.get_all()
+    async def get_all(self, count: int) -> list[CategoryReadWithLikes]:
+        data = await self.repo.get_all(count)
+        return [CategoryReadWithLikes(**item) for item in data]
 
     async def delete(self, id: int) -> int:
         count = await self.repo.delete(id)

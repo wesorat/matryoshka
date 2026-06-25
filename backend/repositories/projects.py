@@ -73,6 +73,8 @@ class ProjectsRepository:
             select(Projects).where(
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
+
         )
         return res.scalars().all()
 
@@ -81,6 +83,7 @@ class ProjectsRepository:
             select(Projects).where(
                 Projects.owner_id == user_id,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
@@ -148,6 +151,7 @@ class ProjectsRepository:
                 Projects.category_id == category_id,
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
@@ -158,6 +162,7 @@ class ProjectsRepository:
             .where(
                 Category.slug == category_slug
                 )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
@@ -167,6 +172,7 @@ class ProjectsRepository:
                 Projects.title.ilike(f"%{title}%"),
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
