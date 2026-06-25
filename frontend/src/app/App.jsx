@@ -9,7 +9,7 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout, fetchMyProjects } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
