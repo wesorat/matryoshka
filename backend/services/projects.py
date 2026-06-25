@@ -1,6 +1,4 @@
-from pathlib import Path
 from typing import List, Optional
-import uuid
 
 from fastapi import UploadFile
 from slugify import slugify
@@ -10,6 +8,7 @@ from core.exceptions import ProjectNotFound
 from models.project import Projects, ProjectStatus
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectsCreate, ProjectsReadWithComents, ProjectsUpdate
+from services.media import MediaService
 from services.storage import storage
 
 
@@ -17,6 +16,7 @@ class ProjectService:
     def __init__(self, session: SessionDep):
         self.session = session
         self.repo = ProjectsRepository(session)
+
 
     async def create(self, project: ProjectsCreate, user_id: int, file:Optional[UploadFile]) -> Projects:
 
@@ -27,11 +27,8 @@ class ProjectService:
         created_project.owner_id = user_id
 
         if file:
-            ext = Path(file.filename).suffix
-            filename = f"{uuid.uuid4()}{ext}"
-            content = await file.read()
-            storage.save(filename, content)
-            created_project.image_url = filename
+            media_service = MediaService()
+            created_project.image_url = await media_service.create(file)
 
         await self.repo.create(created_project)
         await self.session.commit()
@@ -99,15 +96,30 @@ class ProjectService:
         return count
 
     async def update(
-        self, user_id: int, project_id: int, project: ProjectsUpdate
+        self, user_id: int, project_id: int, project: ProjectsUpdate, file: Optional[UploadFile]
     ) -> Projects:
+
         updated_project = await self.repo.update(user_id, project_id, project)
+
+        if file:
+            media_service = MediaService()
+            if updated_project.image_url == "":
+                updated_project.image_url = await media_service.create(file)
+            else:
+                await media_service.update(updated_project.image_url, file)
         await self.session.commit()
         return updated_project
 
     async def update_by_slug(
-        self, user_id: int, project_slug: str, project: ProjectsUpdate
+        self, user_id: int, project_slug: str, project: ProjectsUpdate, file: Optional[UploadFile]
     ) -> Projects:
         updated_project = await self.repo.update_by_slug(user_id, project_slug, project)
+        if file:
+            media_service = MediaService()
+            if updated_project.image_url == "":
+                updated_project.image_url = await media_service.create(file)
+            else:
+                await media_service.update(updated_project.image_url, file)
+
         await self.session.commit()
         return updated_project

@@ -20,7 +20,7 @@ class ProjectsCreate(BaseModel):
 class ProjectsUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    image_url: Optional[str] = None
+    # image_url: Optional[str] = None
     category_id: Optional[int] = None
     status: Optional[ProjectStatus] = None
 
