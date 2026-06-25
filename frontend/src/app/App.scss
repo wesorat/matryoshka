@@ -125,7 +125,8 @@
 .appContent {
   display: block;
   width: min(1180px, 100%);
-  margin: 0px auto 0;
-  padding: 0 0px;
+  margin: 0 auto;
+  // Добавляем 20px по бокам, чтобы контент идеально выстраивался по вертикали с шапкой
+  padding: 0 20px; 
   box-sizing: border-box;
 }
