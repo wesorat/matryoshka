@@ -13,9 +13,7 @@ comments_router = APIRouter(
 
 @comments_router.post("/", summary="Create comment", response_model=CommentsRead)
 async def create(
-    comment_service: CommentsServiceDep,
-    user: CurrentUserDep,
-    comment: CommentsCreate
+    comment_service: CommentsServiceDep, user: CurrentUserDep, comment: CommentsCreate
 ):
     user_id = user.id
     created_comment = await comment_service.create(user_id, comment)

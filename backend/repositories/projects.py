@@ -5,10 +5,11 @@ from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
 from models.comments import Comments
+from models.media import Media
 from models.project import Projects, ProjectStatus
 from slugify import slugify
 
-from schemas.projects import ProjectsReadWithComents
+from schemas.projects import ProjectsReadOne
 
 
 class ProjectsRepository:
@@ -20,9 +21,10 @@ class ProjectsRepository:
         self.session.add(project)
         return project
 
-    async def get(self, user_id: int, id: int) -> ProjectsReadWithComents:
+    async def get(self, user_id: int, id: int) -> ProjectsReadOne:
         res = await self.session.execute(
             select(Projects)
+            .options(selectinload(Projects.medias))
             .where(
                 Projects.id == id,
                 or_(
@@ -40,12 +42,13 @@ class ProjectsRepository:
             .where(Comments.project_id == id)
             .order_by(Comments.created_at.desc())
         )
-        await self.session.refresh(project, attribute_names=['comments'])
+        await self.session.refresh(project, attribute_names=["comments"])
         return project
 
-    async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadWithComents:
+    async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadOne:
         res = await self.session.execute(
             select(Projects)
+            .options(selectinload(Projects.medias))
             .where(
                 Projects.slug == slug,
                 or_(
@@ -63,30 +66,35 @@ class ProjectsRepository:
             .where(Comments.project_id == project.id)
             .order_by(Comments.created_at.desc())
         )
-        await self.session.refresh(project, attribute_names=['comments'])
+        await self.session.refresh(project, attribute_names=["comments"])
         return project
-
-
 
     async def get_all(self) -> list[Projects]:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
     async def get_my(self, user_id: int) -> list[Projects]:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.owner_id == user_id,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
     async def update(self, user_id: int, project_id: int, data: dict) -> Projects:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.comments))
+            .where(
                 Projects.id == project_id,
                 Projects.owner_id == user_id,
             )
@@ -95,7 +103,14 @@ class ProjectsRepository:
         if project is None:
             raise ProjectNotFound(project_id)
 
-        allowed_fields = {"title", "description", "image_url", "category_id", "status", "slug"}
+        allowed_fields = {
+            "title",
+            "description",
+            "image_url",
+            "category_id",
+            "status",
+            "slug",
+        }
 
         for key, value in data.items():
             if key in allowed_fields and value is not None:
@@ -103,9 +118,14 @@ class ProjectsRepository:
 
         return project
 
-    async def update_by_slug(self, user_id: int, project_slug: str, data: dict) -> Projects:
+    async def update_by_slug(
+        self, user_id: int, project_slug: str, data: dict
+    ) -> Projects:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.comments))
+            .where(
                 Projects.slug == project_slug,
                 Projects.owner_id == user_id,
             )
@@ -114,7 +134,14 @@ class ProjectsRepository:
         if project is None:
             raise ProjectNotFound(project_slug)
 
-        allowed_fields = {"title", "description", "image_url", "category_id", "status", "slug"}
+        allowed_fields = {
+            "title",
+            "description",
+            "image_url",
+            "category_id",
+            "status",
+            "slug",
+        }
 
         for key, value in data.items():
             if key in allowed_fields and value is not None:
@@ -124,49 +151,57 @@ class ProjectsRepository:
 
     async def delete(self, user_id: int, id: int) -> int:
         res = await self.session.execute(
-            delete(Projects).where(
+            delete(Projects)
+            .where(
                 Projects.id == id,
                 Projects.owner_id == user_id,
             )
+            .returning(Projects.image_url)
         )
 
-        return res.rowcount
+        return res.scalar_one_or_none()
 
     async def delete_by_slug(self, user_id: int, slug: str) -> int:
         res = await self.session.execute(
-            delete(Projects).where(
+            delete(Projects)
+            .where(
                 Projects.slug == slug,
                 Projects.owner_id == user_id,
             )
+            .returning(Projects.image_url)
         )
 
-        return res.rowcount
+        return res.scalar_one_or_none()
 
     async def get_by_category(self, category_id: int) -> list[Projects]:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.category_id == category_id,
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
     async def get_by_category_by_slug(self, category_slug: int) -> list[Projects]:
-        res = await self.session.execute(select(Projects).options(
-            joinedload(Projects.category)
-            ).join(Projects.category)
-            .where(
-                Category.slug == category_slug
-                )
+        res = await self.session.execute(
+            select(Projects)
+            .options(joinedload(Projects.category))
+            .join(Projects.category)
+            .where(Category.slug == category_slug)
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 
     async def search_by_title(self, title: str) -> list[Projects]:
         res = await self.session.execute(
-            select(Projects).where(
+            select(Projects)
+            .where(
                 Projects.title.ilike(f"%{title}%"),
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
 

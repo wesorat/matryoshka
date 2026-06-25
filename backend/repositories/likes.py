@@ -21,12 +21,14 @@ class LikesRepository:
         return like
 
     async def delete(self, like: Likes) -> int:
-        res = await self.session.execute(delete(Likes).where(Likes.user_id == like.user_id, Likes.project_id == like.project_id))
+        res = await self.session.execute(
+            delete(Likes).where(
+                Likes.user_id == like.user_id, Likes.project_id == like.project_id
+            )
+        )
         await self.session.execute(
             update(Projects)
             .where(Projects.id == like.project_id)
             .values(like_count=Projects.like_count - 1)
         )
         return res.rowcount
-
-

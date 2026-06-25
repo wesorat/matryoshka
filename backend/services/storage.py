@@ -8,20 +8,21 @@ class Storage:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
 
-    def _full_path(self, filepath: str) -> Path:
+    def full_path(self, filepath: str) -> Path:
         return self.root / filepath
 
     def save(self, filepath: str, content: bytes):
-        path = self._full_path(filepath)
+        path = self.full_path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
 
     def read(self, filepath: str) -> bytes:
-        return self._full_path(filepath).read_bytes()
+        return self.full_path(filepath).read_bytes()
 
     def delete(self, filepath: str):
-        path = self._full_path(filepath)
+        path = self.full_path(filepath)
         if path.exists():
             path.unlink()
 
-storage = Storage(FILES_DIR / 'uploads')
+
+storage = Storage(FILES_DIR / "uploads")

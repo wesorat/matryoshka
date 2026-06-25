@@ -7,6 +7,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.comments import Comments
+from models.media import Media
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -43,22 +44,28 @@ class Projects(Base):
         onupdate=get_datetime_utc_now,
     )
 
+    category: Mapped[Optional["Category"]] = relationship(
+        "Category", back_populates="projects", lazy="selectin"
+    )
 
-    category: Mapped[Optional["Category"]] = relationship("Category", back_populates="projects", lazy="selectin")
+    member_roles: Mapped[list["MemberRoles"]] = relationship(
+        "MemberRoles", back_populates="projects"
+    )
 
-    member_roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="projects")
-
-    comments:  Mapped[list["Comments"]] = relationship("Comments", back_populates="project")
-    likes:  Mapped[list["Likes"]] = relationship("Likes", back_populates="project")
+    comments: Mapped[list["Comments"]] = relationship(
+        "Comments", back_populates="project"
+    )
+    likes: Mapped[list["Likes"]] = relationship("Likes", back_populates="project")
 
     owner: Mapped["User"] = relationship(
-        "User",
-        back_populates="own_projects",
-        lazy="selectin"
+        "User", back_populates="own_projects", lazy="selectin"
     )
+    medias: Mapped[list["Media"]] = relationship("Media", back_populates="project")
+
     @property
     def members(self):
         return [i.users for i in self.member_roles]
+
 
 class MemberRoles(Base):
     __tablename__ = "member_roles"
@@ -75,5 +82,3 @@ class MemberRoles(Base):
 
     projects = relationship("Projects", back_populates="member_roles")
     users = relationship("User", back_populates="roles")
-
-

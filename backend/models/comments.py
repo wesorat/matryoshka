@@ -7,13 +7,13 @@ from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
 
 
-
 class Comments(Base):
     __tablename__ = "project_comments"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     text: Mapped[str] = mapped_column(
-        String(length=500), nullable=False,
+        String(length=500),
+        nullable=False,
     )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id"))
@@ -22,4 +22,6 @@ class Comments(Base):
     )
 
     project: Mapped["Projects"] = relationship("Projects", back_populates="comments")
-    user: Mapped["User"] = relationship("User", back_populates="comments", lazy="selectin")
+    user: Mapped["User"] = relationship(
+        "User", back_populates="comments", lazy="selectin"
+    )
