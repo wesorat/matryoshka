@@ -12,7 +12,7 @@ html, body {
 #root {
   display: flex;
   flex-direction: column;
-  min-height: 100%; // Контент сможет растягивать страницу дальше, если его много
+  min-height: 100vh;
 }
 
 // Стили для твоего главного контента

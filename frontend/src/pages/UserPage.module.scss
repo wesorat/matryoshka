@@ -43,6 +43,7 @@
 }
 
 .name {
+  @include mixins.text-ordinary;
   margin: 0;
   font-size: 1.1rem;
 }

@@ -249,7 +249,7 @@ function App() {
   }, [selectedCategoryId])
 
   return (
-    <div>
+    <>
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
           <div className="appHeader__logo" onClick={handleLogoClick}>
@@ -309,7 +309,7 @@ function App() {
       </main>
 
       <Footer />
-    </div>
+    </>
   )
 }
 
