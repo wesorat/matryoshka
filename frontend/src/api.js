@@ -54,23 +54,44 @@ export async function login(email, password) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formData,
+    credentials: 'include',
   })))
 }
 
 export async function register(email, password, name) {
-  return handleResponse(await fetch(`${API_URL}/auth/register`, fetchOptions({
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name }),
-  })))
+  return handleResponse(
+    await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name }),
+    })
+  )
 }
 
-export async function fetchCurrentUser() {
-  return handleResponse(await fetch(`${API_URL}/users/me`, authFetchOptions()))
+
+export async function fetchMyProjects() {
+  return handleResponse(
+    await fetch(`${API_URL}/projects/my`, {
+      method: 'GET',
+      credentials: 'include',
+    })
+  )
 }
 
 export async function logout() {
-  return handleResponse(await fetch(`${API_URL}/auth/jwt/logout`, authFetchOptions({
-    method: 'POST',
-  })))
+  return handleResponse(
+    await fetch(`${API_URL}/auth/jwt/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+  )
+}
+
+export async function fetchCurrentUser() {
+  return handleResponse(
+    await fetch(`${API_URL}/users/me`, {
+      method: 'GET',
+      credentials: 'include',
+    })
+  )
 }

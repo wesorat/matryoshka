@@ -17,14 +17,19 @@ function App() {
   const [logType, setLogType] = useState(null)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+  
   const [user, setUser] = useState(null)
+  const [myProjects, setMyProjects] = useState([]) // Стейт для реальных проектов юзера
+  const [myProjectsLoading, setMyProjectsLoading] = useState(false)
+
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [projects, setProjects] = useState([])
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
-//проверка сессии при завпуске
+  
+  //проверка сессии при запуске
   useEffect(() => {
     fetchCurrentUser()
       .then((userData) => setUser(userData))
@@ -33,7 +38,25 @@ function App() {
         setUser(null)
       })
   }, [])
+  // Обработка загрузки проектов юзера при нахождении на своей страницеЫ
+  useEffect(() => {
+    if (page !== 'user' || !user) return
 
+    let mounted = true
+    setMyProjectsLoading(true)
+
+    fetchMyProjects()
+      .then((items) => {
+        if (mounted) setMyProjects(items)
+      })
+      .catch((err) => console.error('Не удалось загрузить личные проекты:', err))
+      .finally(() => {
+        if (mounted) setMyProjectsLoading(false)
+      })
+
+    return () => { mounted = false }
+  }, [page, user])
+  // Обработка изменения шапки при скролле
   useEffect(() => {
     let ticking = false
     const threshold = 40      // было 20 — слишком мало, любой "рваный" скролл пересекал границу
@@ -60,7 +83,7 @@ function App() {
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
-
+  // Обработка перемещения по страницам
   useEffect(() => {
     const handlePopState = (event) => {
       if (event.state?.page === 'project') {
@@ -71,84 +94,67 @@ function App() {
         setSelectedProjectId(null)
         setSelectedCategoryId(event.state.categoryId)
         setPage('category')
+      } else if (event.state?.page === 'user') {
+        setPage('user')
       } else {
         setSelectedProjectId(null)
         setSelectedCategoryId(null)
         setPage('home')
       }
     }
-
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
     let mounted = true
-
     fetchCategories()
-      .then((items) => {
-        if (mounted) {
-          setCategories(items)
-        }
-      })
-      .catch((error) => {
-        console.error('Не удалось загрузить категории:', error)
-      })
-      .finally(() => {
-        if (mounted) {
-          setCategoriesLoading(false)
-        }
-      })
-
-    return () => {
-      mounted = false
-    }
+      .then((items) => { if (mounted) setCategories(items) })
+      .catch((error) => console.error('Не удалось загрузить категории:', error))
+      .finally(() => { if (mounted) setCategoriesLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   useEffect(() => {
     let mounted = true
-
     fetchProjects()
-      .then((items) => {
-        if (mounted) {
-          setProjects(items)
-        }
-      })
-      .catch((error) => {
-        console.error('Не удалось загрузить проекты:', error)
-      })
-      .finally(() => {
-        if (mounted) {
-          setProjectsLoading(false)
-        }
-      })
-
-    return () => {
-      mounted = false
-    }
+      .then((items) => { if (mounted) setProjects(items) })
+      .catch((error) => console.error('Не удалось загрузить проекты:', error))
+      .finally(() => { if (mounted) setProjectsLoading(false) })
+    return () => { mounted = false }
   }, [])
-  //========================================== Аккаунт
+
+  //============================================================= Аккаунт
   //Обработчик успешной авторизациии
   const handleAuthSuccess = (userData) => {
     setUser(userData)
     setPage('home')
     setLogType(null)
   }
+  
+  const handleAccountClick = () => {
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('user')
+    window.history.pushState({ page: 'user' }, '')
+  }
   //Обработчик выхода из аккаунта
   const handleLogout = async () => {
     try {
-      await logout() // чистим куки на сервере
+      await logout()
     } catch (e) {
-      console.error('Ошибка при выходе:', e)
+      console.error('Ошибка на бэкенде при логауте:', e)
     } finally {
       setUser(null)
+      setMyProjects([])
       setSelectedProjectId(null)
       setSelectedCategoryId(null)
       setPage('home')
       window.history.pushState({ page: 'home' }, '')
     }
   }
-  //========================================== 
+  //=============================================================
+
   //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
@@ -185,13 +191,6 @@ function App() {
     setLogType(null)
   }
 
-  const handleAccountClick = () => {
-    setSelectedProjectId(null)
-    setSelectedCategoryId(null)
-    setPage('user')
-    window.history.pushState({ page: 'user' }, '')
-  }
-
   // переход на страницу пользователя по projectId (демонстрация)
   useEffect(() => {
     const handleUserOpen = (state) => {
@@ -215,13 +214,10 @@ function App() {
   }
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId)
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId,)
 
-  const selectedCategory = categories.find(
-    (category) => category.id === selectedCategoryId,
-  )
-
-  const sampleUser = user || { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
-  const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
+  //const sampleUser = user || { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
+  //const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
 
   const displayedCategoryProjects = categoryLoading
     ? []
@@ -257,23 +253,17 @@ function App() {
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
           <div className="appHeader__logo" onClick={handleLogoClick}>
-            <Logo
-              className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'}
-            />
+            <Logo className={isShrunk ? 'appHeader__logoSvg appHeader__logoSvg--wide' : 'appHeader__logoSvg'} />
           </div>
           <nav className="appHeader__nav">
             {user ? (
               <Button type="button" variant="link" onClick={handleAccountClick}>
-                Мой аккаунт
+                Мой аккаунт ({user.name})
               </Button>
             ) : (
               <>
-                <Button type="button" variant="link" onClick={handleSignUpClick}>
-                  sign up
-                </Button>
-                <Button type="button" variant="link" onClick={handleLoginClick}>
-                  log in
-                </Button>
+                <Button type="button" variant="link" onClick={handleSignUpClick}>sign up</Button>
+                <Button type="button" variant="link" onClick={handleLoginClick}>log in</Button>
               </>
             )}
           </nav>
@@ -300,13 +290,14 @@ function App() {
             onProjectClick={handleProjectClick}
           />
         )}
-        {page === 'user' && (
+        {page === 'user' && user && (
           <UserPage
-            user={sampleUser}
-            projects={userProjects}
+            user={user}
+            projects={myProjects}
+            loading={myProjectsLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
-            onLogout={handleLogout}
+            onLogout={handleLogout} // Передаем функцию логаута
           />
         )}
         {page === 'log' && (

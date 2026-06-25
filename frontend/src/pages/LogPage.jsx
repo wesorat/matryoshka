@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './LogPage.module.scss';
-import { login, register, fetchCurrentUser } from '../api';
+import { login, register, fetchCurrentUser } from '../api.js';
 
 export default function LogPage({ type = 'login', onBack = () => {}, onSuccess = () => {} }) {
    const [isOpen, setIsOpen] = useState(true);
    const [showPassword, setShowPassword] = useState(false);
    
-   // Стейт формы
+   // Стейт полей формы
    const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
-   
+
    const overlayRef = useRef(null);
    const dialogRef = useRef(null);
 
@@ -58,7 +58,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    }, [isOpen]);
 
    const handleChange = (e) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
    };
 
    const handleSubmit = async (e) => {
@@ -71,21 +71,20 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
             if (formData.password !== formData.confirmPassword) {
                throw new Error("Пароли не совпадают");
             }
-            // Регистрация
+            // 1. Регистрируем
             await register(formData.email, formData.password, formData.name);
-            // Сразу логинимся после регистрации
+            // 2. Сразу авторизуем после успешной регистрации
             await login(formData.email, formData.password);
          } else {
             // Обычный логин
             await login(formData.email, formData.password);
          }
 
-         // Запрашиваем данные юзера и передаем наверх
-         const user = await fetchCurrentUser();
-         onSuccess(user);
-         
+         // Получаем профиль вошедшего пользователя и прокидываем в App.jsx
+         const userData = await fetchCurrentUser();
+         onSuccess(userData);
       } catch (err) {
-         setError(err.message || 'Произошла ошибка');
+         setError(err.message || 'Произошла ошибка при авторизации');
       } finally {
          setLoading(false);
       }
@@ -99,9 +98,9 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
             onClick={(e) => e.target.id === "modalOverlay" && closeModal()}
             className={`${styles.overlay} ${!isOpen ? styles.hidden : ""}`}
          >
-            <div ref={dialogRef} role="dialog" aria-modal="true" tabIndex="-1" className={styles.dialog}>
-               <button type="button" onClick={closeModal} className={styles.closeBtn}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 329.269 329">
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="modal-title" tabIndex="-1" className={styles.dialog}>
+               <button type="button" aria-label="Close modal" onClick={closeModal} className={styles.closeBtn}>
+                  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" viewBox="0 0 329.269 329">
                      <path d="M194.8 164.77 323.013 36.555c8.343-8.34 8.343-21.825 0-30.164-8.34-8.34-21.825-8.34-30.164 0L164.633 134.605 36.422 6.391c-8.344-8.34-21.824-8.34-30.164 0-8.344 8.34-8.344 21.824 0 30.164l128.21 128.215L6.259 292.984c-8.344 8.34-8.344 21.825 0 30.164a21.27 21.27 0 0 0 15.082 6.25c5.46 0 10.922-2.09 15.082-6.25l128.21-128.214 128.216 128.214a21.27 21.27 0 0 0 15.082 6.25c5.46 0 10.922-2.09 15.082-6.25 8.343-8.34 8.343-21.824 0-30.164zm0 0" />
                   </svg>
                </button>
@@ -112,7 +111,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                </div>
 
                <div className={styles.formContainer}>
-                  {error && <p style={{ color: 'red', fontSize: '14px', marginBottom: '10px' }}>{error}</p>}
+                  {error && <p style={{ color: '#ff4d4d', marginBottom: '15px', fontSize: '14px' }}>{error}</p>}
                   
                   <form className={styles.form} onSubmit={handleSubmit}>
                      {type === 'signup' && (
@@ -129,10 +128,17 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
 
                      <div className={styles.inputGroup}>
                         <label htmlFor="password">Password</label>
-                        <button type="button" onClick={() => setShowPassword((prev) => !prev)} className={styles.togglePasswordBtn}>
+                        <button
+                           type="button"
+                           aria-label={showPassword ? "Hide password" : "Show password"}
+                           aria-pressed={showPassword}
+                           aria-controls="password"
+                           onClick={() => setShowPassword((prev) => !prev)}
+                           className={styles.togglePasswordBtn}>
                            <span className="sr-only">Toggle password visibility</span>
-                           {showPassword ? "Hide" : "Show"} {/* Упростил для читаемости, верни свои SVG */}
+                           {showPassword ? "Hide" : "Show"} {/* Для краткости текста */}
                         </button>
+
                         <input type={showPassword ? "text" : "password"} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={styles.input} />
                      </div>
 
@@ -144,7 +150,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                      )}
 
                      <button type="submit" disabled={loading} className={styles.submitBtn}>
-                        {loading ? 'Загрузка...' : (type === 'login' ? 'Sign in' : 'Create Account')}
+                        {loading ? 'Processing...' : (type === 'login' ? 'Sign in' : 'Create Account')}
                      </button>
                   </form>
                </div>
