@@ -9,7 +9,7 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjects, fetchProjectsByCategory } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
@@ -24,6 +24,15 @@ function App() {
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
+//проверка сессии при завпуске
+  useEffect(() => {
+    fetchCurrentUser()
+      .then((userData) => setUser(userData))
+      .catch(() => {
+        // Если ошибка - значит не авторизован (или токен истек), игнорируем
+        setUser(null)
+      })
+  }, [])
 
   useEffect(() => {
     let ticking = false
@@ -118,6 +127,28 @@ function App() {
       mounted = false
     }
   }, [])
+  //========================================== Аккаунт
+  //Обработчик успешной авторизациии
+  const handleAuthSuccess = (userData) => {
+    setUser(userData)
+    setPage('home')
+    setLogType(null)
+  }
+  //Обработчик выхода из аккаунта
+  const handleLogout = async () => {
+    try {
+      await logout() // чистим куки на сервере
+    } catch (e) {
+      console.error('Ошибка при выходе:', e)
+    } finally {
+      setUser(null)
+      setSelectedProjectId(null)
+      setSelectedCategoryId(null)
+      setPage('home')
+      window.history.pushState({ page: 'home' }, '')
+    }
+  }
+  //========================================== 
   //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
@@ -159,14 +190,6 @@ function App() {
     setSelectedCategoryId(null)
     setPage('user')
     window.history.pushState({ page: 'user' }, '')
-  }
-
-  const handleLogout = () => {
-    setUser(null)
-    setSelectedProjectId(null)
-    setSelectedCategoryId(null)
-    setPage('home')
-    window.history.pushState({ page: 'home' }, '')
   }
 
   // переход на страницу пользователя по projectId (демонстрация)
@@ -287,7 +310,7 @@ function App() {
           />
         )}
         {page === 'log' && (
-          <LogPage type={logType} onBack={handleLogClose} />
+          <LogPage type={logType} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
         {page === 'project' && (
           <ProjectPage project={selectedProject} onBack={handleBackToHome} />
