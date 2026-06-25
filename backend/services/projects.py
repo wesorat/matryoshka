@@ -60,19 +60,6 @@ class ProjectService:
             return []
         return await self.repo.search_by_title(title.strip())
 
-    async def update_status(
-        self, user_id: int, project_id: int, status: ProjectStatus
-    ) -> Projects:
-        project = await self.repo.update_status(user_id, project_id, status)
-        await self.session.commit()
-        return project
-
-    async def update_status(
-        self, user_id: int, slug: str, status: ProjectStatus
-    ) -> Projects:
-        project = await self.repo.update_status_by_slug(user_id, slug, status)
-        await self.session.commit()
-        return project
 
     async def delete(self, user_id: int, project_id: int):
         filename = await self.repo.delete(user_id, project_id)

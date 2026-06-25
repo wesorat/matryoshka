@@ -107,38 +107,6 @@ async def search_projects(title: str, service: ProjectServiceDep):
     return projects
 
 
-@project_router.patch("/{project_id:int}/status", response_model=ProjectsRead)
-async def update_project_status(
-    project_id: int,
-    project: ProjectUpdateStatus,
-    current_user: CurrentUserDep,
-    service: ProjectServiceDep,
-):
-    try:
-        updated_project = await service.update_status(
-            current_user.id, project_id, project.status
-        )
-        return updated_project
-    except ProjectNotFound:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-
-
-@project_router.patch("/{project_slug:str}/status", response_model=ProjectsRead)
-async def update_project_status(
-    project_slug: str,
-    project: ProjectUpdateStatus,
-    current_user: CurrentUserDep,
-    service: ProjectServiceDep,
-):
-    try:
-        updated_project = await service.update_status(
-            current_user.id, project_slug, project.status
-        )
-        return updated_project
-    except ProjectNotFound:
-        raise HTTPException(status_code=404, detail=f"Project {project_slug} not found")
-
-
 @project_router.patch("/{project_id:int}", response_model=ProjectsReadOne)
 async def update_project(
     project_id: int,

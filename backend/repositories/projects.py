@@ -205,38 +205,6 @@ class ProjectsRepository:
         )
         return res.scalars().all()
 
-    async def update_status(
-        self, user_id: int, id: int, status: ProjectStatus
-    ) -> Projects:
-        res = await self.session.execute(
-            select(Projects).where(
-                Projects.id == id,
-                Projects.owner_id == user_id,
-            )
-        )
-        project = res.scalar_one_or_none()
-        if project is None:
-            raise ProjectNotFound(id)
-
-        project.status = status
-        return project
-
-    async def update_status_by_slug(
-        self, user_id: int, slug: str, status: ProjectStatus
-    ) -> Projects:
-        res = await self.session.execute(
-            select(Projects).where(
-                Projects.slug == slug,
-                Projects.owner_id == user_id,
-            )
-        )
-        project = res.scalar_one_or_none()
-        if project is None:
-            raise ProjectNotFound(slug)
-
-        project.status = status
-        return project
-
     async def generate_unique_slug(self, title: str) -> str:
         base_slug = slugify(title)
         slug = base_slug
