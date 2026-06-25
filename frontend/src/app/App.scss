@@ -121,12 +121,3 @@
   // [COLOR] Если и сжатый хедер, и модификатор wide одновременно
   color: vars.$bg-main;
 }
-
-.appContent {
-  display: block;
-  width: min(1180px, 100%);
-  margin: 0 auto;
-  // Добавляем 20px по бокам, чтобы контент идеально выстраивался по вертикали с шапкой
-  padding: 0 20px; 
-  box-sizing: border-box;
-}
