@@ -11,11 +11,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  // [COLOR] Header background (default). Change to another variable or value.
   background: vars.$basic-light;
   z-index: 20;
   overflow: hidden;
-  // только то, что реально анимируется; transform убран — он не меняется через JS
   will-change: height, background-color;
   backface-visibility: hidden;
   transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
