@@ -1,4 +1,5 @@
-from sqlalchemy import delete, update
+
+from sqlalchemy import delete, or_, update, select
 
 from core.dependencies import SessionDep
 
@@ -15,8 +16,10 @@ class MembersRepository:
         self.session.add(member)
         return member
 
-    async def get_user(self, user_id: int) -> User:
-        return await self.session.get(User, user_id)
+    async def get_user(self, user_id: int, email: str) -> User:
+        res = await self.session.execute(select(User).where(
+            or_(User.id == user_id, User.email == email)))
+        return res.scalar_one_or_none()
 
     async def create_user(self, user: User) -> User:
         self.session.add(user)

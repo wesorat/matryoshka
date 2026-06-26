@@ -19,7 +19,7 @@ from schemas.projects import (
     ProjectsReadOne,
     ProjectsUpdate,
 )
-from schemas.user import MemberRead, NewMemberAdd
+from schemas.user import MemberRead, MemberReadCreated, NewMemberAdd
 from services.storage import storage
 
 project_router = APIRouter(
@@ -81,7 +81,7 @@ async def get_project_slug(
             status_code=404, detail=f"Project slug {project_slug} not found"
         )
 
-@project_router.post("/{project_id:int}/members", response_model=MemberRead)
+@project_router.post("/{project_id:int}/members", response_model=MemberReadCreated)
 async def add_project_member(
     project_id: int, member: NewMemberAdd, current_user: CurrentUserDep, service: MembersServiceDep
 ):
@@ -112,11 +112,11 @@ async def add_project_member(
 
 @project_router.delete("/{project_id:int}/members")
 async def remove_project_member(
-    project_id: int, member_id: int, current_user: CurrentUserDep, service: MembersServiceDep
+    project_id: int, email: str, current_user: CurrentUserDep, service: MembersServiceDep
 ):
     try:
         user_id = current_user.id
-        count = await service.remove_member(user_id, project_id, member_id)
+        count = await service.remove_member(user_id, project_id, email)
         return {"count deleted": count}
     except ProjectNotFound:
         raise HTTPException(

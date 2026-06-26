@@ -28,7 +28,7 @@ class MembersService:
         if project.owner.id != user_id:
             raise NotOwnProject(user_id)
 
-        user = await self.repo.get_user(member.id)
+        user = await self.repo.get_user(member.id, member.email)
         if user is None:
             user_create = UserCreate(name=member.name, email=member.email, password="123")
             user_db = SQLAlchemyUserDatabase(self.session, User)
@@ -49,13 +49,15 @@ class MembersService:
 
         return created_member
 
-    async def remove_member(self, user_id: int, project_id: int, member_id: int) -> None:
+    async def remove_member(self, user_id: int, project_id: int, email: str) -> None:
         project = await ProjectService(self.session).get(user_id, project_id)
         if project is None:
             raise ProjectNotFound(project_id)
         if project.owner.id != user_id:
             raise NotOwnProject(user_id)
 
-        count = await self.repo.remove_member(member_id, project_id)
+        user = await self.repo.get_user(0, email)
+
+        count = await self.repo.remove_member(user.id, project_id)
         await self.session.commit()
         return count

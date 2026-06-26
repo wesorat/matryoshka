@@ -59,3 +59,8 @@ class MemberRead(BaseModel):
     user: UserReadMain
     project_id: int
     role: str
+
+class MemberReadCreated(BaseModel):
+    user_id: int
+    project_id: int
+    role: str
