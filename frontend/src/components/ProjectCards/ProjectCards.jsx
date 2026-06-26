@@ -1,8 +1,8 @@
 import styles from './ProjectCards.module.scss';
 import { defaultProjects } from '../../data/slides';
 
-function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {} }) {
-  const visibleProjects = projects.slice(0, 4);
+function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {}, limit = null }) {
+  const visibleProjects = limit ? projects.slice(0, limit) : projects;
 
   const handleKeyDown = (event, projectId) => {
     if (event.key === 'Enter' || event.key === ' ') {

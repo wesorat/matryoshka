@@ -37,6 +37,7 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
               ) : (
                 <ProjectCards
                   projects={categoryProjects}
+                  limit={4}
                   onProjectClick={onProjectClick}
                   onUserClick={(projectId) => {
                     const userPageState = { page: 'user', projectId };
