@@ -254,7 +254,7 @@ function App() {
           <nav className="appHeader__nav">
             {user ? (
               <Button type="button" variant="link" onClick={handleAccountClick}>
-                Мой аккаунт ({user.name})
+                {user.name}
               </Button>
             ) : (
               <>

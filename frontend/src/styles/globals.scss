@@ -1,6 +1,5 @@
 @use './variables' as vars;
 
-// Задаем базовые стили для html и body, чтобы была точка отсчета по высоте
 html, body {
   margin: 0;
   padding: 0;
@@ -8,14 +7,12 @@ html, body {
   background-color: vars.$bg-main;
 }
 
-// Контейнер React-приложения превращаем во Flex-контейнер с вертикальной ориентацией
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-// Стили для твоего главного контента
 main.appContent {
   flex: 1 0 auto;
   display: flex;
@@ -24,12 +21,14 @@ main.appContent {
   
   // Ограничиваем по ширине и центрируем
   width: min(1180px, 100%);
-  margin: 0 auto;
+  margin-top: 40px;
+  margin-left: auto; 
+  margin-right: auto;
   // Добавляем боковые отступы 20px, чтобы контент не лип к экранам мобилок
   padding: 0 20px; 
   box-sizing: border-box;
 }
-// Необязательно, но полезно для стабильности футера
+
 footer {
   flex: 0 0 auto; // Запрещает футеру сжиматься
 }
