@@ -25,6 +25,8 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       setIsOpen(true);
       setError('');
       setAcceptedPolicy(false);
+      // Сбрасываем поля при смене типа (login/signup)
+      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
 
@@ -142,11 +144,27 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                            onClick={() => setShowPassword((prev) => !prev)}
                            className={styles.togglePasswordBtn}>
                            <span className="sr-only">Toggle password visibility</span>
-                           {showPassword ? "Hide" : "Show"} {/* Для краткости текста */}
+                           {showPassword ? "Hide" : "Show"}
                         </button>
-
                         <input type={showPassword ? "text" : "password"} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={styles.input} />
                      </div>
+
+                     {/* ДОБАВЛЕНО: Поле подтверждения пароля для регистрации */}
+                     {type === 'signup' && (
+                        <div className={styles.inputGroup}>
+                           <label htmlFor="confirmPassword">Повторите пароль</label>
+                           <input 
+                              type={showPassword ? "text" : "password"} 
+                              id="confirmPassword" 
+                              name="confirmPassword" 
+                              value={formData.confirmPassword} 
+                              onChange={handleChange} 
+                              placeholder="••••••••" 
+                              required 
+                              className={styles.input} 
+                           />
+                        </div>
+                     )}
 
                      {type === 'signup' && (
                         <div className={styles.checkboxGroup}>
