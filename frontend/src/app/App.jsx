@@ -79,8 +79,7 @@ function App() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
+    return () => {window.removeEventListener('scroll', handleScroll)
     }
   }, [])
   // Обработка перемещения по страницам
@@ -216,9 +215,6 @@ function App() {
   const selectedProject = projects.find((project) => project.id === selectedProjectId)
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId,)
 
-  //const sampleUser = user || { name: 'Иван Иванов', avatar: 'https://placehold.co/160x160?text=I' }
-  //const userProjects = defaultProjects.filter((p) => [1, 2].includes(p.id))
-
   const displayedCategoryProjects = categoryLoading
     ? []
     : categoryProjects.length > 0
@@ -258,7 +254,7 @@ function App() {
           <nav className="appHeader__nav">
             {user ? (
               <Button type="button" variant="link" onClick={handleAccountClick}>
-                Мой аккаунт ({user.name})
+                {user.name}
               </Button>
             ) : (
               <>

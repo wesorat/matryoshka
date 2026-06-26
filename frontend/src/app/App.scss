@@ -6,16 +6,13 @@
   left: 0;
   right: 0;
   width: 100%;
-  // clamp вместо 25vh — не пересчитывается при скролле на мобилах
-  height: clamp(100px, 12vw, 200px);
+  // clamp (мин, рек, макс))
+  height: clamp(100px, 14vw, 200px);
   display: flex;
   align-items: center;
   justify-content: center;
-  // [COLOR] Header background (default). Change to another variable or value.
-  background: vars.$basic-light;
   z-index: 20;
   overflow: hidden;
-  // только то, что реально анимируется; transform убран — он не меняется через JS
   will-change: height, background-color;
   backface-visibility: hidden;
   transition: height 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
@@ -49,7 +46,7 @@
 
   &__logoSvg {
     .logo-letter {
-      transition: transform 0.2s ease, color 0.2s ease, fill 0.2s ease;
+      transition: transform 0.3s ease, color 0.3s ease, fill 0.3s ease;
       transform: translateX(0);
       // [COLOR] Logo default color (non-accent)
       // color: vars.$text-main;
@@ -101,12 +98,12 @@
 }
 
 .appHeader--shrunk {
-  height: 70px;
+  height: 7vh;
   // [COLOR] Header background when shrunk
   background: vars.$basic-accent;
 
   .appHeader__logo {
-    height: 54px;
+    height: 5vh;
     color: vars.$bg-main;
   }
 

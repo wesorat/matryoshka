@@ -10,6 +10,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
+   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
 
    const overlayRef = useRef(null);
    const dialogRef = useRef(null);
@@ -23,6 +24,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    useEffect(() => {
       setIsOpen(true);
       setError('');
+      setAcceptedPolicy(false);
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
 
@@ -64,6 +66,10 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    const handleSubmit = async (e) => {
       e.preventDefault();
       setError('');
+      if (type === 'signup' && !acceptedPolicy) {
+         setError('необходимо согласиться с политикой обработки персональных данных');
+         return;
+      }
       setLoading(true);
 
       try {
@@ -106,8 +112,8 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                </button>
 
                <div className={styles.header}>
-                  <h3 id="modal-title">{type === 'login' ? 'Sign In' : 'Sign Up'}</h3>
-                  <p>{type === 'login' ? 'Login to your account to continue' : 'Create a new account to get started'}</p>
+                  <h3 id="modal-title">{type === 'login' ? 'Вход' : 'Регистрация'}</h3>
+                  <p>{type === 'login' ? 'Войдите в свой профиль.' : 'Создайте новый аккаунт и делитесь своими работами!'}</p>
                </div>
 
                <div className={styles.formContainer}>
@@ -116,21 +122,21 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                   <form className={styles.form} onSubmit={handleSubmit}>
                      {type === 'signup' && (
                         <div className={styles.inputGroup}>
-                           <label htmlFor="name">Full Name</label>
-                           <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="John Doe" required className={styles.input} />
+                           <label htmlFor="name">Как к Вам обращаться?</label>
+                           <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Имя Фамилия" required className={styles.input} />
                         </div>
                      )}
 
                      <div className={styles.inputGroup}>
-                        <label htmlFor="email">Email</label>
-                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@example.com" required className={styles.input} />
+                        <label htmlFor="email">E-mail</label>
+                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="matryoshka@example.com" required className={styles.input} />
                      </div>
 
                      <div className={styles.inputGroup}>
-                        <label htmlFor="password">Password</label>
+                        <label htmlFor="password">Пароль</label>
                         <button
                            type="button"
-                           aria-label={showPassword ? "Hide password" : "Show password"}
+                           aria-label={showPassword ? "Спрятать" : "Показать"}
                            aria-pressed={showPassword}
                            aria-controls="password"
                            onClick={() => setShowPassword((prev) => !prev)}
@@ -143,14 +149,30 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                      </div>
 
                      {type === 'signup' && (
-                        <div className={styles.inputGroup}>
-                           <label htmlFor="confirmPassword">Confirm Password</label>
-                           <input type={showPassword ? "text" : "password"} id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="••••••••" required className={styles.input} />
+                        <div className={styles.checkboxGroup}>
+                           <input
+                              type="checkbox"
+                              id="policy"
+                              checked={acceptedPolicy}
+                              onChange={(e) => setAcceptedPolicy(e.target.checked)}
+                              required
+                              className={styles.checkbox}
+                           />
+                           <label htmlFor="policy" className={styles.checkboxLabel}>
+                              Соглашаюсь с{' '}
+                              <a href="#" className={styles.policyLink} onClick={(e) => e.preventDefault()}>
+                                 политикой обработки персональных данных
+                              </a>
+                           </label>
                         </div>
                      )}
 
-                     <button type="submit" disabled={loading} className={styles.submitBtn}>
-                        {loading ? 'Processing...' : (type === 'login' ? 'Sign in' : 'Create Account')}
+                     <button 
+                        type="submit" 
+                        disabled={loading || (type === 'signup' && !acceptedPolicy)} 
+                        className={styles.submitBtn}
+                     >
+                        {loading ? 'Processing...' : (type === 'login' ? 'Войти' : 'Создать')}
                      </button>
                   </form>
                </div>

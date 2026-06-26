@@ -1,8 +1,8 @@
 import styles from './ProjectCards.module.scss';
 import { defaultProjects } from '../../data/slides';
 
-function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {} }) {
-  const visibleProjects = projects.slice(0, 4);
+function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {}, limit = null }) {
+  const visibleProjects = limit ? projects.slice(0, limit) : projects;
 
   const handleKeyDown = (event, projectId) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -24,11 +24,15 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
               onClick={() => onProjectClick(project.id)}
               onKeyDown={(event) => handleKeyDown(event, project.id)}
             >
+              {project.image || project.image_url ? (
               <img
                 src={project.image || project.image_url}
                 alt={project.title}
                 className={styles.cardImage}
               />
+            ) : (
+              <div className={styles.cardImagePlaceholder} />
+            )}
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{project.title}</h3>
                 <p className={styles.cardSubtitle}>
