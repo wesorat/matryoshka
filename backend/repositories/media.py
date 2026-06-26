@@ -1,7 +1,6 @@
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, select
 
 from core.dependencies import SessionDep
-from models import project
 from models.media import Media
 from models.project import Projects
 

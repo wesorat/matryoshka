@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
 
-from api.v1.dependencies import CategoryServiceDep, CurrentUserDep
-from core.dependencies import SessionDep
+from api.v1.dependencies import CategoryServiceDep
 from schemas.category import CategoryCreate, CategoryRead, CategoryReadWithLikes
-from services.category import CategoryService
 
 category_router = APIRouter(
     prefix="/category",

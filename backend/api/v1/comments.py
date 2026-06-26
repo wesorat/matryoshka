@@ -1,7 +1,6 @@
-from fastapi import APIRouter, HTTPException
-from sqlalchemy.exc import IntegrityError
+from fastapi import APIRouter
 
-from api.v1.dependencies import CommentsServiceDep, CurrentUserDep, LikesServiceDep
+from api.v1.dependencies import CommentsServiceDep, CurrentUserDep
 
 from schemas.comments import CommentsRead, CommentsCreate
 

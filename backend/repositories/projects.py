@@ -5,7 +5,6 @@ from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
 from models.comments import Comments
-from models.media import Media
 from models.project import Projects, ProjectStatus
 from slugify import slugify
 

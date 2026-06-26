@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from schemas.user import UserRead, UserReadMain
+from schemas.user import UserReadMain
 from datetime import datetime
 
 

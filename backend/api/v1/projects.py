@@ -1,15 +1,11 @@
-import os
 from pathlib import Path
 from typing import Optional
 
-from anyio import current_effective_deadline
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
 
 from api.v1.dependencies import (
     CurrentUserDep,
     CurrentUserOptionalDep,
-    MediaStroageServiceDep,
     ProjectServiceDep,
 )
 from core.config import FILES_DIR
@@ -20,7 +16,6 @@ from schemas.projects import (
     ProjectsRead,
     ProjectsReadOne,
     ProjectsUpdate,
-    ProjectUpdateStatus,
 )
 from services.media import MediaStorageService
 from services.storage import storage

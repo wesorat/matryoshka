@@ -4,8 +4,7 @@ from fastapi import UploadFile
 from slugify import slugify
 
 from core.dependencies import SessionDep
-from core.exceptions import ProjectNotFound
-from models.project import Projects, ProjectStatus
+from models.project import Projects
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectsCreate, ProjectsReadOne, ProjectsUpdate
 from services.media import MediaStorageService
