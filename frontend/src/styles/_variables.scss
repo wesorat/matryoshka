@@ -2,7 +2,7 @@
 
 $basic-light:       #fffaf3;
 $basic-semilight:   #fcd99c;
-$basic-dark:        #f8c476; 
+$basic-dark:        rgb(248, 196, 118); 
 $basic-extra-dark:  color.scale($basic-dark, $lightness: -10%);
 $basic-accent:      #dd9428; 
 
@@ -25,3 +25,4 @@ $button-color-hover:     color.scale($basic-dark, $lightness: -10%);
 $font-main:        'st-nizhegorodsky', sans-serif;
 $font-secondary:   'Montserrat', sans-serif;
 $base-spacing:     1rem; // 16px
+
