@@ -1,6 +1,5 @@
 from core.dependencies import SessionDep
 from models.comments import Comments
-from models.likes import Likes
 from repositories.comments import CommentsRepository
 from schemas.comments import CommentsCreate
 

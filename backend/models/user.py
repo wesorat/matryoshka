@@ -28,7 +28,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         onupdate=get_datetime_utc_now,
     )
 
-    roles = relationship("MemberRoles", back_populates="users")
+    roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="user")
 
     own_projects: Mapped[list["Projects"]] = relationship(
         "Projects",
@@ -41,3 +41,5 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     @property
     def projects(self):
         return [i.projects for i in self.roles]
+
+

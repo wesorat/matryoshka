@@ -7,7 +7,7 @@ from models.project import ProjectStatus
 from schemas.category import CategoryRead
 from schemas.comments import CommentsRead
 from schemas.media import MediaRead
-from schemas.user import UserRead
+from schemas.user import MemberRead, UserRead
 
 
 class ProjectsCreate(BaseModel):
@@ -51,6 +51,7 @@ class ProjectsReadOne(BaseModel):
     description: str
     image_url: str = ""
     owner: UserRead
+    member_roles: list[MemberRead]
     category: Optional[CategoryRead] = None
     status: ProjectStatus
     medias: list[MediaRead]

@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy.exc import IntegrityError
 
 from api.v1.dependencies import (
     CurrentUserDep,
-    LikesServiceDep,
     MediaServiceDep,
     MediaStroageServiceDep,
 )
 
-from schemas.likes import LikesBase
 from schemas.media import MediaCreate, MediaRead
 
 media_router = APIRouter(

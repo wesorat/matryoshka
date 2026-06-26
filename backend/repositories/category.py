@@ -1,5 +1,4 @@
 from sqlalchemy import delete, func, select
-from sqlalchemy.orm import joinedload
 
 from core.dependencies import SessionDep
 from models.category import Category

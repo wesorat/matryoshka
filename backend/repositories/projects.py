@@ -5,7 +5,6 @@ from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
 from models.comments import Comments
-from models.media import Media
 from models.project import Projects, ProjectStatus
 from slugify import slugify
 
@@ -25,6 +24,7 @@ class ProjectsRepository:
         res = await self.session.execute(
             select(Projects)
             .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.member_roles))
             .where(
                 Projects.id == id,
                 or_(
@@ -49,6 +49,7 @@ class ProjectsRepository:
         res = await self.session.execute(
             select(Projects)
             .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.member_roles))
             .where(
                 Projects.slug == slug,
                 or_(

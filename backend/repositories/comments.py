@@ -1,10 +1,7 @@
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete
 
 from core.dependencies import SessionDep
-from core.exceptions import ProjectNotFound
 from models.comments import Comments
-from models.likes import Likes
-from models.project import Projects
 
 
 class CommentsRepository:

@@ -1,13 +1,7 @@
-from datetime import datetime
-from tokenize import String
-from typing import Optional
-
-from pydantic import BaseModel, computed_field
-from sqlalchemy import DateTime, ForeignKey, Integer, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
-from utils.get_datetime_utc_now import get_datetime_utc_now
 
 
 class Likes(Base):

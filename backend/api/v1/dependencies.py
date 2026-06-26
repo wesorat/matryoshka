@@ -8,6 +8,7 @@ from services.category import CategoryService
 from services.comments import CommentsService
 from services.likes import LikesService
 from services.media import MediaService, MediaStorageService
+from services.members import MembersService
 from services.projects import ProjectService
 from services.auth import current_active_user, current_active_user_optional
 
@@ -35,6 +36,9 @@ async def get_media_storage_service() -> MediaStorageService:
 async def get_media_service(session: SessionDep) -> MediaService:
     return MediaService(session)
 
+async def get_member_service(session: SessionDep) -> MembersService:
+    return MembersService(session)
+
 
 CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
@@ -44,6 +48,7 @@ MediaStroageServiceDep = Annotated[
     MediaStorageService, Depends(get_media_storage_service)
 ]
 MediaServiceDep = Annotated[MediaService, Depends(get_media_service)]
+MembersServiceDep = Annotated[MembersService, Depends(get_member_service)]
 
 CurrentUserDep = Annotated[User, Depends(current_active_user)]
 CurrentUserOptionalDep = Annotated[User, Depends(current_active_user_optional)]

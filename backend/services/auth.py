@@ -1,7 +1,8 @@
+import secrets
+import string
 import uuid
-from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin, models
 from fastapi_users.authentication import (
     AuthenticationBackend,
@@ -9,6 +10,7 @@ from fastapi_users.authentication import (
     CookieTransport,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
+from fastapi_users.password import PasswordHelper
 
 from core.config import settings
 from db.session import get_user_db
@@ -48,3 +50,11 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 current_active_user = fastapi_users.current_user(active=True)
 current_active_user_optional = fastapi_users.current_user(active=True, optional=True)
+
+password_helper = PasswordHelper()
+
+def generate_secure_random_password_hash(length: int = 64) -> str:
+
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    return hash(''.join(secrets.choice(alphabet) for _ in range(length)))
+
