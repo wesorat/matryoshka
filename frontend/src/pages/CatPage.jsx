@@ -26,7 +26,7 @@ function CatPage({ category, projects = [], loading = false, onBack, onProjectCl
         </Button>
       </div>
 
-      <CategorySection title={category.name} showAction={false} />
+      <CategorySection title={null} showAction={false} />
       {loading ? (
         <section className={styles.loading}>
           <p>Загрузка проектов...</p>

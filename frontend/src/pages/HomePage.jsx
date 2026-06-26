@@ -4,7 +4,7 @@ import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
 import styles from './HomePage.module.scss'
 
 function HomePage({ categories = [], loading = false, projects = [], projectsLoading = false, onCategoryClick, onProjectClick }) {
-  const buildCategoryProjects = (categoryId) => projects.filter((project) => project.category_id === categoryId)
+  const buildCategoryProjects = (categoryId) => projects.filter((project) => project.category?.id === categoryId)
 
   return (
     <>
@@ -28,20 +28,30 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
                 title={category.name}
                 actionText="Открыть"
                 onAction={() => onCategoryClick(category.id)}
+                ShowAction={true}
               />
               {projectsLoading ? (
                 <p>Загрузка проектов...</p>
               ) : categoryProjects.length === 0 ? (
                 <p className={styles.emptyText}>Проекты не найдены.</p>
               ) : (
-                <ProjectCards projects={categoryProjects} onProjectClick={onProjectClick} />
+                <ProjectCards
+                  projects={projects}
+                  onProjectClick={onProjectClick}
+                  onUserClick={(projectId) => {
+                    const userPageState = { page: 'user', projectId };
+                    window.history.pushState(userPageState, '');
+                    const event = new PopStateEvent('popstate', { state: userPageState });
+                    window.dispatchEvent(event);
+                  }}
+                />
               )}
             </section>
           )
         })
       )}
 
-      <section>
+      {/* <section>
         <CategorySection title="Все проекты" showAction={false} />
         {projectsLoading ? (
           <p>Загрузка проектов...</p>
@@ -50,7 +60,7 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
         ) : (
           <ProjectCards projects={projects} onProjectClick={onProjectClick} />
         )}
-      </section>
+      </section> */}
     </>
   )
 }
