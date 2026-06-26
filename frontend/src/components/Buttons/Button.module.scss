@@ -23,21 +23,21 @@
   justify-content: center;
   cursor: pointer;
   padding: 10px 14px;
-  width: 9vh;
-  
+  // width: 9vh;
+
   font-family: vars.$font-main;
-  font-size: 24px; 
+  font-size: 24px;
 
   background: transparent;
   color: vars.$basic-accent;
 
-  border: 3px solid vars.$basic-semilight; 
+  border: 3px solid vars.$basic-semilight;
   border-radius: 999px;
 
-  transition: 
-    font-family 0.3s ease, 
-    border-color 0.3s ease, 
-    background-color 0.3s ease, 
+  transition:
+    font-family 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease,
     color 0.3s ease;
 
   &:hover {
@@ -49,17 +49,17 @@
   :global(.appHeader--shrunk) & {
     font-family: vars.$font-secondary;
     font-weight: 900;
-    font-size: 16px; 
+    font-size: 16px;
     // font-weight: 500;
     letter-spacing: 2px;
     color: vars.$bg-main;
-    background-color: transparent; 
-    border-color: vars.$bg-main; 
-    border: 2px solid vars.$basic-semilight; 
+    background-color: transparent;
+    border-color: vars.$bg-main;
+    border: 2px solid vars.$basic-semilight;
 
     &:hover {
       // Стили для ховера на скролле, если нужны (например, чуть светлее/темнее)
-      background-color: lighten(vars.$basic-dark, 10%); 
+      background-color: lighten(vars.$basic-dark, 10%);
     }
   }
 }

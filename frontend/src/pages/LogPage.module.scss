@@ -74,9 +74,9 @@
     width: 0.75rem;
     height: 0.75rem;
     cursor: pointer;
-    // Если text-muted строка (в твоем файле опечатка "5a5a5a" без #), 
+    // Если text-muted строка (в твоем файле опечатка "5a5a5a" без #),
     // убедись, что в _variables.scss стоит #5a5a5a
-    fill: vars.$text-muted; 
+    fill: vars.$text-muted;
     transition: fill 0.2s;
 
     &:hover {

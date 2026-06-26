@@ -17,7 +17,7 @@ function App() {
   const [logType, setLogType] = useState(null)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
-  
+
   const [user, setUser] = useState(null)
   const [myProjects, setMyProjects] = useState([]) // Стейт для реальных проектов юзера
   const [myProjectsLoading, setMyProjectsLoading] = useState(false)
@@ -28,7 +28,7 @@ function App() {
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
-  
+
   //проверка сессии при запуске
   useEffect(() => {
     fetchCurrentUser()
@@ -75,7 +75,7 @@ function App() {
         ticking = false
       })
     }
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
@@ -130,7 +130,7 @@ function App() {
     setPage('home')
     setLogType(null)
   }
-  
+
   const handleAccountClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
@@ -258,8 +258,8 @@ function App() {
               </Button>
             ) : (
               <>
-                <Button type="button" variant="link" onClick={handleSignUpClick}>sign up</Button>
-                <Button type="button" variant="link" onClick={handleLoginClick}>log in</Button>
+                <Button type="button" variant="link" onClick={handleSignUpClick}>Регистрация</Button>
+                <Button type="button" variant="link" onClick={handleLoginClick}>Вход</Button>
               </>
             )}
           </nav>

@@ -5,7 +5,7 @@ import { login, register, fetchCurrentUser } from '../api.js';
 export default function LogPage({ type = 'login', onBack = () => {}, onSuccess = () => {} }) {
    const [isOpen, setIsOpen] = useState(true);
    const [showPassword, setShowPassword] = useState(false);
-   
+
    // Стейт полей формы
    const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
    const [error, setError] = useState('');
@@ -120,7 +120,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
 
                <div className={styles.formContainer}>
                   {error && <p style={{ color: '#ff4d4d', marginBottom: '15px', fontSize: '14px' }}>{error}</p>}
-                  
+
                   <form className={styles.form} onSubmit={handleSubmit}>
                      {type === 'signup' && (
                         <div className={styles.inputGroup}>
@@ -130,7 +130,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                      )}
 
                      <div className={styles.inputGroup}>
-                        <label htmlFor="email">E-mail</label>
+                        <label htmlFor="email">Почта</label>
                         <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="matryoshka@example.com" required className={styles.input} />
                      </div>
 
@@ -143,8 +143,8 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                            aria-controls="password"
                            onClick={() => setShowPassword((prev) => !prev)}
                            className={styles.togglePasswordBtn}>
-                           <span className="sr-only">Toggle password visibility</span>
-                           {showPassword ? "Hide" : "Show"}
+                           <span className="sr-only"></span>
+                           {showPassword ? "Скрыть" : "Показать"}
                         </button>
                         <input type={showPassword ? "text" : "password"} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={styles.input} />
                      </div>
@@ -153,15 +153,15 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                      {type === 'signup' && (
                         <div className={styles.inputGroup}>
                            <label htmlFor="confirmPassword">Повторите пароль</label>
-                           <input 
-                              type={showPassword ? "text" : "password"} 
-                              id="confirmPassword" 
-                              name="confirmPassword" 
-                              value={formData.confirmPassword} 
-                              onChange={handleChange} 
-                              placeholder="••••••••" 
-                              required 
-                              className={styles.input} 
+                           <input
+                              type={showPassword ? "text" : "password"}
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              value={formData.confirmPassword}
+                              onChange={handleChange}
+                              placeholder="••••••••"
+                              required
+                              className={styles.input}
                            />
                         </div>
                      )}
@@ -185,9 +185,9 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                         </div>
                      )}
 
-                     <button 
-                        type="submit" 
-                        disabled={loading || (type === 'signup' && !acceptedPolicy)} 
+                     <button
+                        type="submit"
+                        disabled={loading || (type === 'signup' && !acceptedPolicy)}
                         className={styles.submitBtn}
                      >
                         {loading ? 'Processing...' : (type === 'login' ? 'Войти' : 'Создать')}
