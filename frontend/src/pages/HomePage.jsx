@@ -12,7 +12,7 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
 
       {loading ? (
         <section>
-          <p>Загрузка категорий...</p>
+          <p className={styles.emptyText}>Загрузка категорий...</p>
         </section>
       ) : categories.length === 0 ? (
         <section>
@@ -31,12 +31,12 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
                 ShowAction={true}
               />
               {projectsLoading ? (
-                <p>Загрузка проектов...</p>
+                <p className={styles.emptyText}>Загрузка проектов...</p>
               ) : categoryProjects.length === 0 ? (
                 <p className={styles.emptyText}>Проекты не найдены.</p>
               ) : (
                 <ProjectCards
-                  projects={projects}
+                  projects={categoryProjects}
                   onProjectClick={onProjectClick}
                   onUserClick={(projectId) => {
                     const userPageState = { page: 'user', projectId };
