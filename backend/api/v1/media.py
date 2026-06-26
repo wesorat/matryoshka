@@ -7,7 +7,6 @@ from api.v1.dependencies import (
     MediaStroageServiceDep,
 )
 
-from schemas.likes import LikesBase
 from schemas.media import MediaCreate, MediaRead
 
 media_router = APIRouter(

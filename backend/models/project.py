@@ -64,7 +64,7 @@ class Projects(Base):
 
     @property
     def members(self):
-        return [i.users for i in self.member_roles]
+        return [i.user for i in self.member_roles]
 
 
 class MemberRoles(Base):
@@ -81,4 +81,4 @@ class MemberRoles(Base):
     __table_args__ = (PrimaryKeyConstraint("user_id", "project_id"),)
 
     projects = relationship("Projects", back_populates="member_roles")
-    users = relationship("User", back_populates="roles")
+    user = relationship("User", back_populates="roles", lazy="selectin")

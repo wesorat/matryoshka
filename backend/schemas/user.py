@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi_users import schemas
 from fastapi_users.models import ID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserRead(schemas.BaseUser[ID]):
@@ -22,6 +22,7 @@ class UserRead(schemas.BaseUser[ID]):
 class UserReadMain(BaseModel):
     id: int
     name: str
+    email: str
     avatar: str
 
 
@@ -45,3 +46,16 @@ class UserUpdate(schemas.BaseUserUpdate):
     is_active: bool = Field(default=True, exclude=True)
     is_superuser: bool = Field(default=False, exclude=True)
     is_verified: bool = Field(default=False, exclude=True)
+
+
+class NewMemberAdd(BaseModel):
+    id: Optional[int]
+    name: Optional[str] = ""
+    email: EmailStr
+    role: Optional[str] = ""
+
+
+class MemberRead(BaseModel):
+    user: UserReadMain
+    project_id: int
+    role: str

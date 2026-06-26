@@ -24,6 +24,7 @@ class ProjectsRepository:
         res = await self.session.execute(
             select(Projects)
             .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.member_roles))
             .where(
                 Projects.id == id,
                 or_(
@@ -48,6 +49,7 @@ class ProjectsRepository:
         res = await self.session.execute(
             select(Projects)
             .options(selectinload(Projects.medias))
+            .options(selectinload(Projects.member_roles))
             .where(
                 Projects.slug == slug,
                 or_(

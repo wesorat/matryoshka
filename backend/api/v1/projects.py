@@ -1,15 +1,17 @@
-from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy.exc import IntegrityError
+
 
 from api.v1.dependencies import (
     CurrentUserDep,
     CurrentUserOptionalDep,
+    MembersServiceDep,
     ProjectServiceDep,
 )
 from core.config import FILES_DIR
-from core.exceptions import ProjectNotFound
+from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound
 from models.user import User
 from schemas.projects import (
     ProjectsCreate,
@@ -17,7 +19,7 @@ from schemas.projects import (
     ProjectsReadOne,
     ProjectsUpdate,
 )
-from services.media import MediaStorageService
+from schemas.user import MemberRead, NewMemberAdd
 from services.storage import storage
 
 project_router = APIRouter(
@@ -78,6 +80,53 @@ async def get_project_slug(
         raise HTTPException(
             status_code=404, detail=f"Project slug {project_slug} not found"
         )
+
+@project_router.post("/{project_id:int}/members", response_model=MemberRead)
+async def add_project_member(
+    project_id: int, member: NewMemberAdd, current_user: CurrentUserDep, service: MembersServiceDep
+):
+    try:
+        user_id = current_user.id
+        member = await service.create(user_id, project_id, member)
+        return member
+    except ProjectNotFound:
+        raise HTTPException(
+            status_code=404, detail=f"Project id {project_id} not found"
+        )
+    except NotOwnProject:
+        raise HTTPException(
+            status_code=403, detail=f"Project id {project_id} is not yours"
+        )
+    except NotCorrectEmail:
+        raise HTTPException(
+            status_code=404, detail=f"Member id {member.id} has another email"
+        )
+    except IntegrityError as e:
+        if "UNIQUE" in str(e.orig) or "duplicate" in str(e.orig).lower():
+            raise HTTPException(
+                status_code=409,
+                detail=f"Member roles user_id={user_id} project_id={project_id} уже существует",
+            )
+        else:
+            raise e
+
+@project_router.delete("/{project_id:int}/members")
+async def remove_project_member(
+    project_id: int, member_id: int, current_user: CurrentUserDep, service: MembersServiceDep
+):
+    try:
+        user_id = current_user.id
+        count = await service.remove_member(user_id, project_id, member_id)
+        return {"count deleted": count}
+    except ProjectNotFound:
+        raise HTTPException(
+            status_code=404, detail=f"Project id {project_id} not found"
+        )
+    except NotOwnProject:
+        raise HTTPException(
+            status_code=403, detail=f"Project id {project_id} is not yours"
+        )
+
 
 
 @project_router.get("/category/{category_id:int}", response_model=list[ProjectsRead])
@@ -164,3 +213,4 @@ async def delete_project(
         return {"status": "deleted"}
     except ProjectNotFound:
         raise HTTPException(status_code=404, detail=f"Project {project_slug} not found")
+
