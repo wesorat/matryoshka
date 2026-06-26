@@ -30,7 +30,7 @@ async def create(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@media_router.get("/uploads{filename}")
+@media_router.get("/uploads/{filename}")
 async def get_file(
     filename: str,
     media_service: MediaStroageServiceDep,
