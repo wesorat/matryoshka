@@ -95,6 +95,7 @@ class ProjectsRepository:
             select(Projects)
             .options(selectinload(Projects.medias))
             .options(selectinload(Projects.comments))
+            .options(selectinload(Projects.member_roles))
             .where(
                 Projects.id == project_id,
                 Projects.owner_id == user_id,
@@ -126,6 +127,8 @@ class ProjectsRepository:
             select(Projects)
             .options(selectinload(Projects.medias))
             .options(selectinload(Projects.comments))
+            .options(selectinload(Projects.member_roles))
+
             .where(
                 Projects.slug == project_slug,
                 Projects.owner_id == user_id,
