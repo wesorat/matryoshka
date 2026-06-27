@@ -11,6 +11,11 @@
     docker exec -it matryoshka_backend python generate_test_db.py
 ```
 
+# Для генерации начальных данных в бд
+```bash
+    psql -h localhost -p 5433 -U postgres -d matr_db -f seed_for_db.sql
+```
+
 # Production
 
 Локальная проверка:

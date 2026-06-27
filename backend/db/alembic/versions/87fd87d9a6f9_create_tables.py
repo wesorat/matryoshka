@@ -1,8 +1,8 @@
-"""add tables
+"""create_tables
 
-Revision ID: c4046eafd468
+Revision ID: 87fd87d9a6f9
 Revises: 
-Create Date: 2026-06-27 11:27:26.912207
+Create Date: 2026-06-27 13:23:47.695108
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c4046eafd468'
+revision: str = '87fd87d9a6f9'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,6 +29,13 @@ def upgrade() -> None:
     sa.UniqueConstraint('name')
     )
     op.create_index(op.f('ix_project_category_slug'), 'project_category', ['slug'], unique=True)
+    op.create_table('roles',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
+    )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
@@ -64,8 +71,9 @@ def upgrade() -> None:
     op.create_table('member_roles',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('project_id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.String(length=100), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'project_id')
     )
@@ -84,12 +92,13 @@ def upgrade() -> None:
     sa.Column('project_id', sa.Integer(), nullable=False),
     sa.Column('inviter_id', sa.Integer(), nullable=False),
     sa.Column('invitee_id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.String(length=100), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
     sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', name='invitestatus'), nullable=False),
     sa.Column('message', sa.String(length=500), nullable=True),
     sa.ForeignKeyConstraint(['invitee_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['inviter_id'], ['users.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('project_likes',
@@ -124,6 +133,7 @@ def downgrade() -> None:
     op.drop_table('projects')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
+    op.drop_table('roles')
     op.drop_index(op.f('ix_project_category_slug'), table_name='project_category')
     op.drop_table('project_category')
     # ### end Alembic commands ###
