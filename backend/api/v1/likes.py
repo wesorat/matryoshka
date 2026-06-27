@@ -27,8 +27,7 @@ async def create(
                 status_code=409,
                 detail=f"Like user_id={user_id} project_id={project_id} уже существует",
             )
-        else:
-            raise e
+        raise e
 
 
 @likes_router.delete("/", summary="Delete like")

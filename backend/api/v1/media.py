@@ -5,6 +5,7 @@ from api.v1.dependencies import (
     CurrentUserDep,
     MediaServiceDep,
     MediaStroageServiceDep,
+    get_mediaCreate_from_form,
 )
 
 from schemas.media import MediaCreate, MediaRead
@@ -20,7 +21,7 @@ async def create(
     media_service: MediaServiceDep,
     user: CurrentUserDep,
     file: UploadFile,
-    media: MediaCreate = Depends(),
+    media: MediaCreate = Depends(get_mediaCreate_from_form),
 ):
     try:
         user_id = user.id

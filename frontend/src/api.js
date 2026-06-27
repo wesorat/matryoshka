@@ -13,10 +13,10 @@ async function handleResponse(response) {
     }
     throw new Error(typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail));
   }
-  
+
   // Для 204 No Content
   if (response.status === 204) return null;
-  
+
   return response.json()
 }
 
@@ -92,6 +92,36 @@ export async function fetchCurrentUser() {
     await fetch(`${API_URL}/users/me`, {
       method: 'GET',
       credentials: 'include',
+    })
+  )
+}
+
+export async function createProject(projectData) {
+  const formData = new FormData()
+
+  formData.append('title', projectData.title)
+  formData.append('description', projectData.description || '')
+  if (projectData.status) {
+    formData.append('status', projectData.status)
+  }
+  if (projectData.categoryId) {
+    formData.append('category_id', projectData.categoryId)
+  }
+
+  // Отправляем новые текстовые поля
+  formData.append('practical_benefit', projectData.practicalBenefit || '')
+  formData.append('implementation_details', projectData.implementationDetails || '')
+  formData.append('results', projectData.results || '')
+
+  if (projectData.media) {
+    formData.append('file', projectData.media)
+  }
+
+  return handleResponse(
+    await fetch(`${API_URL}/projects/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
     })
   )
 }

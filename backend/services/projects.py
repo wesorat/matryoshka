@@ -1,14 +1,13 @@
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import UploadFile
+from isort import file
 from slugify import slugify
 
 from core.dependencies import SessionDep
-from core.exceptions import NotOwnProject
 from models.project import Projects
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectsCreate, ProjectsReadOne, ProjectsUpdate
-from schemas.user import NewMemberAdd
 from services.media import MediaStorageService
 from services.storage import storage
 
@@ -43,37 +42,39 @@ class ProjectService:
     async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadOne:
         return await self.repo.get_by_slug(user_id, slug)
 
-    async def get_all(self) -> List[Projects]:
+    async def get_all(self) -> list[Projects]:
         return await self.repo.get_all()
 
-    async def get_my(self, user_id: int) -> List[Projects]:
+    async def get_my(self, user_id: int) -> list[Projects]:
         return await self.repo.get_my(user_id)
 
-    async def get_projects_by_category(self, category_id: int) -> List[Projects]:
+    async def get_projects_by_category(self, category_id: int) -> list[Projects]:
         return await self.repo.get_by_category(category_id)
 
-    async def get_projects_by_category_by_slug(self, slug: str) -> List[Projects]:
+    async def get_projects_by_category_by_slug(self, slug: str) -> list[Projects]:
 
         return await self.repo.get_by_category_by_slug(slug)
 
-    async def search_by_title(self, title: str) -> List[Projects]:
+    async def search_by_title(self, title: str) -> list[Projects]:
         if not title or len(title.strip()) == 1:
             return []
         return await self.repo.search_by_title(title.strip())
 
 
-    async def delete(self, user_id: int, project_id: int):
+    async def delete(self, user_id: int, project_id: int) -> str:
         filename = await self.repo.delete(user_id, project_id)
-        if filename != "":
+        if filename != "" and filename is not None :
             await MediaStorageService().delete(filename)
 
         await self.session.commit()
+        return filename
 
-    async def delete_by_slug(self, user_id: int, slug: str):
+    async def delete_by_slug(self, user_id: int, slug: str) -> str:
         filename = await self.repo.delete_by_slug(user_id, slug)
-        if filename != "":
+        if filename != "" and filename is not None:
             await MediaStorageService().delete(filename)
         await self.session.commit()
+        return filename
 
     async def update(
         self,

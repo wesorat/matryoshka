@@ -1,8 +1,8 @@
 """add tables
 
-Revision ID: cfb8c3a2799c
+Revision ID: 4d1df288a9a1
 Revises: 
-Create Date: 2026-06-26 13:40:13.922423
+Create Date: 2026-06-27 16:09:48.062434
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cfb8c3a2799c'
+revision: str = '4d1df288a9a1'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,10 +29,17 @@ def upgrade() -> None:
     sa.UniqueConstraint('name')
     )
     op.create_index(op.f('ix_project_category_slug'), 'project_category', ['slug'], unique=True)
+    op.create_table('roles',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
+    )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('avatar', sa.String(length=100), nullable=False),
+    sa.Column('image_url', sa.String(length=500), nullable=False),
     sa.Column('bio', sa.String(length=500), nullable=False),
     sa.Column('skills', sa.String(length=500), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
@@ -53,6 +60,9 @@ def upgrade() -> None:
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('image_url', sa.String(length=500), nullable=False),
     sa.Column('owner_id', sa.Integer(), nullable=False),
+    sa.Column('practical_benefit', sa.String(length=500), nullable=False),
+    sa.Column('implementation_details', sa.String(length=500), nullable=False),
+    sa.Column('results', sa.String(length=500), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('DRAFT', 'PUBLISHED', name='project_status'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
@@ -64,8 +74,9 @@ def upgrade() -> None:
     op.create_table('member_roles',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('project_id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.String(length=100), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'project_id')
     )
@@ -77,6 +88,20 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('project_invites',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('inviter_id', sa.Integer(), nullable=False),
+    sa.Column('invitee_id', sa.Integer(), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', name='invitestatus'), nullable=False),
+    sa.Column('message', sa.String(length=500), nullable=True),
+    sa.ForeignKeyConstraint(['invitee_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['inviter_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('project_likes',
@@ -105,11 +130,13 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_project_media_project_id'), table_name='project_media')
     op.drop_table('project_media')
     op.drop_table('project_likes')
+    op.drop_table('project_invites')
     op.drop_table('project_comments')
     op.drop_table('member_roles')
     op.drop_table('projects')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
+    op.drop_table('roles')
     op.drop_index(op.f('ix_project_category_slug'), table_name='project_category')
     op.drop_table('project_category')
     # ### end Alembic commands ###

@@ -13,7 +13,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=100), nullable=False)
-    avatar: Mapped[str] = mapped_column(String(length=100), default="")
+    image_url: Mapped[str] = mapped_column(String(length=500), default="")
     bio: Mapped[str] = mapped_column(String(length=500), default="")
     skills: Mapped[str] = mapped_column(String(length=500), default="")
     created_at: Mapped[datetime] = mapped_column(
@@ -36,6 +36,19 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     )
     comments: Mapped["Comments"] = relationship(
         "Comments", back_populates="user", lazy="selectin"
+    )
+
+    sent_invites: Mapped[list["ProjectInvite"]] = relationship(
+        "ProjectInvite",
+        foreign_keys="ProjectInvite.inviter_id",
+        back_populates="inviter",
+        lazy="selectin"
+    )
+    received_invites: Mapped[list["ProjectInvite"]] = relationship(
+        "ProjectInvite",
+        foreign_keys="ProjectInvite.invitee_id",
+        back_populates="invitee",
+        lazy="selectin"
     )
 
     @property

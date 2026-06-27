@@ -1,10 +1,21 @@
-import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
-import Button from '../components/Buttons/Button.jsx'
-import styles from './UserPage.module.scss'
+import React, { useState } from 'react';
+import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
+import Button from '../components/Buttons/Button.jsx';
+import PublishPage from '../components/PublishForm/PublishForm.jsx';
+import styles from './UserPage.module.scss';
 
-// Добавили onLogout и loading в деструктуризацию пропсов
-function UserPage({ user = {}, projects = [], loading = false, onBack = () => {}, onProjectClick = () => {}, onLogout = () => {} }) {
-  const { name = 'Имя Пользователя', avatar } = user
+function UserPage({ 
+  user = {}, 
+  projects = [], 
+  loading = false, 
+  categories = [],  
+  onBack = () => {}, 
+  onProjectClick = () => {}, 
+  onLogout = () => {},
+  onPublishSuccess = () => {} 
+}) {
+  const { name = 'Имя Пользователя', avatar } = user;
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
 
   return (
     <section className={styles.page}>
@@ -20,11 +31,13 @@ function UserPage({ user = {}, projects = [], loading = false, onBack = () => {}
           </div>
 
           <div className={styles.actions}>
-            <Button type="button" variant="outline">Создать проект</Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsPublishOpen(true)}
+            >Создать проект</Button>
             <Button type="button" variant="outline">Статистика</Button>
-            <Button type="button" variant="outline" onClick={onLogout}>
-              Выйти
-            </Button>
+            <Button type="button" variant="outline" onClick={onLogout}>Выйти</Button>
           </div>
         </aside>
 
@@ -41,8 +54,16 @@ function UserPage({ user = {}, projects = [], loading = false, onBack = () => {}
           )}
         </main>
       </div>
+
+      {isPublishOpen && (
+      <PublishPage 
+        categories={categories} 
+        onSuccess={onPublishSuccess}
+        onBack={() => setIsPublishOpen(false)} 
+      />
+    )}
     </section>
   )
 }
 
-export default UserPage
+export default UserPage;

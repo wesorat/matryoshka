@@ -1,7 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy.exc import IntegrityError
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 
 from api.v1.dependencies import (
@@ -9,9 +8,12 @@ from api.v1.dependencies import (
     CurrentUserOptionalDep,
     MembersServiceDep,
     ProjectServiceDep,
+    get_projectCreate_from_form,
+    get_projectUpdate_from_form,
 )
 from core.config import FILES_DIR
-from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound
+from core.exceptions import NotOwnProject, ProjectNotFound
+from models.project import ProjectStatus
 from models.user import User
 from schemas.projects import (
     ProjectsCreate,
@@ -19,8 +21,6 @@ from schemas.projects import (
     ProjectsReadOne,
     ProjectsUpdate,
 )
-from schemas.user import MemberRead, MemberReadCreated, NewMemberAdd
-from services.storage import storage
 
 project_router = APIRouter(
     prefix="/projects",
@@ -32,7 +32,7 @@ project_router = APIRouter(
 async def create_project(
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsCreate = Depends(),
+    project: ProjectsCreate = Depends(get_projectCreate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:
@@ -81,42 +81,14 @@ async def get_project_slug(
             status_code=404, detail=f"Project slug {project_slug} not found"
         )
 
-@project_router.post("/{project_id:int}/members", response_model=MemberReadCreated)
-async def add_project_member(
-    project_id: int, member: NewMemberAdd, current_user: CurrentUserDep, service: MembersServiceDep
-):
-    try:
-        user_id = current_user.id
-        member = await service.create(user_id, project_id, member)
-        return member
-    except ProjectNotFound:
-        raise HTTPException(
-            status_code=404, detail=f"Project id {project_id} not found"
-        )
-    except NotOwnProject:
-        raise HTTPException(
-            status_code=403, detail=f"Project id {project_id} is not yours"
-        )
-    except NotCorrectEmail:
-        raise HTTPException(
-            status_code=404, detail=f"Member id {member.id} has another email"
-        )
-    except IntegrityError as e:
-        if "UNIQUE" in str(e.orig) or "duplicate" in str(e.orig).lower():
-            raise HTTPException(
-                status_code=409,
-                detail=f"Member roles user_id={user_id} project_id={project_id} уже существует",
-            )
-        else:
-            raise e
 
 @project_router.delete("/{project_id:int}/members")
 async def remove_project_member(
-    project_id: int, email: str, current_user: CurrentUserDep, service: MembersServiceDep
+    project_id: int, member_id: int, current_user: CurrentUserDep, service: MembersServiceDep
 ):
     try:
         user_id = current_user.id
-        count = await service.remove_member(user_id, project_id, email)
+        count = await service.remove_member(user_id, project_id, member_id)
         return {"count deleted": count}
     except ProjectNotFound:
         raise HTTPException(
@@ -156,7 +128,7 @@ async def update_project(
     project_id: int,
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsUpdate = Depends(),
+    project: ProjectsUpdate = Depends(get_projectUpdate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:
@@ -177,7 +149,7 @@ async def update_project(
     project_slug: str,
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsUpdate = Depends(),
+    project: ProjectsUpdate = Depends(get_projectUpdate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:
@@ -198,10 +170,14 @@ async def delete_project(
     project_id: int, service: ProjectServiceDep, current_user: CurrentUserDep
 ):
     try:
-        await service.delete(current_user.id, project_id)
-        return {"status": "deleted"}
+        filename = await service.delete(current_user.id, project_id)
+        if filename is not None:
+            return {"status": "deleted"}
+        raise NotOwnProject(current_user.id)
     except ProjectNotFound:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    except NotOwnProject:
+        raise HTTPException(status_code=404, detail=f"Project {project_id} is not yours")
 
 
 @project_router.delete("/{project_slug:str}")

@@ -28,7 +28,7 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
 
 cookie_transport = CookieTransport(
     cookie_name="access",
-    cookie_max_age=30 * 24 * 60 * 60,
+    cookie_max_age=24 * 60 * 60,
     cookie_httponly=True,
     cookie_secure=False,
     cookie_samesite="lax",
@@ -37,7 +37,7 @@ cookie_transport = CookieTransport(
 
 
 def get_jwt_strategy() -> JWTStrategy[models.UP, models.ID]:
-    return JWTStrategy(secret=settings.SECRET, lifetime_seconds=30 * 24 * 60 * 60)
+    return JWTStrategy(secret=settings.SECRET, lifetime_seconds=15 * 60 * 60)
 
 
 auth_backend = AuthenticationBackend(

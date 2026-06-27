@@ -19,10 +19,10 @@ class CategoryRepository:
 
     async def get_all(self, count: int = 15) -> list[dict]:
         res = await self.session.execute(
-            select(Category, func.sum(Projects.like_count).label("total_likes"))
-            .join(Projects, Category.id == Projects.category_id)
+            select(Category, func.coalesce(func.sum(Projects.like_count), 0).label("total_likes"))
+            .outerjoin(Projects, Category.id == Projects.category_id)
             .group_by(Category.id)
-            .order_by(func.sum(Projects.like_count).desc())
+            .order_by(func.coalesce(func.sum(Projects.like_count), 0).desc())
             .limit(limit=count)
         )
         result = []
