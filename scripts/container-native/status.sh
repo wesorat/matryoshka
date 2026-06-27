@@ -23,7 +23,9 @@ else
     echo "caddy: stopped"
 fi
 
-if command -v pg_ctl >/dev/null 2>&1 && [ -d "${PGDATA}" ] && pg_ctl -D "${PGDATA}" status >/dev/null 2>&1; then
+if try_find_postgres_bin >/dev/null 2>&1 && \
+    [ -f "${POSTGRES_DATA_DIR}/PG_VERSION" ] && \
+    pg_ctl -D "${POSTGRES_DATA_DIR}" status >/dev/null 2>&1; then
     echo "postgres: running"
 else
     echo "postgres: stopped"

@@ -11,11 +11,15 @@ ENV_FILE="${ENV_FILE:-${REPO_ROOT}/.env.native}"
 container_native_load_env "${ENV_FILE}"
 container_native_defaults
 
-container_native_require_command pg_ctl
-
-if [ ! -d "${PGDATA}" ]; then
-    echo "PostgreSQL data directory does not exist: ${PGDATA}"
+if [ ! -f "${POSTGRES_DATA_DIR}/PG_VERSION" ]; then
+    echo "PostgreSQL data directory does not exist: ${POSTGRES_DATA_DIR}"
     exit 0
 fi
 
-pg_ctl -D "${PGDATA}" stop -m fast
+find_postgres_bin
+
+if pg_ctl -D "${POSTGRES_DATA_DIR}" status >/dev/null 2>&1; then
+    pg_ctl -D "${POSTGRES_DATA_DIR}" stop -m fast
+else
+    echo "PostgreSQL is not running."
+fi

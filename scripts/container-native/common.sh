@@ -28,6 +28,35 @@ container_native_require_command() {
     fi
 }
 
+die() {
+    echo "$*" >&2
+    exit 1
+}
+
+try_find_postgres_bin() {
+    if command -v pg_ctl >/dev/null 2>&1 && \
+        command -v initdb >/dev/null 2>&1 && \
+        command -v psql >/dev/null 2>&1; then
+        return 0
+    fi
+
+    local candidate
+    for candidate in /usr/lib/postgresql/*/bin; do
+        if [ -x "${candidate}/pg_ctl" ] && \
+            [ -x "${candidate}/initdb" ] && \
+            [ -x "${candidate}/psql" ]; then
+            export PATH="${candidate}:${PATH}"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_postgres_bin() {
+    try_find_postgres_bin || die "PostgreSQL server binaries not found. Install postgresql package."
+}
+
 container_native_defaults() {
     : "${PROJECT_DIR:=${REPO_ROOT}}"
     : "${RUNTIME_DIR:=${HOME}/matryoshka-runtime}"
@@ -39,18 +68,22 @@ container_native_defaults() {
     : "${DB_PORT:=5432}"
     : "${VITE_API_URL:=/api}"
     : "${UPLOAD_DIR:=${RUNTIME_DIR}/uploads}"
-    : "${PGDATA:=${RUNTIME_DIR}/postgres}"
+    : "${POSTGRES_DATA_DIR:=${PGDATA:-${RUNTIME_DIR}/postgres}}"
+    : "${PGDATA:=${POSTGRES_DATA_DIR}}"
+    : "${POSTGRES_RUN_DIR:=${RUNTIME_DIR}/postgres-run}"
     : "${VENV_DIR:=${RUNTIME_DIR}/venv}"
     : "${LOG_DIR:=${RUNTIME_DIR}/logs}"
+    : "${POSTGRES_LOG:=${LOG_DIR}/postgres.log}"
     : "${PID_DIR:=${RUNTIME_DIR}/pids}"
     : "${CADDYFILE_PATH:=${RUNTIME_DIR}/Caddyfile}"
     : "${BACKEND_PID_FILE:=${PID_DIR}/backend.pid}"
     : "${CADDY_PID_FILE:=${PID_DIR}/caddy.pid}"
-    : "${POSTGRES_PID_FILE:=${PGDATA}/postmaster.pid}"
+    : "${POSTGRES_PID_FILE:=${POSTGRES_DATA_DIR}/postmaster.pid}"
     : "${DEPLOY_BRANCH:=$(git -C "${REPO_ROOT}" branch --show-current 2>/dev/null || printf main)}"
 
     export PROJECT_DIR RUNTIME_DIR BACKEND_HOST BACKEND_PORT FRONTEND_HOST FRONTEND_PORT
-    export DB_HOST DB_PORT VITE_API_URL UPLOAD_DIR PGDATA VENV_DIR LOG_DIR PID_DIR
+    export DB_HOST DB_PORT VITE_API_URL UPLOAD_DIR POSTGRES_DATA_DIR PGDATA POSTGRES_RUN_DIR POSTGRES_LOG
+    export VENV_DIR LOG_DIR PID_DIR
     export CADDYFILE_PATH BACKEND_PID_FILE CADDY_PID_FILE POSTGRES_PID_FILE DEPLOY_BRANCH
 }
 
@@ -94,23 +127,21 @@ container_native_validate_proxy_mode() {
         return 1
     fi
 
-    case "${DB_USER:-}" in
-        ''|*[!A-Za-z0-9_]*)
-            echo "DB_USER must contain only letters, digits, and underscore for native PostgreSQL bootstrap." >&2
-            return 1
-            ;;
-    esac
+    if [[ ! "${DB_USER:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        echo "DB_USER must match ^[a-zA-Z_][a-zA-Z0-9_]*$ for native PostgreSQL bootstrap." >&2
+        return 1
+    fi
 
-    case "${DB_DATABASE:-}" in
-        ''|*[!A-Za-z0-9_]*)
-            echo "DB_DATABASE must contain only letters, digits, and underscore for native PostgreSQL bootstrap." >&2
-            return 1
-            ;;
-    esac
+    if [[ ! "${DB_DATABASE:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        echo "DB_DATABASE must match ^[a-zA-Z_][a-zA-Z0-9_]*$ for native PostgreSQL bootstrap." >&2
+        return 1
+    fi
 }
 
 container_native_prepare_runtime_dirs() {
-    mkdir -p "${RUNTIME_DIR}" "${UPLOAD_DIR}" "${PGDATA}" "${VENV_DIR}" "${LOG_DIR}" "${PID_DIR}"
+    mkdir -p "${RUNTIME_DIR}" "${UPLOAD_DIR}" "${POSTGRES_DATA_DIR}" "${POSTGRES_RUN_DIR}" \
+        "${VENV_DIR}" "${LOG_DIR}" "${PID_DIR}"
+    chmod 700 "${POSTGRES_DATA_DIR}" "${POSTGRES_RUN_DIR}"
 }
 
 container_native_process_running() {

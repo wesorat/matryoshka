@@ -38,7 +38,8 @@ cp .env.native.example .env.native
 ```
 
 Frontend для native container mode собирается с `VITE_API_URL=/api`, поэтому API идет через внутренний Caddy на `127.0.0.1:8000`.
-PostgreSQL запускается на уровне пользователя через `pg_ctl` и слушает `127.0.0.1:5432`.
+PostgreSQL запускается на уровне пользователя через `pg_ctl`, который native scripts находят сами, включая `/usr/lib/postgresql/*/bin`.
+PostgreSQL слушает `127.0.0.1:5432`, а локальный socket лежит в `$HOME/matryoshka-runtime/postgres-run`, не в `/var/run/postgresql`.
 Runtime-файлы, PostgreSQL data, uploads, logs, pid-файлы и backend venv лежат в `$HOME/matryoshka-runtime`.
 
 Запустить процессы:
