@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     DB_DATABASE: str
     DEBUG: bool
     SECRET: str
+    UPLOAD_DIR: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",

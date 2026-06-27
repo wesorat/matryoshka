@@ -1,5 +1,7 @@
 .env
 .env.prod
+.env.native
+.runtime/
 .venv
 venv/
 __pycache__/

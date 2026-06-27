@@ -1,5 +1,5 @@
 from pathlib import Path
-from core.config import FILES_DIR
+from core.config import FILES_DIR, settings
 
 
 class Storage:
@@ -25,4 +25,4 @@ class Storage:
             path.unlink()
 
 
-storage = Storage(FILES_DIR / "uploads")
+storage = Storage(settings.UPLOAD_DIR or FILES_DIR / "uploads")

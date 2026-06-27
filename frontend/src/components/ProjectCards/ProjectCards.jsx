@@ -26,7 +26,7 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
             >
               {project.image || project.image_url ? (
               <img
-                src={"http://localhost:8000/media/uploads/" + (project.image || project.image_url)}
+                src={"/media/uploads/" + (project.image || project.image_url)}
                 alt={project.title}
                 className={styles.cardImage}
               />

@@ -27,6 +27,39 @@ PostgreSQL и backend наружу не публикуются.
 
 # Для DevOps
 
+В контейнерной среде HTTPS уже завершается внешним proxy. Внутренний native Caddy слушает только `:80`; сертификаты внутри контейнера не выпускаются.
+
+Native deploy для контейнерной среды:
+
+```bash
+cp .env.native.example .env.native
+# заполнить DB_PASSWORD и SECRET
+./scripts/container-native/deploy.sh
+```
+
+Frontend для native container mode собирается с `VITE_API_URL=/api`, поэтому API идет через внутренний Caddy на `127.0.0.1:8000`.
+PostgreSQL должен быть доступен внутри контейнера на `127.0.0.1:5432`.
+
+Запустить процессы:
+
+```bash
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-backend.sh
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-caddy.sh
+```
+
+Проверить внутри контейнера:
+
+```bash
+curl http://127.0.0.1:8000/api/health
+curl http://127.0.0.1/
+```
+
+Проверить снаружи:
+
+```bash
+curl https://matryoshka.st.ifbest.org/api/health
+```
+
 Первичная подготовка VDS:
 
 ```bash
