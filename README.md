@@ -38,13 +38,24 @@ cp .env.native.example .env.native
 ```
 
 Frontend для native container mode собирается с `VITE_API_URL=/api`, поэтому API идет через внутренний Caddy на `127.0.0.1:8000`.
-PostgreSQL должен быть доступен внутри контейнера на `127.0.0.1:5432`.
+PostgreSQL запускается на уровне пользователя через `pg_ctl` и слушает `127.0.0.1:5432`.
+Runtime-файлы, PostgreSQL data, uploads, logs, pid-файлы и backend venv лежат в `$HOME/matryoshka-runtime`.
 
 Запустить процессы:
 
 ```bash
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-postgres.sh
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/migrate.sh
 ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-backend.sh
 ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-caddy.sh
+```
+
+Остановить процессы:
+
+```bash
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/stop-caddy.sh
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/stop-backend.sh
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/stop-postgres.sh
 ```
 
 Проверить внутри контейнера:
@@ -52,6 +63,7 @@ ENV_FILE="$PWD/.env.native" ./scripts/container-native/start-caddy.sh
 ```bash
 curl http://127.0.0.1:8000/api/health
 curl http://127.0.0.1/
+curl http://127.0.0.1/_proxy_health
 ```
 
 Проверить снаружи:

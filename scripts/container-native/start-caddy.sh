@@ -13,6 +13,16 @@ container_native_defaults
 container_native_validate_proxy_mode
 
 container_native_require_command caddy
+container_native_prepare_runtime_dirs
+
+if container_native_process_running "${CADDY_PID_FILE}"; then
+    echo "Caddy is already running with pid $(cat "${CADDY_PID_FILE}")."
+    exit 0
+fi
+
 "${SCRIPT_DIR}/render-caddyfile.sh"
 
-exec caddy run --config "${CADDYFILE_PATH}" --adapter caddyfile
+nohup caddy run --config "${CADDYFILE_PATH}" --adapter caddyfile \
+    > "${LOG_DIR}/caddy.log" 2>&1 &
+echo "$!" > "${CADDY_PID_FILE}"
+echo "Started Caddy pid $(cat "${CADDY_PID_FILE}"). Log: ${LOG_DIR}/caddy.log"

@@ -21,6 +21,10 @@ cat > "${CADDYFILE_PATH}" <<CADDYFILE
 root * ${FRONTEND_DIST}
 encode gzip zstd
 
+handle /_proxy_health {
+    respond "ok" 200
+}
+
 handle_path /api/* {
     reverse_proxy ${BACKEND_HOST}:${BACKEND_PORT}
 }
