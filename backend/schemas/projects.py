@@ -10,12 +10,7 @@ from schemas.media import MediaRead
 from schemas.user import MemberRead, UserRead
 
 
-class ProjectsCreate(BaseModel):
-    title: str
-    description: str = ""
-    # image_url: Optional[str] = None
-    category_id: Optional[int] = None
-    status: ProjectStatus = ProjectStatus.DRAFT
+
 
 class ProjectsCreate(BaseModel):
     title: str
@@ -23,7 +18,6 @@ class ProjectsCreate(BaseModel):
     category_id: Optional[int] = None
     status: ProjectStatus = ProjectStatus.DRAFT
 
-    # Добавляем новые поля, которые приходят из формы:
     practical_benefit: Optional[str] = ""
     implementation_details: Optional[str] = ""
     results: Optional[str] = ""
