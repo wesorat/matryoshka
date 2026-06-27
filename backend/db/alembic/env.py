@@ -34,6 +34,12 @@ target_metadata = Base.metadata
 
 
 def get_database_url() -> str:
+    required_vars = ("DB_USER", "DB_PASSWORD", "DB_HOST", "DB_PORT", "DB_DATABASE")
+    missing_vars = [name for name in required_vars if not os.environ.get(name)]
+    if missing_vars:
+        names = ", ".join(missing_vars)
+        raise RuntimeError(f"Missing required Alembic environment variables: {names}")
+
     return URL.create(
         drivername="postgresql+psycopg2",
         username=os.environ["DB_USER"],
