@@ -1,4 +1,10 @@
-:80 {
+http://127.0.0.1:80 {
+	handle /_proxy_health {
+		respond "ok" 200
+	}
+}
+
+{$SITE_DOMAIN} {
 	root * /srv
 	encode zstd gzip
 
