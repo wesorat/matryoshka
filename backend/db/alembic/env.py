@@ -1,7 +1,8 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import URL, engine_from_config, pool
 
 from db.base import Base
 from models.category import Category
@@ -30,6 +31,26 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def get_database_url() -> str:
+    required_vars = ("DB_USER", "DB_PASSWORD", "DB_HOST", "DB_PORT", "DB_DATABASE")
+    missing_vars = [name for name in required_vars if not os.environ.get(name)]
+    if missing_vars:
+        names = ", ".join(missing_vars)
+        raise RuntimeError(f"Missing required Alembic environment variables: {names}")
+
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.environ["DB_USER"],
+        password=os.environ["DB_PASSWORD"],
+        host=os.environ["DB_HOST"],
+        port=int(os.environ["DB_PORT"]),
+        database=os.environ["DB_DATABASE"],
+    ).render_as_string(hide_password=False)
+
+
+config.set_main_option("sqlalchemy.url", get_database_url())
 
 
 def run_migrations_offline() -> None:

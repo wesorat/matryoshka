@@ -22,5 +22,26 @@ curl http://localhost:8080/api/health
 docker compose --env-file .env.prod -f docker-compose.prod.yml down
 ```
 
-`DB_PASSWORD` и `SECRET` обязательны и не имеют production-дефолтов.
+`DB_PASSWORD` и `SECRET` обязательны.
 PostgreSQL и backend наружу не публикуются.
+
+# Для DevOps
+
+Первичная подготовка VDS:
+
+```bash
+./scripts/server-bootstrap.sh
+```
+
+Запуск деплоя:
+
+```bash
+cd /opt/matryoshka
+./scripts/deploy.sh
+```
+
+Проверить:
+
+```bash
+curl https://matryoshka.st.ifbest.org/api/health
+```
