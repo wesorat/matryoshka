@@ -95,7 +95,11 @@ if [ ! -f "${COMPOSE_FILE}" ]; then
 fi
 
 require_env_var SITE_DOMAIN
+require_env_var DB_USER
 require_env_var DB_PASSWORD
+require_env_var DB_HOST
+require_env_var DB_PORT
+require_env_var DB_DATABASE
 require_env_var SECRET
 
 SITE_DOMAIN="$(env_value SITE_DOMAIN)"
