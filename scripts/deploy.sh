@@ -6,6 +6,7 @@ COMPOSE_FILE="docker-compose.prod.yml"
 ENV_FILE=".env.prod"
 EXPECTED_DOMAIN="matryoshka.st.ifbest.org"
 BACKEND_SERVICE="backend"
+DB_SERVICE="matr_db"
 
 COMPOSE=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 PREVIOUS_COMMIT=""
@@ -45,6 +46,22 @@ require_env_var() {
         echo "Required variable is missing or empty in ${ENV_FILE}: ${name}" >&2
         exit 1
     fi
+}
+
+wait_for_db() {
+    local attempt
+
+    for attempt in $(seq 1 30); do
+        if "${COMPOSE[@]}" exec -T "${DB_SERVICE}" sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; then
+            return 0
+        fi
+
+        echo "Waiting for database (${attempt}/30)..."
+        sleep 2
+    done
+
+    echo "Database did not become ready in time." >&2
+    return 1
 }
 
 require_command git
@@ -106,10 +123,12 @@ CURRENT_COMMIT="$(git rev-parse HEAD)"
 echo "Previous commit: ${PREVIOUS_COMMIT}"
 echo "Current commit:  ${CURRENT_COMMIT}"
 
-"${COMPOSE[@]}" config
+"${COMPOSE[@]}" config --quiet
 "${COMPOSE[@]}" build
+"${COMPOSE[@]}" up -d "${DB_SERVICE}"
+wait_for_db
+"${COMPOSE[@]}" run --rm "${BACKEND_SERVICE}" alembic upgrade head
 "${COMPOSE[@]}" up -d
-"${COMPOSE[@]}" exec -T "${BACKEND_SERVICE}" alembic upgrade head
 
 curl -fsS "https://${SITE_DOMAIN}/api/health"
 echo
