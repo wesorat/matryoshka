@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class UserRead(schemas.BaseUser[ID]):
     name: str
-    avatar: str
+    image_url: str
     bio: Optional[str] = None
     skills: Optional[str] = None
     created_at: datetime.datetime
@@ -24,14 +24,14 @@ class UserReadMain(BaseModel):
     id: int
     name: str
     email: str
-    avatar: str
+    image_url: str
 
 
 class UserCreate(schemas.BaseUserCreate):
     name: str
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
-    skills: Optional[str] = None
+    image_url: Optional[str] = ""
+    bio: Optional[str] = ""
+    skills: Optional[str] = ""
 
     is_active: bool = Field(default=True, exclude=True)
     is_superuser: bool = Field(default=False, exclude=True)
@@ -40,7 +40,7 @@ class UserCreate(schemas.BaseUserCreate):
 
 class UserUpdate(schemas.BaseUserUpdate):
     name: Optional[str] = None
-    avatar: Optional[str] = None
+    image_url: Optional[str] = None
     bio: Optional[str] = None
     skills: Optional[str] = None
 

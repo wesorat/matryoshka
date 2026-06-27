@@ -13,6 +13,7 @@ from services.members import MembersService
 from services.projects import ProjectService
 from services.auth import current_active_user, current_active_user_optional
 from services.roles import RolesService
+from services.user import UserService
 
 
 async def get_category_service(session: SessionDep) -> CategoryService:
@@ -46,6 +47,8 @@ async def get_invite_service(session: SessionDep) -> InviteService:
 
 async def get_roles_service(session: SessionDep) -> RolesService:
     return RolesService(session)
+
+
 
 
 CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]

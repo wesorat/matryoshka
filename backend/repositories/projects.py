@@ -117,6 +117,9 @@ class ProjectsRepository:
             "category_id",
             "status",
             "slug",
+            "practical_benefit",
+            "implementation_benefit",
+            "results",
         }
 
         for key, value in data.items():
@@ -150,6 +153,9 @@ class ProjectsRepository:
             "category_id",
             "status",
             "slug",
+            "practical_benefit",
+            "implementation_benefit",
+            "results",
         }
 
         for key, value in data.items():

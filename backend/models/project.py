@@ -28,6 +28,9 @@ class Projects(Base):
     description: Mapped[str] = mapped_column(String, default="")
     image_url: Mapped[str] = mapped_column(String(length=500), default="")
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    practical_benefit:  Mapped[str] = mapped_column(String(length=500), default="")
+    implementation_details:  Mapped[str] = mapped_column(String(length=500), default="")
+    results:  Mapped[str] = mapped_column(String(length=500), default="")
     category_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("project_category.id"), nullable=True
     )

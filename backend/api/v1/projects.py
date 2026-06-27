@@ -167,10 +167,14 @@ async def delete_project(
     project_id: int, service: ProjectServiceDep, current_user: CurrentUserDep
 ):
     try:
-        await service.delete(current_user.id, project_id)
-        return {"status": "deleted"}
+        filename = await service.delete(current_user.id, project_id)
+        if filename is not None:
+            return {"status": "deleted"}
+        raise NotOwnProject(current_user.id)
     except ProjectNotFound:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    except NotOwnProject:
+        raise HTTPException(status_code=404, detail=f"Project {project_id} is not yours")
 
 
 @project_router.delete("/{project_slug:str}")

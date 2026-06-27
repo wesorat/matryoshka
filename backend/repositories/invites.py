@@ -11,6 +11,7 @@ class InviteRepository:
         self.session = session
 
     async def create(self, invite: ProjectInvite) -> ProjectInvite:
+
         self.session.add(invite)
         await self.session.flush()
         await self.session.refresh(
