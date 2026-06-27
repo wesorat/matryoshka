@@ -22,19 +22,23 @@ class ProjectsCreate(BaseModel):
     description: str = ""
     category_id: Optional[int] = None
     status: ProjectStatus = ProjectStatus.DRAFT
-    
+
     # Добавляем новые поля, которые приходят из формы:
     practical_benefit: Optional[str] = ""
     implementation_details: Optional[str] = ""
     results: Optional[str] = ""
 
-    
+
 class ProjectsUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     # image_url: Optional[str] = None
     category_id: Optional[int] = None
     status: Optional[ProjectStatus] = None
+    practical_benefit: Optional[str] = ""
+    implementation_details: Optional[str] = ""
+    results: Optional[str] = ""
+
 
 
 class ProjectsRead(BaseModel):
@@ -47,6 +51,7 @@ class ProjectsRead(BaseModel):
     category: Optional[CategoryRead] = None
     status: ProjectStatus
     like_count: int
+
     created_at: datetime
     updated_at: datetime
 
@@ -67,6 +72,10 @@ class ProjectsReadOne(BaseModel):
     status: ProjectStatus
     medias: list[MediaRead]
     like_count: int
+    practical_benefit: Optional[str] = ""
+    implementation_details: Optional[str] = ""
+    results: Optional[str] = ""
+
     comments: list[CommentsRead]
     created_at: datetime
     updated_at: datetime

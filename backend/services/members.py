@@ -12,7 +12,6 @@ from repositories.invites import InviteRepository
 from repositories.likes import LikesRepository
 from repositories.members import MembersRepository
 from schemas.user import NewMemberAdd, UserCreate
-from services.auth import UserManager, generate_secure_random_password_hash, get_user_manager
 from services.projects import ProjectService
 
 

@@ -1,14 +1,13 @@
 from typing import Optional
 
 from fastapi import UploadFile
+from isort import file
 from slugify import slugify
 
 from core.dependencies import SessionDep
-from core.exceptions import NotOwnProject
 from models.project import Projects
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectsCreate, ProjectsReadOne, ProjectsUpdate
-from schemas.user import NewMemberAdd
 from services.media import MediaStorageService
 from services.storage import storage
 
@@ -62,18 +61,20 @@ class ProjectService:
         return await self.repo.search_by_title(title.strip())
 
 
-    async def delete(self, user_id: int, project_id: int):
+    async def delete(self, user_id: int, project_id: int) -> str:
         filename = await self.repo.delete(user_id, project_id)
-        if filename != "":
+        if filename != "" and filename is not None :
             await MediaStorageService().delete(filename)
 
         await self.session.commit()
+        return filename
 
-    async def delete_by_slug(self, user_id: int, slug: str):
+    async def delete_by_slug(self, user_id: int, slug: str) -> str:
         filename = await self.repo.delete_by_slug(user_id, slug)
-        if filename != "":
+        if filename != "" and filename is not None:
             await MediaStorageService().delete(filename)
         await self.session.commit()
+        return filename
 
     async def update(
         self,

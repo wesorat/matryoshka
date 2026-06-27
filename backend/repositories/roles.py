@@ -11,6 +11,6 @@ class RolesRepository:
 
 
     async def get_all(self, count: int = 20) -> list[Role]:
-        res = await self.session.execute(select(Role).limit(count))
+        res = await self.session.execute(select(Role).order_by(Role.name).limit(count))
         return res.scalars().all()
 

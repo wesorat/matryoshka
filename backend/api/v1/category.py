@@ -1,3 +1,5 @@
+
+from asyncpg import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
 
@@ -53,6 +55,16 @@ async def delete(
     category_service: CategoryServiceDep,
     id: int,
 ):
-    count = await category_service.delete(id)
-
-    return {"count_deleted": count}
+    try:
+        count = await category_service.delete(id)
+        return {"count_deleted": count}
+    except IntegrityError as e:
+        if isinstance(e.orig, ForeignKeyViolationError):
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot delete category because it is referenced by existing projects"
+            )
+        raise HTTPException(
+            status_code=400,
+            detail=f"Database integrity error: {str(e)}"
+        )
