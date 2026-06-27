@@ -4,19 +4,17 @@ import Button from '../components/Buttons/Button.jsx';
 import PublishPage from '../components/PublishForm/PublishForm.jsx';
 import styles from './UserPage.module.scss';
 
-// 3. Добавили onPublishSuccess в пропсы для будущей интеграции с API
 function UserPage({ 
   user = {}, 
   projects = [], 
   loading = false, 
+  categories = [],  
   onBack = () => {}, 
   onProjectClick = () => {}, 
   onLogout = () => {},
   onPublishSuccess = () => {} 
 }) {
   const { name = 'Имя Пользователя', avatar } = user;
-
-  // 4. Стейт для управления показом формы публикации
   const [isPublishOpen, setIsPublishOpen] = useState(false);
 
   return (
@@ -58,14 +56,12 @@ function UserPage({
       </div>
 
       {isPublishOpen && (
-        <PublishPage 
-          onBack={() => setIsPublishOpen(false)} 
-          onSuccess={(formData) => {
-            onPublishSuccess(formData); 
-            setIsPublishOpen(false); 
-          }} 
-        />
-      )}
+      <PublishPage 
+        categories={categories} 
+        onSuccess={onPublishSuccess}
+        onBack={() => setIsPublishOpen(false)} 
+      />
+    )}
     </section>
   )
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './PublishForm.module.scss';
 
-export default function PublishPage({ onBack = () => {}, onSuccess = () => {} }) {
+export default function PublishPage({ categories = [], onBack = () => {}, onSuccess = () => {} }) {
    const [isOpen, setIsOpen] = useState(true);
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
@@ -9,6 +9,7 @@ export default function PublishPage({ onBack = () => {}, onSuccess = () => {} })
    // Стейт полей формы публикации
    const [formData, setFormData] = useState({
       title: '',
+      categoryId: '',
       description: '',
       practicalBenefit: '',
       implementationDetails: '',
@@ -32,6 +33,7 @@ export default function PublishPage({ onBack = () => {}, onSuccess = () => {} })
       setError('');
       setFormData({
          title: '',
+         categoryId: '',
          description: '',
          practicalBenefit: '',
          implementationDetails: '',
@@ -88,8 +90,6 @@ export default function PublishPage({ onBack = () => {}, onSuccess = () => {} })
       setLoading(true);
 
       try {
-         // Ждем твой API в следующем сообщении. 
-         // Передаем собранные данные (включая файл) прямо в onSuccess.
          await onSuccess({ ...formData, media: mediaFile });
          closeModal();
       } catch (err) {
@@ -127,6 +127,25 @@ export default function PublishPage({ onBack = () => {}, onSuccess = () => {} })
                      <div className={styles.inputGroup}>
                         <label htmlFor="title">Заголовок</label>
                         <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} placeholder="Название публикации" required className={styles.input} />
+                     </div>
+
+                     <div className={styles.inputGroup}>
+                        <label htmlFor="categoryId">Категория видео</label>
+                        <select
+                           id="categoryId"
+                           name="categoryId"
+                           value={formData.categoryId}
+                           onChange={handleChange}
+                           required
+                           className={styles.input}
+                        >
+                           <option value="" disabled>Выберите категорию</option>
+                           {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                 {cat.name || cat.title || `Категория ${cat.id}`}
+                              </option>
+                           ))}
+                        </select>
                      </div>
 
                      <div className={styles.inputGroup}>

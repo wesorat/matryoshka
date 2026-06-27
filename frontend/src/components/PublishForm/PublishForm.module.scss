@@ -43,7 +43,7 @@
 
 .dialog {
   width: 100%;
-  max-width: 34rem; // Немного шире, чем LogPage (28rem), для удобства работы с textarea
+  max-width: 34rem;
   background-color: vars.$bg-main;
   border: 1px solid vars.$border-color;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -207,5 +207,29 @@ input[type="file"].input {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem; // Отступ справа, чтобы текст не накладывался на стрелку
+  cursor: pointer;
+
+  // Цвет дефолтного заблокированного пункта "Выберите категорию"
+  option:disabled {
+    color: vars.$text-muted;
+  }
+  
+  // Элементы списка внутри дропдауна
+  option {
+    background-color: vars.$bg-main;
+    color: vars.$text-main;
   }
 }

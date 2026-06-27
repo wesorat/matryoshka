@@ -95,3 +95,28 @@ export async function fetchCurrentUser() {
     })
   )
 }
+
+export async function createProject(projectData) {
+  const formData = new FormData()
+  
+  formData.append('title', projectData.title)
+  formData.append('category_id', projectData.categoryId)
+  formData.append('description', projectData.description)
+  formData.append('practical_benefit', projectData.practicalBenefit)
+  formData.append('implementation_details', projectData.implementationDetails)
+  formData.append('results', projectData.results)
+  
+  if (projectData.media) {
+    formData.append('media', projectData.media)
+  }
+
+  return handleResponse(
+    await fetch(`${API_URL}/projects/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+      // ВАЖНО: Заголовок 'Content-Type' указывать вручную НЕ нужно! 
+      // Браузер подставит 'multipart/form-data' и правильный boundary автоматически.
+    })
+  )
+}
