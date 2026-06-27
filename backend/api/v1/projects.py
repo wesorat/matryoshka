@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 
 from api.v1.dependencies import (
@@ -8,9 +8,12 @@ from api.v1.dependencies import (
     CurrentUserOptionalDep,
     MembersServiceDep,
     ProjectServiceDep,
+    get_projectCreate_from_form,
+    get_projectUpdate_from_form,
 )
 from core.config import FILES_DIR
 from core.exceptions import NotOwnProject, ProjectNotFound
+from models.project import ProjectStatus
 from models.user import User
 from schemas.projects import (
     ProjectsCreate,
@@ -29,7 +32,7 @@ project_router = APIRouter(
 async def create_project(
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsCreate = Depends(),
+    project: ProjectsCreate = Depends(get_projectCreate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:
@@ -125,7 +128,7 @@ async def update_project(
     project_id: int,
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsUpdate = Depends(),
+    project: ProjectsUpdate = Depends(get_projectUpdate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:
@@ -146,7 +149,7 @@ async def update_project(
     project_slug: str,
     current_user: CurrentUserDep,
     service: ProjectServiceDep,
-    project: ProjectsUpdate = Depends(),
+    project: ProjectsUpdate = Depends(get_projectUpdate_from_form),
     file: Optional[UploadFile] = File(None),
 ):
     try:

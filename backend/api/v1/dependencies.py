@@ -1,9 +1,13 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import Depends
+from fastapi import Depends, Form
 
 from core.dependencies import SessionDep
+from models.media import MediaView
+from models.project import ProjectStatus
 from models.user import User
+from schemas.media import MediaCreate
+from schemas.projects import ProjectsCreate, ProjectsUpdate
 from services.category import CategoryService
 from services.comments import CommentsService
 from services.invites import InviteService
@@ -65,3 +69,50 @@ RolesServiceDep = Annotated[RolesService, Depends(get_roles_service)]
 
 CurrentUserDep = Annotated[User, Depends(current_active_user)]
 CurrentUserOptionalDep = Annotated[User, Depends(current_active_user_optional)]
+
+async def get_projectCreate_from_form(
+    title: str = Form(...),
+    description: str = Form(""),
+    category_id: Optional[int] = Form(None),
+    status: ProjectStatus = Form(ProjectStatus.DRAFT),
+    practical_benefit: Optional[str] = Form(""),
+    implementation_details: Optional[str] = Form(""),
+    results: Optional[str] = Form(""),
+) -> ProjectsCreate:
+    return ProjectsCreate(
+        title=title,
+        description=description,
+        category_id=category_id,
+        status=status,
+        practical_benefit=practical_benefit,
+        implementation_details=implementation_details,
+        results=results
+    )
+
+async def get_projectUpdate_from_form(
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    category_id: Optional[int] = Form(None),
+    status: Optional[ProjectStatus] = Form(None),
+    practical_benefit: Optional[str] = Form(None),
+    implementation_details: Optional[str] = Form(None),
+    results: Optional[str] = Form(None),
+) -> ProjectsUpdate:
+    return ProjectsUpdate(
+        title=title,
+        description=description,
+        category_id=category_id,
+        status=status,
+        practical_benefit=practical_benefit,
+        implementation_details=implementation_details,
+        results=results
+    )
+
+async def get_mediaCreate_from_form(
+    view: MediaView = Form(MediaView.IMAGE),
+    project_id: int = Form(...),
+) -> MediaCreate:
+    return MediaCreate(
+        view=view,
+        project_id=project_id
+    )
