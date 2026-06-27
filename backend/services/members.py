@@ -4,7 +4,7 @@ from fastapi_users import password
 from fastapi_users.db import SQLAlchemyUserDatabase
 
 from core.dependencies import SessionDep
-from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound
+from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound, UserNotFound
 from models.likes import Likes
 from models.project import MemberRoles
 from models.user import User
@@ -30,21 +30,13 @@ class MembersService:
 
         user = await self.repo.get_user(member.id, member.email)
         if user is None:
-            user_create = UserCreate(name=member.name, email=member.email, password="123")
-            user_db = SQLAlchemyUserDatabase(self.session, User)
+            raise UserNotFound(member.id)
 
-            user_manager = UserManager(user_db)
-            user = await user_manager.create(user_create, safe=False)
-            user.is_active=False
-            await self.session.flush()
-
-
-        if user.email != member.email:
-            raise NotCorrectEmail(user_id)
+        # if user.email != member.email:
+        #     raise NotCorrectEmail(user_id)
 
         created_member = MemberRoles(user_id=user.id, project_id=project_id, role=member.role)
         created_member = await self.repo.add_member(created_member)
-
         await self.session.commit()
 
         return created_member
