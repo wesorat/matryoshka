@@ -24,3 +24,37 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml down
 
 `DB_PASSWORD` и `SECRET` обязательны и не имеют production-дефолтов.
 PostgreSQL и backend наружу не публикуются.
+
+# Для DevOps
+
+Домен:
+
+```text
+matryoshka.st.ifbest.org
+```
+
+Первичная настройка Git-доступа:
+
+```bash
+./scripts/server-bootstrap.sh
+```
+
+Добавить public key в GitHub Deploy keys без write access.
+
+Clone URL для сервера:
+
+```text
+git@github.com-matryoshka:wesorat/matryoshka.git
+```
+
+Запуск деплоя:
+
+```bash
+./scripts/deploy.sh
+```
+
+Проверить:
+
+```bash
+curl https://matryoshka.st.ifbest.org/api/health
+```
