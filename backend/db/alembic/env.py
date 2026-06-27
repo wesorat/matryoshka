@@ -50,7 +50,9 @@ def get_database_url() -> str:
     ).render_as_string(hide_password=False)
 
 
-config.set_main_option("sqlalchemy.url", get_database_url())
+# Alembic stores this through ConfigParser, where percent signs are interpolation
+# markers. URL-encoded passwords may contain %, so escape them before setting.
+config.set_main_option("sqlalchemy.url", get_database_url().replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:
