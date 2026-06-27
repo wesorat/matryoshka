@@ -20,7 +20,7 @@ function App() {
 
   const [user, setUser] = useState(null)
   const [myProjects, setMyProjects] = useState([]) // Стейт для реальных проектов юзера
-  const [myProjectsLoading, setMyProjectsLoading] = useState(false)
+  const [myProjectsLoading, setMyProjectsLoading] = useState(true)
 
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
@@ -217,18 +217,20 @@ function App() {
 
   const displayedCategoryProjects = categoryLoading
     ? []
+    : categoryLoading
+    ? []
     : categoryProjects.length > 0
     ? categoryProjects
     : projects.filter((project) => project.category_id === selectedCategoryId)
 
   useEffect(() => {
     if (!selectedCategoryId) {
-      setCategoryProjects([])
-      return
+    return
     }
 
     let mounted = true
-    setCategoryLoading(true)
+    setTimeout(() => {
+    if (mounted) setCategoryLoading(true)}, 0)
 
     fetchProjectsByCategory(selectedCategoryId)
       .then((items) => {

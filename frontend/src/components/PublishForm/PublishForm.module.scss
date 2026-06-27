@@ -1,0 +1,223 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+// Переменные для быстрой кастомизации под вашу тему
+$bg-dialog: #1a1a1a;        // Фон модального окна
+$bg-input: #2d2d2d;         // Фон полей ввода
+$text-main: #ffffff;        // Основной текст
+$text-muted: #aaaaaa;       // Подписи и плейсхолдеры
+$accent: #4a90e2;           // Цвет кнопки и фокуса
+$accent-hover: #357abd;     // Ховер кнопки
+$border-radius: 8px;
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.dialog {
+  position: relative;
+  background-color: $bg-dialog;
+  color: $text-main;
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh; // Чтобы форма не вылезала за экраны ноутбуков
+  border-radius: $border-radius;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  animation: slideUp 0.3s ease-out;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: $text-muted;
+    transition: fill 0.2s ease;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    svg {
+      fill: $text-main;
+    }
+  }
+}
+
+.header {
+  padding: 30px 40px 15px 40px;
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+.formContainer {
+  padding: 0 40px 30px 40px;
+  overflow-y: auto; // Включаем внутренний скролл, если полей слишком много
+  flex: 1;
+
+  // Красивый тонкий скроллбар для контейнера формы
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba($text-muted, 0.2);
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba($text-muted, 0.4);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba($text-main, 0.9);
+  }
+
+  // Стилизация текстовых полей, textarea и файлового инпута
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    background-color: $bg-input;
+    border: 1px solid rgba($text-muted, 0.15);
+    border-radius: 6px;
+    color: $text-main;
+    font-size: 14px;
+    font-family: inherit; // Чтобы textarea не сбрасывал шрифт
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: rgba($text-muted, 0.6);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $accent;
+      box-shadow: 0 0 0 3px rgba($accent, 0.25);
+    }
+  }
+
+  // Специфичные фиксы для многострочных полей
+  textarea.input {
+    resize: vertical; // Разрешаем тянуть только по вертикали
+    min-height: 80px;
+    max-height: 200px;
+    line-height: 1.5;
+  }
+
+  // Легкий косметический фикс для инпута загрузки файлов
+  input[type="file"].input {
+    padding: 8px 10px;
+    cursor: pointer;
+
+    &::file-selector-button {
+      background: rgba($text-main, 0.1);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      color: $text-main;
+      margin-right: 10px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: rgba($text-main, 0.2);
+      }
+    }
+  }
+}
+
+.submitBtn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 14px;
+  background-color: $accent;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    background-color: $accent-hover;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Анимация появления окна
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
