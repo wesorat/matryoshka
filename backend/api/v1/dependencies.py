@@ -6,6 +6,7 @@ from core.dependencies import SessionDep
 from models.user import User
 from services.category import CategoryService
 from services.comments import CommentsService
+from services.invites import InviteService
 from services.likes import LikesService
 from services.media import MediaService, MediaStorageService
 from services.members import MembersService
@@ -39,6 +40,8 @@ async def get_media_service(session: SessionDep) -> MediaService:
 async def get_member_service(session: SessionDep) -> MembersService:
     return MembersService(session)
 
+async def get_invite_service(session: SessionDep) -> InviteService:
+    return InviteService(session)
 
 CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
@@ -49,6 +52,7 @@ MediaStroageServiceDep = Annotated[
 ]
 MediaServiceDep = Annotated[MediaService, Depends(get_media_service)]
 MembersServiceDep = Annotated[MembersService, Depends(get_member_service)]
+InviteServiceDep = Annotated[InviteService, Depends(get_invite_service)]
 
 CurrentUserDep = Annotated[User, Depends(current_active_user)]
 CurrentUserOptionalDep = Annotated[User, Depends(current_active_user_optional)]

@@ -10,6 +10,7 @@ from models.user import User
 from models.likes import Likes
 from models.comments import Comments
 from models.media import Media
+from models.invites import ProjectInvite, InviteStatus
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

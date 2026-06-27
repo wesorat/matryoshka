@@ -33,3 +33,5 @@ class MembersRepository:
             )
         )
         return res.scalars().all()
+
+

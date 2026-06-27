@@ -5,6 +5,7 @@ from api.v1.user import user_router
 from api.v1.likes import likes_router
 from api.v1.comments import comments_router
 from api.v1.media import media_router
+from api.v1.invites import invites_router
 from schemas.user import UserCreate, UserRead, UserUpdate
 from services.auth import auth_backend, fastapi_users
 
@@ -30,3 +31,4 @@ def include_routers(app):
     app.include_router(media_router)
     app.include_router(likes_router)
     app.include_router(comments_router)
+    app.include_router(invites_router)

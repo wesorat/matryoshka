@@ -62,6 +62,8 @@ class Projects(Base):
     )
     medias: Mapped[list["Media"]] = relationship("Media", back_populates="project")
 
+    invites: Mapped[list["ProjectInvite"]] = relationship("ProjectInvite", back_populates="project", lazy="selectin")
+
     @property
     def members(self):
         return [i.user for i in self.member_roles]

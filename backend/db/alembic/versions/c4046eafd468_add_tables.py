@@ -1,8 +1,8 @@
 """add tables
 
-Revision ID: cfb8c3a2799c
+Revision ID: c4046eafd468
 Revises: 
-Create Date: 2026-06-26 13:40:13.922423
+Create Date: 2026-06-27 11:27:26.912207
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'cfb8c3a2799c'
+revision: str = 'c4046eafd468'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -79,6 +79,19 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('project_invites',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('project_id', sa.Integer(), nullable=False),
+    sa.Column('inviter_id', sa.Integer(), nullable=False),
+    sa.Column('invitee_id', sa.Integer(), nullable=False),
+    sa.Column('role', sa.String(length=100), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', name='invitestatus'), nullable=False),
+    sa.Column('message', sa.String(length=500), nullable=True),
+    sa.ForeignKeyConstraint(['invitee_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['inviter_id'], ['users.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('project_likes',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('project_id', sa.Integer(), nullable=False),
@@ -105,6 +118,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_project_media_project_id'), table_name='project_media')
     op.drop_table('project_media')
     op.drop_table('project_likes')
+    op.drop_table('project_invites')
     op.drop_table('project_comments')
     op.drop_table('member_roles')
     op.drop_table('projects')

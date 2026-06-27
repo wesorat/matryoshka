@@ -38,6 +38,19 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         "Comments", back_populates="user", lazy="selectin"
     )
 
+    sent_invites: Mapped[list["ProjectInvite"]] = relationship(
+        "ProjectInvite",
+        foreign_keys="ProjectInvite.inviter_id",
+        back_populates="inviter",
+        lazy="selectin"
+    )
+    received_invites: Mapped[list["ProjectInvite"]] = relationship(
+        "ProjectInvite",
+        foreign_keys="ProjectInvite.invitee_id",
+        back_populates="invitee",
+        lazy="selectin"
+    )
+
     @property
     def projects(self):
         return [i.projects for i in self.roles]

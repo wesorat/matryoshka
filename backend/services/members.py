@@ -8,6 +8,7 @@ from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound, Use
 from models.likes import Likes
 from models.project import MemberRoles
 from models.user import User
+from repositories.invites import InviteRepository
 from repositories.likes import LikesRepository
 from repositories.members import MembersRepository
 from schemas.user import NewMemberAdd, UserCreate
@@ -41,16 +42,19 @@ class MembersService:
 
         return created_member
 
-    async def remove_member(self, user_id: int, project_id: int, email: str) -> None:
+    async def remove_member(self, user_id: int, project_id: int, member_id: int) -> None:
         project = await ProjectService(self.session).get(user_id, project_id)
         if project is None:
             raise ProjectNotFound(project_id)
         if project.owner.id != user_id:
             raise NotOwnProject(user_id)
 
-        user = await self.repo.get_user(0, email)
+        user = await self.repo.get_user(member_id)
 
         count = await self.repo.remove_member(user.id, project_id)
+
+        await InviteRepository(self.session).delete_by_project_user(project.id, user.id)
+
         await self.session.commit()
         return count
 
