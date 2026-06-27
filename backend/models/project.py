@@ -78,9 +78,17 @@ class MemberRoles(Base):
     project_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("projects.id", ondelete="CASCADE")
     )
-    role: Mapped[str] = mapped_column(String(length=100), nullable=False)
-
+    role_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("roles.id", ondelete="CASCADE"))
     __table_args__ = (PrimaryKeyConstraint("user_id", "project_id"),)
 
     projects = relationship("Projects", back_populates="member_roles")
     user = relationship("User", back_populates="roles", lazy="selectin")
+    role = relationship("Role", lazy="selectin")
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)

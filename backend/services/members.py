@@ -36,7 +36,7 @@ class MembersService:
         # if user.email != member.email:
         #     raise NotCorrectEmail(user_id)
 
-        created_member = MemberRoles(user_id=user.id, project_id=project_id, role=member.role)
+        created_member = MemberRoles(user_id=user.id, project_id=project_id, role_id=member.role_id)
         created_member = await self.repo.add_member(created_member)
         await self.session.commit()
 
@@ -62,3 +62,5 @@ class MembersService:
         if not name or len(name.strip()) == 1:
             return []
         return await self.repo.search_by_name(name.strip())
+
+

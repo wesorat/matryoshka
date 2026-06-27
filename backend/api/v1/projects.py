@@ -1,7 +1,6 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy.exc import IntegrityError
 
 
 from api.v1.dependencies import (
@@ -11,7 +10,7 @@ from api.v1.dependencies import (
     ProjectServiceDep,
 )
 from core.config import FILES_DIR
-from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound
+from core.exceptions import NotOwnProject, ProjectNotFound
 from models.user import User
 from schemas.projects import (
     ProjectsCreate,
@@ -19,8 +18,6 @@ from schemas.projects import (
     ProjectsReadOne,
     ProjectsUpdate,
 )
-from schemas.user import MemberRead, MemberReadCreated, NewMemberAdd
-from services.storage import storage
 
 project_router = APIRouter(
     prefix="/projects",

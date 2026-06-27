@@ -29,7 +29,8 @@ class ProjectInvite(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )
-    role: Mapped[str] = mapped_column(String(100), nullable=False)
+    role_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("roles.id", ondelete="CASCADE"))
     status: Mapped[InviteStatus] = mapped_column(
         SQLEnum(InviteStatus),
         default=InviteStatus.PENDING,
@@ -37,6 +38,8 @@ class ProjectInvite(Base):
     )
     message: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
+
+    role: Mapped["Role"]= relationship("Role", lazy="selectin")
     project: Mapped["Projects"] = relationship("Projects", back_populates="invites")
     inviter: Mapped["User"] = relationship("User", foreign_keys=[inviter_id], back_populates="sent_invites")
     invitee: Mapped["User"] = relationship("User", foreign_keys=[invitee_id], back_populates="received_invites")

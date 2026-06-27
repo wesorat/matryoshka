@@ -13,7 +13,10 @@ class InviteRepository:
     async def create(self, invite: ProjectInvite) -> ProjectInvite:
         self.session.add(invite)
         await self.session.flush()
-        await self.session.refresh(invite, attribute_names=["project", "inviter", "invitee"])
+        await self.session.refresh(
+        invite,
+        attribute_names=['project', 'invitee', 'role']
+    )
         return invite
 
     async def get_by_id(self, invite_id: int) -> ProjectInvite | None:

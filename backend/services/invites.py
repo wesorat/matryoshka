@@ -48,7 +48,7 @@ class InviteService:
     async def accept_invite(self, invite_id: int, user_id: int) -> ProjectInvite:
         result = await self.repo.accept(invite_id, user_id)
 
-        created_member = await MembersService(self.session).create(result.inviter_id, result.project_id, NewMemberAdd(id=result.invitee_id, role=result.role))
+        created_member = await MembersService(self.session).create(result.inviter_id, result.project_id, NewMemberAdd(id=result.invitee_id, role_id=result.role_id))
 
         await self.session.commit()
         return result

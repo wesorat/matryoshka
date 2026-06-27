@@ -49,22 +49,27 @@ class UserUpdate(schemas.BaseUserUpdate):
     is_verified: bool = Field(default=False, exclude=True)
 
 
+class Roles(BaseModel):
+    id: int
+    name: str
+    description: str
+
 class NewMemberAdd(BaseModel):
     id: Optional[int]
     # name: Optional[str] = ""
     # email: EmailStr
-    role: Optional[str] = ""
+    role_id: int
 
 
 class MemberRead(BaseModel):
     user: UserReadMain
     project_id: int
-    role: str
+    role: Roles
 
 class MemberReadCreated(BaseModel):
     user_id: int
     project_id: int
-    role: str
+    role: Roles
 
 
 

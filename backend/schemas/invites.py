@@ -3,13 +3,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 from schemas.projects import ProjectsRead
-from schemas.user import UserRead
+from schemas.user import Roles, UserRead
 
 
 class InviteCreate(BaseModel):
     project_id: int
     invitee_id: int
-    role: Optional[str] = ""
+    role_id: int
     message: Optional[str] = ""
 
 class InviteRead(BaseModel):
@@ -17,6 +17,6 @@ class InviteRead(BaseModel):
     project: ProjectsRead
     inviter: UserRead
     invitee: UserRead
-    role: Optional[str] = ""
+    role: Roles
     status: Optional[str] = ""
     message: Optional[str] = ""
