@@ -5,7 +5,7 @@ from core.dependencies import SessionDep
 from core.exceptions import ProjectNotFound
 from models.category import Category
 from models.comments import Comments
-from models.project import Projects, ProjectStatus
+from models.project import MemberRoles, Projects, ProjectStatus
 from slugify import slugify
 
 from schemas.projects import ProjectsReadOne
@@ -83,9 +83,14 @@ class ProjectsRepository:
     async def get_my(self, user_id: int) -> list[Projects]:
         res = await self.session.execute(
             select(Projects)
+            .outerjoin(Projects.member_roles)
             .where(
-                Projects.owner_id == user_id,
+                or_(
+                    Projects.owner_id == user_id,
+                    MemberRoles.user_id == user_id,
+                )
             )
+            .distinct()
             .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()
