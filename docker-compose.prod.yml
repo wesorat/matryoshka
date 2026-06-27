@@ -6,7 +6,13 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
     ports:
-      - "${HTTP_PORT:-8080}:80"
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?SITE_DOMAIN is required}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       backend:
         condition: service_healthy
@@ -64,5 +70,7 @@ services:
       retries: 5
 
 volumes:
+  caddy_data:
+  caddy_config:
   backend_uploads:
   matr_db_data:

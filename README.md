@@ -11,6 +11,11 @@
     docker exec -it matryoshka_backend python generate_test_db.py
 ```
 
+# Для генерации начальных данных в бд
+```bash
+    psql -h localhost -p 5433 -U postgres -d matr_db -f seed_for_db.sql
+```
+
 # Production
 
 Локальная проверка:
@@ -22,5 +27,26 @@ curl http://localhost:8080/api/health
 docker compose --env-file .env.prod -f docker-compose.prod.yml down
 ```
 
-`DB_PASSWORD` и `SECRET` обязательны и не имеют production-дефолтов.
+`DB_PASSWORD` и `SECRET` обязательны.
 PostgreSQL и backend наружу не публикуются.
+
+# Для DevOps
+
+Первичная подготовка VDS:
+
+```bash
+./scripts/server-bootstrap.sh
+```
+
+Запуск деплоя:
+
+```bash
+cd /opt/matryoshka
+./scripts/deploy.sh
+```
+
+Проверить:
+
+```bash
+curl https://matryoshka.st.ifbest.org/api/health
+```
