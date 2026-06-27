@@ -1,7 +1,6 @@
 from typing import Optional
 
 from fastapi import UploadFile
-from isort import file
 from slugify import slugify
 
 from core.dependencies import SessionDep
