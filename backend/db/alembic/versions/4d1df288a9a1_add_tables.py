@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -16,6 +17,14 @@ revision: str = '4d1df288a9a1'
 down_revision: Union[str, Sequence[str], None] = 'cfb8c3a2799c'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+invite_status_enum = postgresql.ENUM(
+    'PENDING',
+    'ACCEPTED',
+    'REJECTED',
+    'CANCELLED',
+    name='invitestatus',
+)
 
 
 def upgrade() -> None:
@@ -83,11 +92,7 @@ def upgrade() -> None:
         sa.Column('inviter_id', sa.Integer(), nullable=False),
         sa.Column('invitee_id', sa.Integer(), nullable=False),
         sa.Column('role_id', sa.Integer(), nullable=False),
-        sa.Column(
-            'status',
-            sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED', name='invitestatus'),
-            nullable=False,
-        ),
+        sa.Column('status', invite_status_enum, nullable=False),
         sa.Column('message', sa.String(length=500), nullable=True),
         sa.ForeignKeyConstraint(['invitee_id'], ['users.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['inviter_id'], ['users.id'], ondelete='CASCADE'),
@@ -100,6 +105,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('project_invites')
+    invite_status_enum.drop(op.get_bind(), checkfirst=True)
 
     op.add_column('member_roles', sa.Column('role', sa.String(length=100), nullable=True))
     op.execute("""
