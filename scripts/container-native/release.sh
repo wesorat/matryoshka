@@ -27,6 +27,10 @@ mkdir -p "${RUNTIME_DIR}"
 LOCK_FILE="${RUNTIME_DIR}/deploy.lock"
 LOCK_DIR="${RUNTIME_DIR}/deploy.lock.d"
 
+log() {
+    printf '%s\n' "$*"
+}
+
 release_lock_cleanup() {
     if [ -n "${LOCK_DIR_ACQUIRED:-}" ]; then
         rm -f "${LOCK_DIR}/pid"
@@ -64,12 +68,56 @@ sanitize_release_log() {
 tail_release_log() {
     local log_file="$1"
 
-    echo "Last 120 lines from ${log_file}:"
+    log "Last 120 lines from ${log_file}:"
     if [ -f "${log_file}" ]; then
         tail -120 "${log_file}" | sanitize_release_log || true
     else
-        echo "Log file does not exist: ${log_file}"
+        log "Log file does not exist: ${log_file}"
     fi
+}
+
+show_release_diagnostics() {
+    log "Release diagnostics:"
+    ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/status.sh" || true
+
+    log "Matching processes:"
+    ps -eo pid,ppid,stat,etime,args | \
+        grep -E 'uvicorn|caddy run|postgres' | \
+        grep -v grep | \
+        sanitize_release_log || true
+
+    tail_release_log "${RUNTIME_DIR}/logs/backend.log"
+    tail_release_log "${RUNTIME_DIR}/logs/caddy.log"
+    tail_release_log "${RUNTIME_DIR}/logs/postgres.log"
+}
+
+release_failed() {
+    local exit_code=$?
+
+    log "Release failed with exit code ${exit_code}."
+    show_release_diagnostics
+    exit "${exit_code}"
+}
+
+wait_for_url() {
+    local name="$1"
+    local url="$2"
+    local timeout="${3:-45}"
+    local interval="${4:-2}"
+    local elapsed=0
+
+    while [ "${elapsed}" -lt "${timeout}" ]; do
+        if curl -fsS "${url}" >/dev/null 2>&1; then
+            log "${name} is ready: ${url}"
+            return 0
+        fi
+
+        sleep "${interval}"
+        elapsed=$((elapsed + interval))
+    done
+
+    log "${name} did not become ready after ${timeout}s: ${url}"
+    return 1
 }
 
 run_health_checks() {
@@ -82,21 +130,17 @@ run_health_checks() {
         "http://127.0.0.1/"
     do
         if curl -fsS "${url}" >/dev/null; then
-            echo "Health check OK: ${url}"
+            log "Health check OK: ${url}"
         else
-            echo "Health check failed: ${url}" >&2
+            log "Health check failed: ${url}" >&2
             failed=1
         fi
     done
 
-    if [ "${failed}" -ne 0 ]; then
-        tail_release_log "${RUNTIME_DIR}/logs/backend.log"
-        tail_release_log "${RUNTIME_DIR}/logs/caddy.log"
-        tail_release_log "${RUNTIME_DIR}/logs/postgres.log"
-        return 1
-    fi
+    [ "${failed}" -eq 0 ]
 }
 
+trap release_failed ERR
 acquire_release_lock
 
 cd "${PROJECT_DIR}"
@@ -113,10 +157,13 @@ git merge --ff-only "origin/${DEPLOY_BRANCH}"
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/deploy.sh"
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/start-postgres.sh"
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/migrate.sh"
-ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/stop-caddy.sh" || true
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/stop-backend.sh" || true
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/start-backend.sh"
+wait_for_url "backend" "http://127.0.0.1:8000/api/health" 60 2
+ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/stop-caddy.sh" || true
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/start-caddy.sh"
+wait_for_url "caddy api proxy" "http://127.0.0.1/api/health" 30 2
+wait_for_url "frontend" "http://127.0.0.1/" 30 2
 ENV_FILE="${ENV_FILE}" "${SCRIPT_DIR}/status.sh"
 
 run_health_checks

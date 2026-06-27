@@ -29,5 +29,14 @@ container_native_load_project_env
 
 nohup "${VENV_DIR}/bin/python" -m uvicorn main:create_app --factory --host "${BACKEND_HOST}" --port "${BACKEND_PORT}" \
     > "${LOG_DIR}/backend.log" 2>&1 &
-echo "$!" > "${BACKEND_PID_FILE}"
-echo "Started backend pid $(cat "${BACKEND_PID_FILE}"). Log: ${LOG_DIR}/backend.log"
+backend_pid="$!"
+echo "${backend_pid}" > "${BACKEND_PID_FILE}"
+
+sleep 1
+if ! kill -0 "${backend_pid}" 2>/dev/null; then
+    echo "Backend exited immediately after start. Log: ${LOG_DIR}/backend.log" >&2
+    rm -f "${BACKEND_PID_FILE}"
+    exit 1
+fi
+
+echo "Started backend pid ${backend_pid}. Log: ${LOG_DIR}/backend.log"
