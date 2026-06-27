@@ -1,7 +1,9 @@
 from typing import Optional
 
 from core.dependencies import SessionDep
+from core.exceptions import NotOwnProject
 from models.invites import ProjectInvite, InviteStatus
+from models.project import Projects
 from repositories.invites import InviteRepository
 from schemas.invites import InviteCreate
 from schemas.user import NewMemberAdd
@@ -25,6 +27,9 @@ class InviteService:
 
         if existing_invite:
             raise ValueError("User already has a pending invite to this project")
+        project = await self.session.get(Projects, invite.project_id)
+        if project.owner_id != inviter_id:
+            raise NotOwnProject(inviter_id)
         invite_dict = invite.model_dump()
 
         created_invite = ProjectInvite(inviter_id=inviter_id, **invite_dict)

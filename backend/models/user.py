@@ -13,7 +13,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=100), nullable=False)
-    avatar: Mapped[str] = mapped_column(String(length=100), default="")
+    image_url: Mapped[str] = mapped_column(String(length=500), default="")
     bio: Mapped[str] = mapped_column(String(length=500), default="")
     skills: Mapped[str] = mapped_column(String(length=500), default="")
     created_at: Mapped[datetime] = mapped_column(
