@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import UploadFile
 from slugify import slugify
@@ -43,20 +43,20 @@ class ProjectService:
     async def get_by_slug(self, user_id: int, slug: str) -> ProjectsReadOne:
         return await self.repo.get_by_slug(user_id, slug)
 
-    async def get_all(self) -> List[Projects]:
+    async def get_all(self) -> list[Projects]:
         return await self.repo.get_all()
 
-    async def get_my(self, user_id: int) -> List[Projects]:
+    async def get_my(self, user_id: int) -> list[Projects]:
         return await self.repo.get_my(user_id)
 
-    async def get_projects_by_category(self, category_id: int) -> List[Projects]:
+    async def get_projects_by_category(self, category_id: int) -> list[Projects]:
         return await self.repo.get_by_category(category_id)
 
-    async def get_projects_by_category_by_slug(self, slug: str) -> List[Projects]:
+    async def get_projects_by_category_by_slug(self, slug: str) -> list[Projects]:
 
         return await self.repo.get_by_category_by_slug(slug)
 
-    async def search_by_title(self, title: str) -> List[Projects]:
+    async def search_by_title(self, title: str) -> list[Projects]:
         if not title or len(title.strip()) == 1:
             return []
         return await self.repo.search_by_title(title.strip())

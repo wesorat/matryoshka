@@ -28,7 +28,7 @@ class MembersService:
         if project.owner.id != user_id:
             raise NotOwnProject(user_id)
 
-        user = await self.repo.get_user(member.id, member.email)
+        user = await self.repo.get_user(member.id)
         if user is None:
             raise UserNotFound(member.id)
 
@@ -53,3 +53,8 @@ class MembersService:
         count = await self.repo.remove_member(user.id, project_id)
         await self.session.commit()
         return count
+
+    async def search_by_name(self, name: str) -> list[User]:
+        if not name or len(name.strip()) == 1:
+            return []
+        return await self.repo.search_by_name(name.strip())

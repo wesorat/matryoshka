@@ -51,7 +51,7 @@ class UserUpdate(schemas.BaseUserUpdate):
 class NewMemberAdd(BaseModel):
     id: Optional[int]
     name: Optional[str] = ""
-    email: EmailStr
+    # email: EmailStr
     role: Optional[str] = ""
 
 
