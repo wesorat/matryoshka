@@ -27,29 +27,16 @@ PostgreSQL и backend наружу не публикуются.
 
 # Для DevOps
 
-Домен:
-
-```text
-matryoshka.st.ifbest.org
-```
-
-Первичная настройка Git-доступа:
+Первичная подготовка VDS:
 
 ```bash
 ./scripts/server-bootstrap.sh
 ```
 
-Добавить public key в GitHub Deploy keys без write access.
-
-Clone URL для сервера:
-
-```text
-git@github.com-matryoshka:wesorat/matryoshka.git
-```
-
 Запуск деплоя:
 
 ```bash
+cd /opt/matryoshka
 ./scripts/deploy.sh
 ```
 
