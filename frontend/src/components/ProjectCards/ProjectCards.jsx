@@ -1,6 +1,9 @@
 import styles from './ProjectCards.module.scss';
 import { defaultProjects } from '../../data/slides';
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const mediaBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
+
 function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {}, limit = null }) {
   const visibleProjects = limit ? projects.slice(0, limit) : projects;
 
@@ -26,7 +29,7 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
             >
               {project.image || project.image_url ? (
               <img
-                src={"http://localhost:8000/media/uploads/" + (project.image || project.image_url)}
+                src={`${mediaBaseUrl}/media/uploads/${project.image || project.image_url}`}
                 alt={project.title}
                 className={styles.cardImage}
               />

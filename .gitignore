@@ -1,5 +1,8 @@
 .env
 .env.prod
+.env.native
+.runtime/
+matryoshka-server-diagnosis.txt
 .venv
 venv/
 __pycache__/
