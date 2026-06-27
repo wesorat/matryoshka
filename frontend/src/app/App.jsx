@@ -230,8 +230,6 @@ function App() {
 
   const displayedCategoryProjects = categoryLoading
     ? []
-    : categoryLoading
-    ? []
     : categoryProjects.length > 0
     ? categoryProjects
     : projects.filter((project) => project.category_id === selectedCategoryId)

@@ -17,7 +17,18 @@ class ProjectsCreate(BaseModel):
     category_id: Optional[int] = None
     status: ProjectStatus = ProjectStatus.DRAFT
 
+class ProjectsCreate(BaseModel):
+    title: str
+    description: str = ""
+    category_id: Optional[int] = None
+    status: ProjectStatus = ProjectStatus.DRAFT
+    
+    # Добавляем новые поля, которые приходят из формы:
+    practical_benefit: Optional[str] = ""
+    implementation_details: Optional[str] = ""
+    results: Optional[str] = ""
 
+    
 class ProjectsUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None

@@ -6,15 +6,15 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
-   // Стейт полей формы публикации
    const [formData, setFormData] = useState({
-      title: '',
-      categoryId: '',
-      description: '',
-      practicalBenefit: '',
-      implementationDetails: '',
-      results: ''
-   });
+   title: '',
+   categoryId: '',
+   description: '',
+   practicalBenefit: '',
+   implementationDetails: '',
+   results: '',
+   status: 'draft'
+});
 
    // Стейт для медиафайла
    const [mediaFile, setMediaFile] = useState(null);
@@ -32,13 +32,14 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
       setIsOpen(true);
       setError('');
       setFormData({
-         title: '',
-         categoryId: '',
-         description: '',
-         practicalBenefit: '',
-         implementationDetails: '',
-         results: ''
-      });
+      title: '',
+      categoryId: '',
+      description: '',
+      practicalBenefit: '',
+      implementationDetails: '',
+      results: '',
+      status: 'draft'
+   });
       setMediaFile(null);
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
@@ -145,6 +146,14 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
                                  {cat.name || cat.title || `Категория ${cat.id}`}
                               </option>
                            ))}
+                        </select>
+                     </div>
+
+                     <div className={styles.inputGroup}>
+                        <label htmlFor="status">Статус публикации</label>
+                        <select id="status" name="status" value={formData.status} onChange={handleChange} required className={styles.input}>
+                           <option value="draft">Черновик (Draft)</option>
+                           <option value="published">Опубликовано (Published)</option>
                         </select>
                      </div>
 
