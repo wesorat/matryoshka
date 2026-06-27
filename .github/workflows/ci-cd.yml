@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: native-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   ci:
     name: CI
@@ -136,7 +140,7 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
         run: |
-          remote_cmd="$(printf "cd %q && if [ ! -x ./scripts/container-native/release.sh ]; then git fetch origin %q && git merge --ff-only %q; fi && DEPLOY_BRANCH=%q ENV_FILE=%q ./scripts/container-native/release.sh" \
+          remote_cmd="$(printf "cd %q && git fetch origin %q && git merge --ff-only %q && DEPLOY_BRANCH=%q ENV_FILE=%q ./scripts/container-native/release.sh" \
             "${DEPLOY_PATH}" \
             "${DEPLOY_BRANCH}" \
             "origin/${DEPLOY_BRANCH}" \

@@ -24,8 +24,7 @@ container_native_require_command git
 
 mkdir -p "${RUNTIME_DIR}"
 
-LOCK_FILE="${RUNTIME_DIR}/deploy.lock"
-LOCK_DIR="${RUNTIME_DIR}/deploy.lock.d"
+LOCK_DIR="${RUNTIME_DIR}/deploy.lock"
 
 log() {
     printf '%s\n' "$*"
@@ -38,25 +37,71 @@ release_lock_cleanup() {
     fi
 }
 
-acquire_release_lock() {
-    if command -v flock >/dev/null 2>&1; then
-        exec 9>"${LOCK_FILE}"
-        if ! flock -n 9; then
-            echo "Another deploy is already running: ${LOCK_FILE}" >&2
+release_signal() {
+    local exit_code="$1"
+
+    release_lock_cleanup
+    exit "${exit_code}"
+}
+
+release_lock_pid_alive() {
+    local pid="$1"
+
+    case "${pid}" in
+        ''|*[!0-9]*)
             return 1
+            ;;
+    esac
+
+    kill -0 "${pid}" 2>/dev/null
+}
+
+remove_stale_release_lock() {
+    local pid=""
+
+    if [ -f "${LOCK_DIR}/pid" ]; then
+        pid="$(cat "${LOCK_DIR}/pid" 2>/dev/null || true)"
+    elif [ -f "${LOCK_DIR}" ]; then
+        pid="$(cat "${LOCK_DIR}" 2>/dev/null || true)"
+    fi
+
+    if release_lock_pid_alive "${pid}"; then
+        echo "Another deploy is already running: ${LOCK_DIR} (pid ${pid})" >&2
+        return 1
+    fi
+
+    echo "Removing stale deploy lock: ${LOCK_DIR}" >&2
+    if [ -d "${LOCK_DIR}" ]; then
+        rm -f "${LOCK_DIR}/pid"
+        rmdir "${LOCK_DIR}" 2>/dev/null || {
+            echo "Cannot remove stale deploy lock directory: ${LOCK_DIR}" >&2
+            return 1
+        }
+    elif [ -f "${LOCK_DIR}" ]; then
+        rm -f "${LOCK_DIR}"
+    fi
+}
+
+acquire_release_lock() {
+    while true; do
+        if mkdir "${LOCK_DIR}" 2>/dev/null; then
+            LOCK_DIR_ACQUIRED=1
+            echo "$$" > "${LOCK_DIR}/pid"
+            trap release_lock_cleanup EXIT
+            trap 'release_signal 130' INT
+            trap 'release_signal 143' TERM
+            trap 'release_signal 129' HUP
+            return 0
         fi
-        return 0
-    fi
 
-    if mkdir "${LOCK_DIR}" 2>/dev/null; then
-        LOCK_DIR_ACQUIRED=1
-        echo "$$" > "${LOCK_DIR}/pid"
-        trap release_lock_cleanup EXIT
-        return 0
-    fi
+        if [ -d "${LOCK_DIR}" ] || [ -f "${LOCK_DIR}" ]; then
+            remove_stale_release_lock || return 1
+            continue
+        fi
 
-    echo "Another deploy is already running: ${LOCK_DIR}" >&2
-    return 1
+        echo "Another deploy is already running: ${LOCK_DIR}" >&2
+        return 1
+    done
 }
 
 sanitize_release_log() {
