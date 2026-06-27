@@ -1,5 +1,5 @@
 
-from sqlalchemy import delete, or_, update, select
+from sqlalchemy import delete, select
 
 from core.dependencies import SessionDep
 
@@ -16,17 +16,22 @@ class MembersRepository:
         self.session.add(member)
         return member
 
-    async def get_user(self, user_id: int, email: str) -> User:
+    async def get_user(self, user_id: int) -> User:
         res = await self.session.execute(select(User).where(
-            or_(User.id == user_id, User.email == email)))
+            User.id == user_id))
         return res.scalar_one_or_none()
-
-    async def create_user(self, user: User) -> User:
-        self.session.add(user)
-        return user
 
     async def remove_member(self, user_id: int, project_id: int) -> None:
         res = await self.session.execute(delete(MemberRoles).where(MemberRoles.user_id==user_id, MemberRoles.project_id == project_id))
         return res.rowcount
+
+    async def search_by_name(self, name: str) -> list[User]:
+        res = await self.session.execute(
+            select(User)
+            .where(
+                User.name.ilike(f"%{name}%"),
+            )
+        )
+        return res.scalars().all()
 
 
