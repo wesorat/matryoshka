@@ -1,0 +1,117 @@
+name: CI/CD Native Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - devops/container-native-deploy
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install poetry==2.4.1
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-ansi
+
+      - name: Compile backend Python
+        run: python -m compileall backend
+
+      - name: Compile Alembic env
+        run: python -m py_compile backend/db/alembic/env.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: /api
+        run: npm run build
+
+      - name: Check shell scripts
+        run: bash -n scripts/container-native/*.sh
+
+      - name: Check whitespace
+        run: git diff --check
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/devops/container-native-deploy')) || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Validate deploy secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+        run: |
+          missing=0
+          for name in DEPLOY_HOST DEPLOY_PORT DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PATH DEPLOY_BRANCH; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=Missing GitHub Secret::${name} is required for native deploy."
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
+      - name: Prepare SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${DEPLOY_SSH_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Run native release
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+        run: |
+          remote_cmd="$(printf "cd %q && if [ ! -x ./scripts/container-native/release.sh ]; then git fetch origin %q && git merge --ff-only %q; fi && DEPLOY_BRANCH=%q ENV_FILE=%q ./scripts/container-native/release.sh" \
+            "${DEPLOY_PATH}" \
+            "${DEPLOY_BRANCH}" \
+            "origin/${DEPLOY_BRANCH}" \
+            "${DEPLOY_BRANCH}" \
+            "${DEPLOY_PATH}/.env.native")"
+
+          ssh -i ~/.ssh/deploy_key \
+            -p "${DEPLOY_PORT}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "${remote_cmd}"
