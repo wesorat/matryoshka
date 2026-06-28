@@ -19,7 +19,7 @@ function App() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
   const [user, setUser] = useState(null)
-  const [myProjects, setMyProjects] = useState([]) // Стейт для реальных проектов юзера
+  const [myProjects, setMyProjects] = useState([]) 
   const [myProjectsLoading, setMyProjectsLoading] = useState(true)
 
   const [categories, setCategories] = useState([])
@@ -29,16 +29,18 @@ function App() {
   const [categoryProjects, setCategoryProjects] = useState([])
   const [categoryLoading, setCategoryLoading] = useState(false)
 
-  //проверка сессии при запуске
+  const [isEditMode, setIsEditMode] = useState(false)
+
+  // Проверка сессии при запуске
   useEffect(() => {
     fetchCurrentUser()
       .then((userData) => setUser(userData))
       .catch(() => {
-        // Если ошибка - значит не авторизован (или токен истек), игнорируем
         setUser(null)
       })
   }, [])
-  // Обработка загрузки проектов юзера при нахождении на своей страницеЫ
+
+  // Обработка загрузки проектов юзера
   useEffect(() => {
     if (page !== 'user' || !user) return
 
@@ -56,11 +58,12 @@ function App() {
 
     return () => { mounted = false }
   }, [page, user])
-  // Обработка изменения шапки при скролле
+
+  // Обработка скролла шапки
   useEffect(() => {
     let ticking = false
-    const threshold = 40      // было 20 — слишком мало, любой "рваный" скролл пересекал границу
-    const hysteresis = 10     // было 8 — зона нечувствительности увеличена
+    const threshold = 40      
+    const hysteresis = 10     
 
     const handleScroll = () => {
       if (ticking) return
@@ -79,10 +82,10 @@ function App() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
-    return () => {window.removeEventListener('scroll', handleScroll)
-    }
+    return () => { window.removeEventListener('scroll', handleScroll) }
   }, [])
-  // Обработка перемещения по страницам
+
+  // История браузера
   useEffect(() => {
     const handlePopState = (event) => {
       if (event.state?.page === 'project') {
@@ -123,8 +126,6 @@ function App() {
     return () => { mounted = false }
   }, [])
 
-  //============================================================= Аккаунт
-  //Обработчик успешной авторизациии
   const handleAuthSuccess = (userData) => {
     setUser(userData)
     setPage('home')
@@ -137,7 +138,7 @@ function App() {
     setPage('user')
     window.history.pushState({ page: 'user' }, '')
   }
-  //Обработчик выхода из аккаунта
+
   const handleLogout = async () => {
     try {
       await logout()
@@ -152,27 +153,39 @@ function App() {
       window.history.pushState({ page: 'home' }, '')
     }
   }
-  //=============================================================
 
-  //Переключение на выбранную категорию через кнопку "еще"
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
     setSelectedProjectId(null)
     setPage('category')
     window.history.pushState({ page: 'category', categoryId }, '')
   }
-  //Переключение на выбранный проект из карточек
+
   const handleProjectClick = (projectId) => {
     setSelectedProjectId(projectId)
+    setIsEditMode(false)
     setPage('project')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.history.pushState({ page: 'project', projectId }, '')
+  }
+
+  const handleEditProjectClick = (project) => {
+    const projectId = project.id || project._id
+    setSelectedProjectId(projectId)
+    setIsEditMode(true) 
+    setPage('project')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     window.history.pushState({ page: 'project', projectId }, '')
   }
 
   const handleBackToHome = () => {
+    if (page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)) {
+      setPage('user')
+    } else {
+      setPage('home')
+    }
     setSelectedProjectId(null)
-    setSelectedCategoryId(null)
-    setPage('home')
-    window.history.pushState({ page: 'home' }, '')
+    setIsEditMode(false)
   }
 
   const handleLoginClick = () => {
@@ -190,54 +203,56 @@ function App() {
     setLogType(null)
   }
 
-  // переход на страницу пользователя по projectId (демонстрация)
   useEffect(() => {
     const handleUserOpen = (state) => {
       if (state?.page === 'user') {
-        // в реальном приложении здесь мы бы нашли автора по projectId
         setPage('user')
       }
     }
-
-    // слушаем popstate, уже установлен в другом effect, но здесь дополнительная обработка
     const onPop = (e) => handleUserOpen(e.state)
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
-  //Переключение на главную через лого в шапке
+
   const handleLogoClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
     setPage('home')
     window.history.pushState({ page: 'home' }, '')
   }
-  const handlePublishSuccess = async (projectData) => {
-    try {
-      const projectId = projectData.id || projectData._id;
-      if (projectId) {
-        const updatedProject = await updateProject(projectId, projectData);
-        setProjects((prev) => 
-          prev.map((proj) => (proj.id === projectId || proj._id === projectId ? updatedProject : proj))
-        );
-        setMyProjects((prev) => 
-          prev.map((proj) => (proj.id === projectId || proj._id === projectId ? updatedProject : proj))
-        );
-        
-        console.log('Проект успешно обновлен');
-      } else {
-        const newProject = await createProject(projectData);
-        setProjects((prev) => [newProject, ...prev]);
-        setMyProjects((prev) => [newProject, ...prev]);
-        console.log('Проект успешно создан');
-      }
-    } catch (error) {
-      console.error('Не удалось сохранить изменения или опубликовать проект:', error);
-      throw error; 
-    }
-  }
 
-  const selectedProject = projects.find((project) => project.id === selectedProjectId)
-  const selectedCategory = categories.find((category) => category.id === selectedCategoryId,)
+  const handlePublishSuccess = (savedProject) => {
+  const projectId = savedProject.id || savedProject._id
+
+  // 1. Обновляем общий список проектов
+  setProjects((prev) => {
+    const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
+    if (isExisting) {
+      // Если проект уже был в списке, заменяем его обновленной версией
+      return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
+    } else {
+      // Если это новый проект, добавляем его в начало списка
+      return [savedProject, ...prev]
+    }
+  })
+
+  // 2. Точно так же обновляем список личных проектов пользователя
+  setMyProjects((prev) => {
+    const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
+    if (isExisting) {
+      return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
+    } else {
+      return [savedProject, ...prev]
+    }
+  })
+
+  console.log('Стейт проектов успешно синхронизирован с сервером')
+}
+  const selectedProject = [...projects, ...myProjects].find(
+    (project) => project.id === selectedProjectId || project._id === selectedProjectId
+  )
+  
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
 
   const displayedCategoryProjects = categoryLoading
     ? []
@@ -246,13 +261,12 @@ function App() {
     : projects.filter((project) => project.category_id === selectedCategoryId)
 
   useEffect(() => {
-    if (!selectedCategoryId) {
-    return
-    }
+    if (!selectedCategoryId) return
 
     let mounted = true
     setTimeout(() => {
-    if (mounted) setCategoryLoading(true)}, 0)
+      if (mounted) setCategoryLoading(true)
+    }, 0)
 
     fetchProjectsByCategory(selectedCategoryId)
       .then((items) => {
@@ -263,13 +277,11 @@ function App() {
         if (mounted) setCategoryLoading(false)
       })
 
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [selectedCategoryId])
 
   return (
-    <>
+    <div className="app">
       <header className={isShrunk ? 'appHeader appHeader--shrunk' : 'appHeader'}>
         <div className="appHeader__inner">
           <div className="appHeader__logo" onClick={handleLogoClick}>
@@ -326,12 +338,17 @@ function App() {
           <LogPage type={logType} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
         {page === 'project' && (
-          <ProjectPage project={selectedProject} onBack={handleBackToHome} />
+          <ProjectPage 
+            project={selectedProject} 
+            projectId={selectedProjectId} 
+            editMode={isEditMode}         
+            onBack={handleBackToHome} 
+          />
         )}
       </main>
 
       <Footer />
-    </>
+    </div>
   )
 }
 

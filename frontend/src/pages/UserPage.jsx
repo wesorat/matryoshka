@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import PublishPage from '../components/PublishForm/PublishForm.jsx';
+import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
 import styles from './UserPage.module.scss';
 
 function UserPage({ 
@@ -16,21 +17,12 @@ function UserPage({
 }) {
   const { name = 'Имя Пользователя', avatar } = user;
   const [isPublishOpen, setIsPublishOpen] = useState(false);
-
   const [selectedProject, setSelectedProject] = useState(null);
 
   // Обработчик для создания нового проекта
   const handleCreateClick = () => {
     setSelectedProject(null);
     setIsPublishOpen(true);
-  };
-
-  // Обработчик для редактирования существующего проекта
-  const handleEditClick = (project) => {
-    setSelectedProject(project);
-    setIsPublishOpen(true);
-    // Опционально: вызываем родительский коллбек, если логика завязана на него
-    onProjectClick(project);
   };
   
   return (
@@ -50,7 +42,7 @@ function UserPage({
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => setIsPublishOpen(true)}
+              onClick={handleCreateClick}
             >Создать проект</Button>
             <Button type="button" variant="outline">Статистика</Button>
             <Button type="button" variant="outline" onClick={onLogout}>Выйти</Button>
@@ -66,18 +58,29 @@ function UserPage({
           {loading ? (
              <p>Загрузка проектов...</p>
           ) : (
-             <ProjectCards projects={projects} onProjectClick={onProjectClick} />
+             /* ИСПРАВЛЕНО: Теперь по клику просто вызывается onProjectClick для открытия страницы проекта */
+             <ProjectCards 
+               projects={projects} 
+               onProjectClick={onProjectClick} 
+             />
           )}
         </main>
       </div>
 
       {isPublishOpen && (
-      <PublishPage 
-        categories={categories} 
-        onSuccess={onPublishSuccess}
-        onBack={() => setIsPublishOpen(false)} 
-      />
-    )}
+        <ProjectForm
+          categories={categories}
+          project={selectedProject} // Передаем выбранный проект (null при создании, объект при редактировании)
+          onSuccess={(data) => {
+            onPublishSuccess(data);
+            setIsPublishOpen(false);
+          }}
+          onCancel={() => {
+            setIsPublishOpen(false);
+            setSelectedProject(null);
+          }}
+        />
+      )}
     </section>
   )
 }

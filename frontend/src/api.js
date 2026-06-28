@@ -142,19 +142,17 @@ export async function updateProject(projectId, projectData) {
     formData.append('category_id', projectData.categoryId)
   }
 
-  // Отправляем измененные текстовые поля
   formData.append('practical_benefit', projectData.practicalBenefit || '')
   formData.append('implementation_details', projectData.implementationDetails || '')
   formData.append('results', projectData.results || '')
 
-  // Файл прикрепляем только если пользователь выбрал новый медиафайл
   if (projectData.media) {
     formData.append('file', projectData.media)
   }
 
   return handleResponse(
     await fetch(`${API_URL}/projects/${projectId}`, {
-      method: 'PUT', // Если бэкенд ожидает частичное обновление, замените на 'PATCH'
+      method: 'PATCH', // <-- ИСПРАВЛЕНО: заменено с 'PUT' на 'PATCH'
       credentials: 'include',
       body: formData,
     })

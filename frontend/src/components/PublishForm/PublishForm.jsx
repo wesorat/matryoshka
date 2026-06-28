@@ -39,10 +39,11 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
       if (project) {
          setFormData({
             title: project.title || '',
-            categoryId: project.categoryId || '',
+            // ИСПРАВЛЕНО: добавляем проверку snake_case полей от бэкенда
+            categoryId: project.category_id || project.categoryId || '',
             description: project.description || '',
-            practicalBenefit: project.practicalBenefit || '',
-            implementationDetails: project.implementationDetails || '',
+            practicalBenefit: project.practical_benefit || project.practicalBenefit || '',
+            implementationDetails: project.implementation_details || project.implementationDetails || '',
             results: project.results || '',
             status: project.status || 'draft'
          });
