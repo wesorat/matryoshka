@@ -17,18 +17,24 @@ class CategoryRepository:
     async def get(self, id: int) -> Category:
         return await self.session.get(Category, id)
 
-    async def get_all(self, count: int = 15) -> list[dict]:
-        res = await self.session.execute(
+    async def get_all(self, count: int = 15, have_project: bool = False) -> list[dict]:
+        query = (
             select(Category, func.coalesce(func.sum(Projects.like_count), 0).label("total_likes"))
             .outerjoin(Projects, Category.id == Projects.category_id)
             .group_by(Category.id)
             .order_by(func.coalesce(func.sum(Projects.like_count), 0).desc())
             .limit(limit=count)
         )
+
+        if have_project:
+            query = query.having(func.count(Projects.id) > 0)
+
+        res = await self.session.execute(query)
         result = []
         for category, total_likes in res.all():
             result.append({**category.__dict__, "total_likes": total_likes})
         return result
+
 
     async def delete(self, id: int) -> int:
         res = await self.session.execute(delete(Category).where(Category.id == id))
