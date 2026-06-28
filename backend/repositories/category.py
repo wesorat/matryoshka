@@ -2,7 +2,7 @@ from sqlalchemy import delete, func, select
 
 from core.dependencies import SessionDep
 from models.category import Category
-from models.project import Projects
+from models.project import ProjectStatus, Projects
 
 
 class CategoryRepository:
@@ -17,17 +17,42 @@ class CategoryRepository:
     async def get(self, id: int) -> Category:
         return await self.session.get(Category, id)
 
-    async def get_all(self, count: int = 15, have_project: bool = False) -> list[dict]:
-        query = (
-            select(Category, func.coalesce(func.sum(Projects.like_count), 0).label("total_likes"))
-            .outerjoin(Projects, Category.id == Projects.category_id)
-            .group_by(Category.id)
-            .order_by(func.coalesce(func.sum(Projects.like_count), 0).desc())
-            .limit(limit=count)
+    async def get_all(self, count: int = 15, has_projects: bool = False) -> list[dict]:
+        likes_subquery = (
+            select(
+                Projects.category_id,
+                func.coalesce(func.sum(Projects.like_count), 0).label("total_likes")
+            )
+            .where(Projects.status != ProjectStatus.DRAFT)
+            .group_by(Projects.category_id)
+            .subquery()
         )
 
-        if have_project:
-            query = query.having(func.count(Projects.id) > 0)
+        query = select(
+            Category,
+            func.coalesce(likes_subquery.c.total_likes, 0).label("total_likes")
+        ).outerjoin(
+            likes_subquery, Category.id == likes_subquery.c.category_id
+        )
+
+        if has_projects:
+            projects_count = (
+                select(
+                    Projects.category_id,
+                    func.count().label("cnt")
+                )
+                .where(Projects.status != ProjectStatus.DRAFT)
+                .group_by(Projects.category_id)
+                .subquery()
+            )
+            query = query.join(
+                projects_count,
+                Category.id == projects_count.c.category_id
+            )
+
+        query = query.order_by(
+            func.coalesce(likes_subquery.c.total_likes, 0).desc()
+        ).limit(count)
 
         res = await self.session.execute(query)
         result = []
