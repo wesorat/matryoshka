@@ -26,8 +26,14 @@ function App() {
   const [currentProject, setCurrentProject] = useState(null)
   const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
 
+  // 1. Стейт для ВСЕХ категорий (нужен для профиля и поиска по ID)
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
+
+  // Новые стейты: категории ТОЛЬКО С ПРОЕКТАМИ для Главной страницы
+  const [homeCategories, setHomeCategories] = useState([])
+  const [homeCategoriesLoading, setHomeCategoriesLoading] = useState(true)
+
   const [projects, setProjects] = useState([])
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [categoryProjects, setCategoryProjects] = useState([])
@@ -112,12 +118,24 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
+  // Эффект А: Загрузка вообще ВСЕХ категорий без фильтрации (для UserPage)
   useEffect(() => {
     let mounted = true
     fetchCategories()
       .then((items) => { if (mounted) setCategories(items) })
-      .catch((error) => console.error('Не удалось загрузить категории:', error))
+      .catch((error) => console.error('Не удалось загрузить все категории:', error))
       .finally(() => { if (mounted) setCategoriesLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  // Эффект Б: Загрузка категорий только с проектами (для HomePage)
+  useEffect(() => {
+    let mounted = true
+    // Передаем true, как ты и настроил на бэкенде
+    fetchCategories(true) 
+      .then((items) => { if (mounted) setHomeCategories(items) })
+      .catch((error) => console.error('Не удалось загрузить категории для главной:', error))
+      .finally(() => { if (mounted) setHomeCategoriesLoading(false) })
     return () => { mounted = false }
   }, [])
 
@@ -232,15 +250,13 @@ function App() {
   setProjects((prev) => {
     const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
     if (isExisting) {
-      // Если проект уже был в списке, заменяем его обновленной версией
       return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
     } else {
-      // Если это новый проект, добавляем его в начало списка
       return [savedProject, ...prev]
     }
   })
 
-  // 2. Точно так же обновляем список личных проектов пользователя
+  // 2. Обновляем список личных проектов пользователя
   setMyProjects((prev) => {
     const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
     if (isExisting) {
@@ -251,7 +267,6 @@ function App() {
   })
   console.log('Стейт проектов успешно синхронизирован с сервером')}
 
-  //const selectedProject = [...projects, ...myProjects].find((project) => project.id === selectedProjectId || project._id === selectedProjectId)
   useEffect(() => {
   if (!selectedProjectId || page !== 'project') {
     setCurrentProject(null)
@@ -275,6 +290,8 @@ function App() {
   return () => { mounted = false }
 }, [selectedProjectId, page])
 
+  // Поиск выбранной категории оставляем по полному списку categories,
+  // чтобы страница категории CatPage открывалась корректно в любом случае
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
 
   const displayedCategoryProjects = categoryLoading
@@ -328,8 +345,9 @@ function App() {
       <main className="appContent">
         {page === 'home' && (
           <HomePage
-            categories={categories}
-            loading={categoriesLoading}
+            // Передаем отфильтрованные категории на главную страницу
+            categories={homeCategories}
+            loading={homeCategoriesLoading}
             projects={projects}
             projectsLoading={projectsLoading}
             onCategoryClick={handleCategoryClick}
@@ -350,6 +368,7 @@ function App() {
             user={user}
             projects={myProjects}
             loading={myProjectsLoading}
+            // Передаем полный список категорий, чтобы можно было выбрать любую при создании/редактировании
             categories={categories}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}

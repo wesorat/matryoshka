@@ -31,8 +31,14 @@ const authFetchOptions = (options = {}) => ({
   credentials: 'include',
 })
 
-export async function fetchCategories() {
-  return handleResponse(await fetch(`${API_URL}/category/`, fetchOptions()))
+export async function fetchCategories(hasProjects = false) {
+  // Если передан true, добавляем к URL параметр фильтрации (например, ?has_projects=true)
+  // Убедись, что имя параметра (has_projects) совпадает с тем, как ты назвал его на бэкенде!
+  const url = hasProjects 
+    ? `${API_URL}/category/?has_projects=true` 
+    : `${API_URL}/category/`
+
+  return handleResponse(await fetch(url, fetchOptions()))
 }
 
 export async function fetchProjects() {
