@@ -184,8 +184,8 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   if (mainImage) {
     slides.push({
       image: getMediaUrl(mainImage),
-      title: project.title || 'Главное изображение',
-      description: project.description || ''
+      title: '',
+      description: ''
     });
   }
 
@@ -195,8 +195,8 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       if (mediaUrl) {
         slides.push({
           image: getMediaUrl(mediaUrl),
-          title: project.title || 'Медиа',
-          description: `Изображение ${index + 1}`
+          title: '',
+          description: ''
         });
       }
     });
@@ -205,7 +205,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   if (slides.length === 0) {
     slides.push({
       image: 'https://placehold.co/1200x600?text=Нет+изображения',
-      title: 'Изображение отсутствует',
+      title: '',
       description: ''
     });
   }
@@ -270,9 +270,6 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
           {/* Дополнительная кнопка редактирования из режима просмотра */}
           <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
             Редактировать
-          </Button>
-          <Button type="button" variant="outline" onClick={onBack}>
-            Назад к списку
           </Button>
         </div>
       </div>
