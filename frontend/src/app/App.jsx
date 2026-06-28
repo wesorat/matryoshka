@@ -9,7 +9,7 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout, fetchMyProjects, createProject } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout, fetchMyProjects, createProject, updateProject } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
@@ -211,17 +211,28 @@ function App() {
     setPage('home')
     window.history.pushState({ page: 'home' }, '')
   }
-  //Обработчик публикации
   const handlePublishSuccess = async (projectData) => {
     try {
-      const newProject = await createProject(projectData)
-      
-      // Свежесозданный проект добавляем в начало списков, чтобы пользователь сразу его увидел
-      setProjects((prev) => [newProject, ...prev])
-      setMyProjects((prev) => [newProject, ...prev])
+      const projectId = projectData.id || projectData._id;
+      if (projectId) {
+        const updatedProject = await updateProject(projectId, projectData);
+        setProjects((prev) => 
+          prev.map((proj) => (proj.id === projectId || proj._id === projectId ? updatedProject : proj))
+        );
+        setMyProjects((prev) => 
+          prev.map((proj) => (proj.id === projectId || proj._id === projectId ? updatedProject : proj))
+        );
+        
+        console.log('Проект успешно обновлен');
+      } else {
+        const newProject = await createProject(projectData);
+        setProjects((prev) => [newProject, ...prev]);
+        setMyProjects((prev) => [newProject, ...prev]);
+        console.log('Проект успешно создан');
+      }
     } catch (error) {
-      console.error('Не удалось опубликовать проект:', error)
-      throw error 
+      console.error('Не удалось сохранить изменения или опубликовать проект:', error);
+      throw error; 
     }
   }
 

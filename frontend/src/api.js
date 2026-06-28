@@ -39,6 +39,10 @@ export async function fetchProjects() {
   return handleResponse(await fetch(`${API_URL}/projects/`, fetchOptions()))
 }
 
+export async function fetchProjectById(projectId) {
+  return handleResponse(await fetch(`${API_URL}/projects/${projectId}`, fetchOptions()))
+}
+
 export async function fetchProjectsByCategory(categoryId) {
   return handleResponse(await fetch(`${API_URL}/projects/category/${categoryId}`, fetchOptions()))
 }
@@ -120,6 +124,37 @@ export async function createProject(projectData) {
   return handleResponse(
     await fetch(`${API_URL}/projects/`, {
       method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  )
+}
+
+export async function updateProject(projectId, projectData) {
+  const formData = new FormData()
+
+  formData.append('title', projectData.title)
+  formData.append('description', projectData.description || '')
+  if (projectData.status) {
+    formData.append('status', projectData.status)
+  }
+  if (projectData.categoryId) {
+    formData.append('category_id', projectData.categoryId)
+  }
+
+  // Отправляем измененные текстовые поля
+  formData.append('practical_benefit', projectData.practicalBenefit || '')
+  formData.append('implementation_details', projectData.implementationDetails || '')
+  formData.append('results', projectData.results || '')
+
+  // Файл прикрепляем только если пользователь выбрал новый медиафайл
+  if (projectData.media) {
+    formData.append('file', projectData.media)
+  }
+
+  return handleResponse(
+    await fetch(`${API_URL}/projects/${projectId}`, {
+      method: 'PUT', // Если бэкенд ожидает частичное обновление, замените на 'PATCH'
       credentials: 'include',
       body: formData,
     })

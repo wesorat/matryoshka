@@ -17,6 +17,22 @@ function UserPage({
   const { name = 'Имя Пользователя', avatar } = user;
   const [isPublishOpen, setIsPublishOpen] = useState(false);
 
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  // Обработчик для создания нового проекта
+  const handleCreateClick = () => {
+    setSelectedProject(null);
+    setIsPublishOpen(true);
+  };
+
+  // Обработчик для редактирования существующего проекта
+  const handleEditClick = (project) => {
+    setSelectedProject(project);
+    setIsPublishOpen(true);
+    // Опционально: вызываем родительский коллбек, если логика завязана на него
+    onProjectClick(project);
+  };
+  
   return (
     <section className={styles.page}>
       <div className={styles.container}>

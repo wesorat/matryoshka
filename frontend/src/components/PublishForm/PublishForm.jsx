@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './PublishForm.module.scss';
 
-export default function PublishPage({ categories = [], onBack = () => {}, onSuccess = () => {} }) {
+export default function PublishPage({ categories = [], onBack = () => {}, onSuccess = () => {}, project = null }) {
    const [isOpen, setIsOpen] = useState(true);
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
+   // Флаг режима редактирования
+   const isEdit = !!project;
+
    const [formData, setFormData] = useState({
-   title: '',
-   categoryId: '',
-   description: '',
-   practicalBenefit: '',
-   implementationDetails: '',
-   results: '',
-   status: 'draft'
-});
+      title: '',
+      categoryId: '',
+      description: '',
+      practicalBenefit: '',
+      implementationDetails: '',
+      results: '',
+      status: 'draft'
+   });
 
    // Стейт для медиафайла
    const [mediaFile, setMediaFile] = useState(null);
@@ -31,15 +34,30 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
    useEffect(() => {
       setIsOpen(true);
       setError('');
-      setFormData({
-      title: '',
-      categoryId: '',
-      description: '',
-      practicalBenefit: '',
-      implementationDetails: '',
-      results: '',
-      status: 'draft'
-   });
+      
+      // Заполняем форму данными проекта, если мы в режиме редактирования
+      if (project) {
+         setFormData({
+            title: project.title || '',
+            categoryId: project.categoryId || '',
+            description: project.description || '',
+            practicalBenefit: project.practicalBenefit || '',
+            implementationDetails: project.implementationDetails || '',
+            results: project.results || '',
+            status: project.status || 'draft'
+         });
+      } else {
+         setFormData({
+            title: '',
+            categoryId: '',
+            description: '',
+            practicalBenefit: '',
+            implementationDetails: '',
+            results: '',
+            status: 'draft'
+         });
+      }
+      
       setMediaFile(null);
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
@@ -47,7 +65,7 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
       return () => {
          document.body.style.overflow = "";
       };
-   }, []);
+   }, [project]);
 
    useEffect(() => {
       const handleKeyDown = (e) => {
@@ -91,10 +109,11 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
       setLoading(true);
 
       try {
-         await onSuccess({ ...formData, media: mediaFile });
+         // Передаем id или исходные поля проекта при редактировании
+         await onSuccess(isEdit ? { ...project, ...formData, media: mediaFile } : { ...formData, media: mediaFile });
          closeModal();
       } catch (err) {
-         setError(err.message || 'Произошла ошибка при создании публикации');
+         setError(err.message || `Произошла ошибка при ${isEdit ? 'сохранении' : 'создании'} публикации`);
       } finally {
          setLoading(false);
       }
@@ -116,8 +135,8 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
                </button>
 
                <div className={styles.header}>
-                  <h3 id="modal-title">Новая публикация</h3>
-                  <p>Заполните информацию о вашем проекте или исследовании.</p>
+                  <h3 id="modal-title">{isEdit ? 'Редактирование публикации' : 'Новая публикация'}</h3>
+                  <p>{isEdit ? 'Внесите необходимые изменения в ваш проект.' : 'Заполните информацию о вашем проекте или исследовании.'}</p>
                </div>
 
                <div className={styles.formContainer}>
@@ -187,7 +206,7 @@ export default function PublishPage({ categories = [], onBack = () => {}, onSucc
                         disabled={loading}
                         className={styles.submitBtn}
                      >
-                        {loading ? 'Публикация...' : 'Создать публикацию'}
+                        {loading ? (isEdit ? 'Сохранение...' : 'Публикация...') : (isEdit ? 'Сохранить изменения' : 'Создать публикацию')}
                      </button>
                   </form>
                </div>
