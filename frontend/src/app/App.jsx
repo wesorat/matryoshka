@@ -9,7 +9,9 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjects, fetchProjectsByCategory, fetchCurrentUser, logout, fetchMyProjects, createProject, updateProject } from '../api.js'
+import { fetchCategories, fetchProjects, fetchProjectsByCategory, 
+         fetchCurrentUser, logout, fetchMyProjects, createProject, 
+         updateProject, fetchProjectById } from '../api.js'
 
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
@@ -21,6 +23,8 @@ function App() {
   const [user, setUser] = useState(null)
   const [myProjects, setMyProjects] = useState([]) 
   const [myProjectsLoading, setMyProjectsLoading] = useState(true)
+  const [currentProject, setCurrentProject] = useState(null)
+  const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
 
   const [categories, setCategories] = useState([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
@@ -245,13 +249,32 @@ function App() {
       return [savedProject, ...prev]
     }
   })
+  console.log('Стейт проектов успешно синхронизирован с сервером')}
 
-  console.log('Стейт проектов успешно синхронизирован с сервером')
-}
-  const selectedProject = [...projects, ...myProjects].find(
-    (project) => project.id === selectedProjectId || project._id === selectedProjectId
-  )
-  
+  //const selectedProject = [...projects, ...myProjects].find((project) => project.id === selectedProjectId || project._id === selectedProjectId)
+  useEffect(() => {
+  if (!selectedProjectId || page !== 'project') {
+    setCurrentProject(null)
+    return
+  }
+
+  let mounted = true
+  setCurrentProjectLoading(true)
+
+  fetchProjectById(selectedProjectId)
+    .then((data) => {
+      if (mounted) setCurrentProject(data)
+    })
+    .catch((err) => {
+      console.error('Не удалось загрузить данные проекта:', err)
+    })
+    .finally(() => {
+      if (mounted) setCurrentProjectLoading(false)
+    })
+
+  return () => { mounted = false }
+}, [selectedProjectId, page])
+
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
 
   const displayedCategoryProjects = categoryLoading
@@ -339,7 +362,7 @@ function App() {
         )}
         {page === 'project' && (
           <ProjectPage 
-            project={selectedProject} 
+            project={currentProject} 
             projectId={selectedProjectId} 
             editMode={isEditMode}         
             onBack={handleBackToHome} 

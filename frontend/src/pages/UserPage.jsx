@@ -58,7 +58,6 @@ function UserPage({
           {loading ? (
              <p>Загрузка проектов...</p>
           ) : (
-             /* ИСПРАВЛЕНО: Теперь по клику просто вызывается onProjectClick для открытия страницы проекта */
              <ProjectCards 
                projects={projects} 
                onProjectClick={onProjectClick} 

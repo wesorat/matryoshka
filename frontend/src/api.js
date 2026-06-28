@@ -40,7 +40,7 @@ export async function fetchProjects() {
 }
 
 export async function fetchProjectById(projectId) {
-  return handleResponse(await fetch(`${API_URL}/projects/${projectId}`, fetchOptions()))
+  return handleResponse(await fetch(`${API_URL}/projects/${projectId}`, authFetchOptions()))
 }
 
 export async function fetchProjectsByCategory(categoryId) {
