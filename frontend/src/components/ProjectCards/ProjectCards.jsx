@@ -4,7 +4,13 @@ import { defaultProjects } from '../../data/slides';
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const mediaBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 
-function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, onUserClick = () => {}, limit = null }) {
+function ProjectCards({ 
+  projects = defaultProjects, 
+  onProjectClick = () => {}, 
+  onUserClick = () => {}, 
+  onEditClick = null, // Новый проп для обработки редактирования
+  limit = null 
+}) {
   const visibleProjects = limit ? projects.slice(0, limit) : projects;
 
   const handleKeyDown = (event, projectId) => {
@@ -28,14 +34,14 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
               onKeyDown={(event) => handleKeyDown(event, project.id)}
             >
               {project.image || project.image_url ? (
-              <img
-                src={`${mediaBaseUrl}/media/uploads/${project.image || project.image_url}`}
-                alt={project.title}
-                className={styles.cardImage}
-              />
-            ) : (
-              <div className={styles.cardImagePlaceholder} />
-            )}
+                <img
+                  src={`${mediaBaseUrl}/media/uploads/${project.image || project.image_url}`}
+                  alt={project.title}
+                  className={styles.cardImage}
+                />
+              ) : (
+                <div className={styles.cardImagePlaceholder} />
+              )}
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{project.title}</h3>
                 <p className={styles.cardSubtitle}>
@@ -45,7 +51,6 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
                     const parts = subtitleText.split('·').map((s) => s.trim())
                     const first = parts[0]
                     const rest = parts.slice(1).join(' · ')
-                    // пытаемся найти имя автора в оставшейся части
                     const authorMatch = /Автор\s*(.+)/i.exec(rest)
                     const authorName = authorMatch ? authorMatch[1].trim() : null
 
@@ -71,6 +76,22 @@ function ProjectCards({ projects = defaultProjects, onProjectClick = () => {}, o
                   })()}
                 </p>
               </div>
+
+              {/* Кнопка редактирования (отображается, если передан onEditClick) */}
+              {onEditClick && (
+                <div 
+                  className={styles.cardActions} 
+                  onClick={(e) => e.stopPropagation()} // Предотвращаем открытие карточки
+                >
+                  <button
+                    type="button"
+                    className={styles.editButton}
+                    onClick={() => onEditClick(project)}
+                  >
+                    Редактировать
+                  </button>
+                </div>
+              )}
             </article>
           ))}
         </div>

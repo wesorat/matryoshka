@@ -1,69 +1,335 @@
 @use '../styles/variables' as vars;
 @use '../styles/mixins' as mixins;
 
+// Вспомогательный миксин для фокуса, полностью повторяющий поведение в PublishForm
+@mixin focus-ring {
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px vars.$basic-accent;
+  }
+}
+
+// Основной контейнер страницы просмотра и редактирования
 .page {
-  width: min(1180px, 100%);
-  margin: 0 auto 40px;
-  padding: 20px 0;
-  box-sizing: border-box;
+  padding-bottom: 100px; // Отступ в 50-70 пикселей от последнего текстового блока до футера
 }
 
+// Верхний ряд страницы (заголовок, автор и кнопки управления)
 .headerRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-
-.headerRow > :last-child {
-  align-self: flex-start;
-  margin-top: calc((48px * 1.2 - 40px) / 2);
+  margin-bottom: 2rem; // Отступ между кнопками шапки и галереей HeroGallery
 }
 
 .title {
   @include mixins.h1-heading;
-  margin: 0 0 10px;
-  color: vars.$text-main;
+  margin: 0 0 1rem 0;
 }
 
+// Стиль для строки подзаголовка (Категория · Автор:)
 .subtitle {
-  margin: 0;
-  font-family: vars.$font-secondary;
-  font-size: 14px;
-  color: vars.$text-muted;
+  @include mixins.text-ordinary;
+  // 0.5rem сверху (от заголовка h1) и 1.25rem снизу (до кнопок управления)
+  margin: 0.5rem 0 1.25rem 0;
 }
 
+// Ссылка/кнопка автора — теперь это просто кликабельный текст
 .author {
-  background: none;
+  @include mixins.text-ordinary;
+  display: inline;
+  background: transparent;
   border: none;
   padding: 0;
   margin: 0;
-  color: vars.$button-color;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: vars.$basic-accent;
   cursor: pointer;
-  font: inherit;
+  transition: opacity 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @include focus-ring;
 }
 
-.textContent {
-  width: min(1180px, 100%);
-  margin: 0 auto 32px;
-  padding: 0;
-  box-sizing: border-box;
+// Задний фон (оверлей) модального окна
+.formOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
-.textContent p {
-  margin: 0;
-  font-family: vars.$font-secondary;
-  font-size: 15px;
-  line-height: 1.7;
-  color: vars.$text-main;
+// Контейнер формы (диалоговое окно)
+.formContainer {
+  width: 100%;
+  max-width: 34rem;
+  background-color: vars.$bg-main;
+  border: 1px solid vars.$border-color;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  position: relative;
+  max-height: 95vh;
+  overflow-y: auto;
+  outline: none;
+  padding: vars.$base-spacing;
+
+  @media (min-width: 768px) {
+    padding: calc(vars.$base-spacing * 1.5);
+  }
+
+  // Тонкий нативный кастомный скроллбар
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: vars.$border-color;
+    border-radius: 4px;
+  }
 }
 
-.empty {
-  width: min(1180px, 100%);
-  margin: 120px auto;
-  padding: 20px;
+// Шапка формы и кнопка закрытия
+.formHeader {
+  text-align: center;
+  margin-top: vars.$base-spacing;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    @include mixins.h2-heading;
+    color: vars.$text-main;
+    margin: 0;
+  }
+
+  // Стилизация кнопки закрытия "✕" внутри контейнера
+  button {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0;
+    cursor: pointer;
+    color: vars.$text-muted;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+    @include focus-ring;
+
+    &:hover {
+      color: vars.$basic-accent;
+    }
+  }
+}
+
+// Отображение ошибок
+.errorMessage {
+  color: #ff4d4d;
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 15px;
+  font-size: 14px;
   text-align: center;
 }
 
+// Настройка сетки формы
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: vars.$base-spacing;
+}
+
+// Поля ввода и контейнеры
+.formGroup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    @include mixins.text-ordinary;
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+    color: vars.$text-main;
+    font-weight: 500;
+    display: inline-block;
+  }
+
+  // Общие стили для текстовых полей, селектов и textarea
+  input[type="text"],
+  select,
+  textarea {
+    font-family: vars.$font-secondary;
+    padding: 0.625rem 0.75rem;
+    font-size: 14px;
+    color: vars.$text-main;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    width: 100%;
+    border: 1px solid vars.$border-color;
+    box-sizing: border-box;
+    @include focus-ring;
+
+    &:focus {
+      border-color: vars.$basic-accent;
+    }
+
+    &::placeholder {
+      color: vars.$text-muted;
+    }
+  }
+
+  // Специфичные правила для textarea
+  textarea {
+    resize: vertical;
+    min-height: 5rem;
+    max-height: 12rem;
+    line-height: 1.5;
+  }
+
+  // Стилизация выпадающего списка (select) под макет
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+    cursor: pointer;
+
+    option:disabled {
+      color: vars.$text-muted;
+    }
+    
+    option {
+      background-color: vars.$bg-main;
+      color: vars.$text-main;
+    }
+  }
+
+  // Кастомизация загрузки файлов (input type="file")
+  input[type="file"] {
+    padding: 0.5rem;
+    cursor: pointer;
+    font-family: vars.$font-secondary;
+    font-size: 14px;
+    color: vars.$text-main;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    width: 100%;
+    border: 1px solid vars.$border-color;
+    box-sizing: border-box;
+    @include focus-ring;
+
+    &:focus {
+      border-color: vars.$basic-accent;
+    }
+
+    &::file-selector-button {
+      font-family: vars.$font-secondary;
+      background-color: vars.$button-color;
+      border: 1px solid vars.$border-color;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.25rem;
+      color: vars.$text-main;
+      margin-right: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: vars.$button-color-hover;
+      }
+    }
+  }
+}
+
+// Строка кнопок управления (Отмена / Сохранить)
+.actionsRow {
+  display: flex;
+  justify-content: space-between;
+  gap: vars.$base-spacing;
+  margin-top: 0.5rem;
+
+  // Общие правила для обеих кнопок в ряду
+  button, :global(.btn) {
+    font-family: vars.$font-secondary;
+    padding: 0.75rem;
+    font-size: 1rem;
+    flex: 1;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.2s;
+    @include focus-ring;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  // Главная кнопка отправки формы (Создать / Сохранить)
+  button[type="submit"] {
+    color: vars.$text-main;
+    border: 1px solid vars.$border-color;
+    background-color: vars.$button-color;
+
+    &:hover:not(:disabled) {
+      background-color: vars.$button-color-hover;
+    }
+  }
+
+  // Кнопка отмены
+  button[type="button"] {
+    background-color: transparent;
+    border: 1px solid vars.$border-color;
+    color: vars.$text-muted;
+
+    &:hover:not(:disabled) {
+      background-color: vars.$button-color;
+      color: vars.$text-main;
+    }
+  }
+}
+
+// Стили для текстового контента разделов проекта (Практическая польза и т.д.)
+.textContent {
+  @include mixins.text-ordinary;
+  margin-top: calc(vars.$base-spacing / 2);
+  margin-bottom: calc(vars.$base-spacing * 1.5);
+  color: vars.$text-main;
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+}

@@ -1,0 +1,149 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+@use "sass:color";
+
+.formOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.formContainer {
+  background: #ffffff; // Можно заменить на vars.$basic-light, если форма должна быть кремовой
+  border-radius: 16px;
+  width: 100%;
+  max-width: 750px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  animation: slideUp 0.3s ease-out;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid vars.$border-color; // Использован брендовый цвет границы
+  padding-bottom: 12px;
+
+  h2 {
+    @include mixins.h1-heading; // Применен миксин заголовка
+    margin: 0;
+    color: vars.$text-main;
+  }
+}
+
+.errorMessage {
+  @include mixins.text-ordinary; // Применен миксин обычного текста
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    @include mixins.text-ordinary; // Применен миксин обычного текста
+    font-weight: 600;
+    color: vars.$text-main;
+  }
+
+  input[type="text"],
+  select,
+  textarea {
+    @include mixins.text-ordinary; // Применен миксин для текста внутри инпутов
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid vars.$border-color; // Использован брендовый цвет границы
+    border-radius: 8px;
+    color: vars.$text-main;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: vars.$basic-accent; // Акцентный цвет при фокусе
+      box-shadow: 0 0 0 3px color.scale(vars.$basic-accent, $alpha: -90%);
+    }
+
+    &::placeholder {
+      color: #5a5a5a; // Исправлена ошибка отсутствия # в оригинальной переменной vars.$text-muted
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+  }
+
+  input[type="file"] {
+    @include mixins.text-ordinary;
+    color: vars.$text-main;
+    padding: 6px 0;
+
+    &::file-selector-button {
+      @include mixins.text-ordinary; // Применен миксин для текста кнопки файла
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid vars.$border-color; // Брендовая граница
+      background: vars.$basic-light; // Светлый брендовый фон
+      color: vars.$text-main;
+      font-weight: 500;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+
+      &:hover {
+        background-color: vars.$button-color-hover; // Цвет при наведении из vars
+        border-color: vars.$basic-accent;
+      }
+    }
+  }
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+  border-top: 1px solid vars.$border-color; // Использован брендовый цвет границы
+  padding-top: 20px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

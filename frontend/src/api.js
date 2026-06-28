@@ -31,12 +31,22 @@ const authFetchOptions = (options = {}) => ({
   credentials: 'include',
 })
 
-export async function fetchCategories() {
-  return handleResponse(await fetch(`${API_URL}/category/`, fetchOptions()))
+export async function fetchCategories(hasProjects = false) {
+  // Если передан true, добавляем к URL параметр фильтрации (например, ?has_projects=true)
+  // Убедись, что имя параметра (has_projects) совпадает с тем, как ты назвал его на бэкенде!
+  const url = hasProjects 
+    ? `${API_URL}/category/?has_projects=true` 
+    : `${API_URL}/category/`
+
+  return handleResponse(await fetch(url, fetchOptions()))
 }
 
 export async function fetchProjects() {
   return handleResponse(await fetch(`${API_URL}/projects/`, fetchOptions()))
+}
+
+export async function fetchProjectById(projectId) {
+  return handleResponse(await fetch(`${API_URL}/projects/${projectId}`, authFetchOptions()))
 }
 
 export async function fetchProjectsByCategory(categoryId) {
@@ -120,6 +130,35 @@ export async function createProject(projectData) {
   return handleResponse(
     await fetch(`${API_URL}/projects/`, {
       method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  )
+}
+
+export async function updateProject(projectId, projectData) {
+  const formData = new FormData()
+
+  formData.append('title', projectData.title)
+  formData.append('description', projectData.description || '')
+  if (projectData.status) {
+    formData.append('status', projectData.status)
+  }
+  if (projectData.categoryId) {
+    formData.append('category_id', projectData.categoryId)
+  }
+
+  formData.append('practical_benefit', projectData.practicalBenefit || '')
+  formData.append('implementation_details', projectData.implementationDetails || '')
+  formData.append('results', projectData.results || '')
+
+  if (projectData.media) {
+    formData.append('file', projectData.media)
+  }
+
+  return handleResponse(
+    await fetch(`${API_URL}/projects/${projectId}`, {
+      method: 'PATCH', // <-- ИСПРАВЛЕНО: заменено с 'PUT' на 'PATCH'
       credentials: 'include',
       body: formData,
     })
