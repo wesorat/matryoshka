@@ -6,14 +6,15 @@
 ```bash
     docker exec -it matryoshka_backend alembic upgrade head
 ```
-# Для дозаполнения бд
+# Для тестовой генерации в бд (пользователи, категории, проекты (превью), лайки, комменты)
 ```bash
     docker exec -it matryoshka_backend python generate_test_db.py
 ```
 
-# Для генерации начальных данных в бд
+# Для заполенения категорий и ролей в бд
 ```bash
-    psql -h localhost -p 5433 -U postgres -d matr_db -f seed_for_db.sql
+    docker cp seed_for_db.sql matryoshka_db:/tmp/seed.sql
+    docker exec -it matryoshka_db psql -U postgres -d matr_db -f /tmp/seed.sql
 ```
 
 # Production
