@@ -45,8 +45,9 @@ async def get(
 async def get_all(
     category_service: CategoryServiceDep,
     count: int = 15,
+    have_project: bool = False,
 ):
-    categories = await category_service.get_all(count)
+    categories = await category_service.get_all(count, have_project)
     return categories
 
 

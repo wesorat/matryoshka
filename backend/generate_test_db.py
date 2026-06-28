@@ -15,26 +15,18 @@ BASE_URL = "http://localhost:8000"  # Измените на ваш URL
 
 # Список категорий
 CATEGORIES = [
-    "Web Development",
-    "Mobile Development",
-    "Data Science",
-    "Machine Learning",
-    "DevOps",
-    "Cloud Computing",
-    "Cybersecurity",
-    "Blockchain",
-    "IoT (Internet of Things)",
-    "Game Development",
-    "UI/UX Design",
-    "Artificial Intelligence",
-    "Big Data",
-    "Software Architecture",
-    "Testing/QA",
-    "Project Management",
-    "Agile/Scrum",
-    "Python Programming",
-    "JavaScript/TypeScript",
-    "Go/Rust Programming",
+    "Аналитика, безопасность и SEO",
+    "DevOps и мониторинг",
+    "Документация и генерация текстов",
+    "Коммуникации и мессенджеры",
+    "Музыка и стриминг",
+    "No-code конструкторы",
+    "Образование и управление практикой",
+    "Редакторы мультимедиа",
+    "Социальные сети и знакомства",
+    "Управление персоналом и компетенциями",
+    "Управление проектами и баг-трекинг",
+    "Фриланс и биржи",
 ]
 
 # Статусы проектов
@@ -227,26 +219,25 @@ class TestDataGenerator:
         # Генерируем изображение
         image_bytes = self.generate_project_image(title)
 
-        # Параметры запроса (query parameters)
-        params = {}
-
-        # Добавляем параметры
-        params["title"] = title
-        if description:
-            params["description"] = description
+        # Данные для multipart/form-data
+        data = {
+            "title": title,
+            "description": description,
+            "status": status,
+        }
         if category_id:
-            params["category_id"] = category_id
-        if status:
-            params["status"] = status
+            data["category_id"] = str(category_id)
 
         # Файл для загрузки
-        files = {"file": (f"{title[:30]}.png", image_bytes, "image/png")}
+        files = {}
+        if image_bytes:
+            files["file"] = (f"{title[:30]}.png", image_bytes, "image/png")
 
         # Используем куки пользователя
         try:
             response = requests.post(
                 url,
-                params=params,  # Query parameters
+                data=data,  # Form data
                 files=files,  # File upload
                 cookies=user_info.get("cookies", {}),
             )
@@ -469,7 +460,7 @@ class TestDataGenerator:
         print("=" * 50)
         for user_info in self.users[:3]:  # Показываем первых 3 пользователей
             user_projects = [
-                p for p in self.projects if p.get("owner_id") == user_info["id"]
+                p for p in self.projects if p.get("owner", {}).get("id") == user_info["id"]
             ]
             print(f"\nUser: {user_info['name']} (ID: {user_info['id']})")
             print(f"  Email: {user_info['email']}")

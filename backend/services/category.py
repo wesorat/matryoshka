@@ -26,8 +26,8 @@ class CategoryService:
     async def get(self, id: int) -> Category:
         return await self.repo.get(id)
 
-    async def get_all(self, count: int) -> list[CategoryReadWithLikes]:
-        data = await self.repo.get_all(count)
+    async def get_all(self, count: int, have_project: bool) -> list[CategoryReadWithLikes]:
+        data = await self.repo.get_all(count, have_project)
         return [CategoryReadWithLikes(**item) for item in data]
 
     async def delete(self, id: int) -> int:
