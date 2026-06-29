@@ -7,13 +7,13 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import os
 
-# Инициализация Faker для генерации данных
-fake = Faker()
+# Инициализация Faker для генерации данных на русском языке
+fake = Faker('ru_RU')
 
 # Базовый URL API
 BASE_URL = "http://localhost:8000"  # Измените на ваш URL
 
-# Список категорий
+# Список категорий (только для справки, не используются для создания)
 CATEGORIES = [
     "Аналитика, безопасность и SEO",
     "DevOps и мониторинг",
@@ -38,7 +38,7 @@ class TestDataGenerator:
         self.base_url = base_url
         self.session = requests.Session()
         self.users = []
-        self.categories = []
+        self.categories = []  # Будут заполнены из БД
         self.projects = []
         self.comments = []
         self.likes = []
@@ -48,27 +48,18 @@ class TestDataGenerator:
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
 
-    def create_category(self, name: str) -> Dict[str, Any]:
-        """Создание категории"""
+    def get_existing_categories(self) -> List[Dict[str, Any]]:
+        """Получение существующих категорий из БД"""
         url = f"{self.base_url}/category/"
-        payload = {"name": name}
         try:
-            response = requests.post(url, json=payload)
+            response = requests.get(url)
             response.raise_for_status()
-            return response.json()
+            categories = response.json()
+            print(f"Найдено {len(categories)} существующих категорий")
+            return categories
         except requests.exceptions.RequestException as e:
-            print(f"Error creating category {name}: {e}")
-            return None
-
-    def create_all_categories(self):
-        """Создание всех категорий"""
-        print("Creating categories...")
-        for category_name in CATEGORIES:
-            category = self.create_category(category_name)
-            if category:
-                self.categories.append(category)
-                print(f"  Created category: {category['name']}")
-        print(f"Created {len(self.categories)} categories")
+            print(f"Ошибка при получении категорий: {e}")
+            return []
 
     def register_user(self, email: str, password: str, name: str) -> Dict[str, Any]:
         """Регистрация пользователя"""
@@ -86,7 +77,7 @@ class TestDataGenerator:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error registering user {email}: {e}")
+            print(f"Ошибка при регистрации пользователя {email}: {e}")
             return None
 
     def login_user(self, email: str, password: str) -> bool:
@@ -103,16 +94,28 @@ class TestDataGenerator:
                 return True
             return False
         except requests.exceptions.RequestException as e:
-            print(f"Error logging in user {email}: {e}")
+            print(f"Ошибка при входе пользователя {email}: {e}")
             return False
 
     def create_user(self) -> Dict[str, Any]:
         """Создание пользователя с регистрацией и входом"""
-        # Генерируем данные пользователя
-        first_name = fake.first_name()
-        last_name = fake.last_name()
+        # Генерируем данные пользователя на русском
+        first_name = fake.first_name_male() if random.choice([True, False]) else fake.first_name_female()
+        last_name = fake.last_name_male() if random.choice([True, False]) else fake.last_name_female()
         name = f"{first_name} {last_name}"
-        email = f"{first_name.lower()}.{last_name.lower()}@example.com"
+
+        # Транслитерируем для email
+        translit_map = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+            'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+        }
+
+        email_name = ''.join(translit_map.get(c, c) for c in first_name.lower())
+        email_surname = ''.join(translit_map.get(c, c) for c in last_name.lower())
+        email = f"{email_name}.{email_surname}@example.com"
         password = "TestPassword123!"
 
         # Регистрируем пользователя
@@ -142,22 +145,34 @@ class TestDataGenerator:
         image = Image.new("RGB", (width, height), color="white")
         draw = ImageDraw.Draw(image)
 
-        # Пытаемся загрузить шрифт, если не получается - используем стандартный
+        # Пытаемся загрузить шрифт с поддержкой кириллицы
         font_size = min(width, height) // 12
 
         try:
-            # Пробуем загрузить системный шрифт
-            font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVu-Sans.ttf", font_size
-            )
-        except:
-            try:
-                # Для Windows
-                font = ImageFont.truetype("arial.ttf", font_size)
-            except:
+            # Пробуем загрузить шрифт с поддержкой кириллицы
+            font_paths = [
+                "/usr/share/fonts/truetype/dejavu/DejaVu-Sans.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
+                "C:/Windows/Fonts/arial.ttf",
+                "C:/Windows/Fonts/times.ttf",
+                "/System/Library/Fonts/Helvetica.ttc",
+            ]
+            font = None
+            for font_path in font_paths:
+                try:
+                    font = ImageFont.truetype(font_path, font_size)
+                    break
+                except:
+                    continue
+
+            if font is None:
                 # Если шрифт не найден, используем стандартный
                 font = ImageFont.load_default()
                 font_size = min(width, height) // 15
+        except:
+            font = ImageFont.load_default()
+            font_size = min(width, height) // 15
 
         # Разбиваем длинный заголовок на строки
         max_chars_per_line = width // (font_size // 2)
@@ -205,6 +220,63 @@ class TestDataGenerator:
 
         return img_bytes.getvalue()
 
+    def generate_field_content(self, field_type: str) -> str:
+        """Генерация содержимого для дополнительных полей проекта"""
+        if field_type == "practical_benefit":
+            templates = [
+                "Повышение эффективности работы команды на 30% за счет автоматизации рутинных задач",
+                "Снижение времени на выполнение операций в 2 раза",
+                "Упрощение процесса взаимодействия между отделами компании",
+                "Автоматизация документооборота и сокращение бумажной работы",
+                "Улучшение качества обслуживания клиентов благодаря быстрому доступу к данным",
+                "Экономия ресурсов компании за счет оптимизации бизнес-процессов",
+                "Повышение прозрачности и контролируемости всех этапов работы",
+                f"Сокращение затрат на {fake.word()} на 25%",
+                f"Увеличение производительности труда на {random.randint(15, 50)}%",
+                "Оптимизация рабочих процессов и снижение нагрузки на сотрудников",
+                "Быстрый доступ к актуальной информации в реальном времени",
+                "Улучшение коммуникации между участниками проекта",
+            ]
+            return random.choice(templates)
+
+        elif field_type == "implementation_details":
+            templates = [
+                "Реализовано на основе микросервисной архитектуры с использованием Docker и Kubernetes",
+                "Разработано с использованием современного стека технологий: Python, FastAPI, PostgreSQL",
+                "Интегрировано с существующими системами компании через REST API",
+                "Внедрена система мониторинга и оповещения на базе Prometheus и Grafana",
+                "Использована методология Agile с двухнедельными спринтами",
+                "Реализована система аутентификации и авторизации с JWT токенами",
+                "Настроена автоматическая сборка и деплой через CI/CD пайплайн",
+                "Разработана удобная и интуитивно понятная система управления данными",
+                "Внедрена система логирования и отслеживания ошибок",
+                f"Технологический стек: {fake.word()}, {fake.word()}, {fake.word()}",
+                "Реализована система резервного копирования и восстановления данных",
+                "Обеспечена высокая отказоустойчивость и масштабируемость системы",
+                "Проведено тестирование производительности и оптимизация запросов",
+            ]
+            return random.choice(templates)
+
+        elif field_type == "results":
+            templates = [
+                "Проект успешно внедрен и используется в повседневной работе компании",
+                "Достигнуты все поставленные цели в установленные сроки",
+                "Получены положительные отзывы от пользователей и руководства",
+                "Система стабильно работает и показывает высокую производительность",
+                f"Количество активных пользователей достигло {random.randint(100, 1000)} человек",
+                "Удалось сократить время обработки запросов на 40%",
+                "Проект масштабирован на все отделы компании",
+                "Достигнута высокая степень автоматизации бизнес-процессов",
+                "Получен экономический эффект в размере {random.randint(100, 500)} тыс. рублей",
+                "Улучшена система отчетности и аналитики данных",
+                "Проект отмечен как лучший инновационный проект года в компании",
+                "Создана база знаний и документация для дальнейшего развития",
+                "Формирование устойчивой обратной связи от пользователей",
+            ]
+            return random.choice(templates)
+
+        return ""
+
     def create_project_with_image(
         self,
         user_info: Dict[str, Any],
@@ -224,14 +296,20 @@ class TestDataGenerator:
             "title": title,
             "description": description,
             "status": status,
+            "practical_benefit": self.generate_field_content("practical_benefit"),
+            "implementation_details": self.generate_field_content("implementation_details"),
+            "results": self.generate_field_content("results"),
         }
+
         if category_id:
             data["category_id"] = str(category_id)
 
         # Файл для загрузки
         files = {}
         if image_bytes:
-            files["file"] = (f"{title[:30]}.png", image_bytes, "image/png")
+            # Используем русское название файла (транслитерируем для безопасности)
+            safe_title = ''.join(c if c.isalnum() else '_' for c in title[:30])
+            files["file"] = (f"{safe_title}.png", image_bytes, "image/png")
 
         # Используем куки пользователя
         try:
@@ -244,10 +322,10 @@ class TestDataGenerator:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error creating project {title}: {e}")
+            print(f"Ошибка при создании проекта {title}: {e}")
             if hasattr(e, "response") and e.response:
-                print(f"Status code: {e.response.status_code}")
-                print(f"Response: {e.response.text}")
+                print(f"Код статуса: {e.response.status_code}")
+                print(f"Ответ: {e.response.text}")
             return None
 
     def create_comment(
@@ -264,10 +342,10 @@ class TestDataGenerator:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error creating comment: {e}")
+            print(f"Ошибка при создании комментария: {e}")
             if hasattr(e, "response") and e.response:
-                print(f"Status code: {e.response.status_code}")
-                print(f"Response: {e.response.text}")
+                print(f"Код статуса: {e.response.status_code}")
+                print(f"Ответ: {e.response.text}")
             return None
 
     def create_like(self, user_info: Dict[str, Any], project_id: int) -> bool:
@@ -282,38 +360,41 @@ class TestDataGenerator:
             response.raise_for_status()
             return True
         except requests.exceptions.RequestException as e:
-            print(f"Error creating like: {e}")
+            print(f"Ошибка при создании лайка: {e}")
             if hasattr(e, "response") and e.response:
-                print(f"Status code: {e.response.status_code}")
-                print(f"Response: {e.response.text}")
+                print(f"Код статуса: {e.response.status_code}")
+                print(f"Ответ: {e.response.text}")
             return False
 
     def generate_comments_for_project(self, project: Dict[str, Any], num_comments: int):
         """Генерация комментариев для проекта"""
-        print(f"  Generating {num_comments} comments for project: {project['title']}")
+        print(f"  Генерация {num_comments} комментариев для проекта: {project['title']}")
 
         # Выбираем случайных пользователей для комментирования
         available_users = [u for u in self.users if u["id"] != project.get("owner_id")]
         if not available_users:
-            print("    No other users available for commenting")
+            print("    Нет других пользователей для комментирования")
             return
 
         for i in range(num_comments):
             # Выбираем случайного пользователя
             user = random.choice(available_users)
 
-            # Генерируем текст комментария
+            # Генерируем текст комментария на русском
             comment_texts = [
                 fake.sentence(nb_words=10),
                 fake.paragraph(nb_sentences=2),
-                f"Great project! {fake.sentence(nb_words=5)}",
-                f"Interesting work! {fake.sentence(nb_words=6)}",
-                f"Nice! {fake.sentence(nb_words=4)}",
+                f"Отличный проект! {fake.sentence(nb_words=5)}",
+                f"Интересная работа! {fake.sentence(nb_words=6)}",
+                f"Классно! {fake.sentence(nb_words=4)}",
                 fake.sentence(nb_words=8),
-                f"I like this project because {fake.sentence(nb_words=7)}",
-                f"Good job! {fake.sentence(nb_words=5)}",
+                f"Мне нравится этот проект, потому что {fake.sentence(nb_words=7)}",
+                f"Хорошая работа! {fake.sentence(nb_words=5)}",
                 fake.paragraph(nb_sentences=1),
-                f"Looking forward to seeing more! {fake.sentence(nb_words=4)}",
+                f"Жду продолжения! {fake.sentence(nb_words=4)}",
+                f"Отличная идея! {fake.sentence(nb_words=5)}",
+                f"Здорово получилось! {fake.sentence(nb_words=4)}",
+                f"Крутой проект! {fake.sentence(nb_words=6)}",
             ]
             text = random.choice(comment_texts)
 
@@ -321,19 +402,19 @@ class TestDataGenerator:
             comment = self.create_comment(user, project["id"], text)
             if comment:
                 self.comments.append(comment)
-                print(f"    Created comment by {user['name']}: {text[:50]}...")
+                print(f"    Создан комментарий от {user['name']}: {text[:50]}...")
 
             # Небольшая задержка
             time.sleep(0.1)
 
     def generate_likes_for_project(self, project: Dict[str, Any], num_likes: int):
         """Генерация лайков для проекта"""
-        print(f"  Generating {num_likes} likes for project: {project['title']}")
+        print(f"  Генерация {num_likes} лайков для проекта: {project['title']}")
 
         # Выбираем случайных пользователей для лайков
         available_users = [u for u in self.users if u["id"] != project.get("owner_id")]
         if not available_users:
-            print("    No other users available for likes")
+            print("    Нет других пользователей для лайков")
             return
 
         # Выбираем уникальных пользователей для лайков
@@ -344,21 +425,60 @@ class TestDataGenerator:
             # Создаем лайк
             if self.create_like(user, project["id"]):
                 self.likes.append({"user_id": user["id"], "project_id": project["id"]})
-                print(f"    Created like by {user['name']}")
+                print(f"    Создан лайк от {user['name']}")
 
             # Небольшая задержка
             time.sleep(0.1)
 
     def generate_project_data(self, user_info: Dict[str, Any], num_projects: int = 10):
         """Генерация проектов для пользователя с комментариями и лайками"""
-        print(f"\nGenerating projects for user: {user_info['name']}")
+        print(f"\nГенерация проектов для пользователя: {user_info['name']}")
+
+        # Шаблоны для названий проектов на русском
+        project_templates = [
+            "Платформа для {topic}",
+            "Сервис {topic}",
+            "Инструмент {topic}",
+            "Система {topic}",
+            "Приложение для {topic}",
+            "Редактор {topic}",
+            "Менеджер {topic}",
+            "Конструктор {topic}",
+            "Помощник в {topic}",
+            "Аналитика {topic}",
+            "Портал {topic}",
+            "База знаний по {topic}",
+        ]
+
+        topics = [
+            "аналитики", "безопасности", "разработки", "тестирования", "дизайна",
+            "управления проектами", "коммуникации", "образования", "автоматизации",
+            "обработки данных", "распознавания текста", "генерации контента",
+            "социальных сетей", "музыки", "стриминга", "документации"
+        ]
 
         for i in range(num_projects):
-            # Генерация данных проекта
-            title = fake.sentence(nb_words=3)[:-1] + f" - {i+1}"
-            description = fake.text(max_nb_chars=200)
+            # Генерация данных проекта на русском
+            template = random.choice(project_templates)
+            topic = random.choice(topics)
+            title = template.format(topic=topic)
 
-            # Выбираем случайную категорию
+            # Добавляем номер, чтобы названия не повторялись
+            if i > 0:
+                title = f"{title} v{i+1}"
+
+            # Генерируем описание на русском
+            description_templates = [
+                f"Проект представляет собой {fake.sentence(nb_words=8)}. Основная цель - {fake.sentence(nb_words=6)}.",
+                f"Инновационное решение в области {topic}. Позволяет {fake.sentence(nb_words=5)}.",
+                f"Современный инструмент для {topic}. Включает в себя {fake.sentence(nb_words=7)}.",
+                f"Удобная система для работы с {topic}. Предоставляет возможности {fake.sentence(nb_words=6)}.",
+                f"Комплексное решение для {topic}. Обеспечивает {fake.sentence(nb_words=8)}.",
+                f"Платформа для эффективного управления {topic}. Функционал позволяет {fake.sentence(nb_words=6)}.",
+            ]
+            description = random.choice(description_templates)
+
+            # Выбираем случайную категорию из существующих
             category = random.choice(self.categories) if self.categories else None
             category_id = category["id"] if category else None
 
@@ -373,10 +493,18 @@ class TestDataGenerator:
             if project:
                 self.projects.append(project)
                 print(
-                    f"  Created project: {project['title']} (status: {project['status']}, has image: {bool(project.get('image_url'))})"
+                    f"  Создан проект: {project['title']} (статус: {project['status']}, есть изображение: {bool(project.get('image_url'))})"
                 )
                 if project.get("image_url"):
-                    print(f"    Image URL: {project['image_url']}")
+                    print(f"    URL изображения: {project['image_url']}")
+
+                # Выводим информацию о новых полях
+                if project.get("practical_benefit"):
+                    print(f"    Практическая польза: {project['practical_benefit'][:50]}...")
+                if project.get("implementation_details"):
+                    print(f"    Детали внедрения: {project['implementation_details'][:50]}...")
+                if project.get("results"):
+                    print(f"    Результаты: {project['results'][:50]}...")
 
                 # Добавляем комментарии и лайки только для опубликованных проектов
                 if project["status"] == "published" and len(self.users) > 1:
@@ -391,11 +519,11 @@ class TestDataGenerator:
                         self.generate_likes_for_project(project, num_likes)
                 else:
                     if project["status"] != "published":
-                        print(f"    Skipping comments/likes for draft project")
+                        print(f"    Пропуск комментариев/лайков для черновика")
                     elif len(self.users) <= 1:
-                        print(f"    Not enough users for comments/likes")
+                        print(f"    Недостаточно пользователей для комментариев/лайков")
             else:
-                print(f"  Failed to create project: {title}")
+                print(f"  Не удалось создать проект: {title}")
 
             # Небольшая задержка для избежания перегрузки API
             time.sleep(0.1)
@@ -403,75 +531,98 @@ class TestDataGenerator:
     def generate_all_data(self, num_users: int = 5, projects_per_user: int = 10):
         """Генерация всех тестовых данных"""
         print("=" * 50)
-        print("Starting test data generation")
+        print("Начало генерации тестовых данных")
         print("=" * 50)
 
-        # Создаем категории
-        self.create_all_categories()
+        # Получаем существующие категории из БД
+        print("\nПолучение существующих категорий...")
+        self.categories = self.get_existing_categories()
+
+        if not self.categories:
+            print("ПРЕДУПРЕЖДЕНИЕ: В базе данных не найдено категорий. Проекты будут создаваться без категорий.")
+        else:
+            print(f"Используется {len(self.categories)} категорий из базы данных")
 
         # Создаем пользователей
-        print("\nCreating users...")
+        print("\nСоздание пользователей...")
         for i in range(num_users):
             user_info = self.create_user()
             if user_info:
                 self.users.append(user_info)
                 print(
-                    f"  Created user: {user_info['name']} (email: {user_info['email']})"
+                    f"  Создан пользователь: {user_info['name']} (email: {user_info['email']})"
                 )
             else:
-                print(f"  Failed to create user {i+1}")
+                print(f"  Не удалось создать пользователя {i+1}")
 
             # Небольшая задержка между пользователями
             time.sleep(0.5)
 
         # Создаем проекты для каждого пользователя
-        print(f"\nCreating projects for {len(self.users)} users...")
+        print(f"\nСоздание проектов для {len(self.users)} пользователей...")
         for user_info in self.users:
             self.generate_project_data(user_info, projects_per_user)
 
         # Выводим статистику
         print("\n" + "=" * 50)
-        print("DATA GENERATION COMPLETED")
+        print("ГЕНЕРАЦИЯ ДАННЫХ ЗАВЕРШЕНА")
         print("=" * 50)
-        print(f"Categories: {len(self.categories)}")
-        print(f"Users: {len(self.users)}")
-        print(f"Projects: {len(self.projects)}")
-        print(f"Comments: {len(self.comments)}")
-        print(f"Likes: {len(self.likes)}")
+        print(f"Использовано категорий: {len(self.categories)}")
+        print(f"Пользователей: {len(self.users)}")
+        print(f"Проектов: {len(self.projects)}")
+        print(f"Комментариев: {len(self.comments)}")
+        print(f"Лайков: {len(self.likes)}")
 
         # Статистика по статусам проектов
         if self.projects:
             published = sum(1 for p in self.projects if p.get("status") == "published")
             draft = len(self.projects) - published
             print(
-                f"Projects published: {published} ({published/len(self.projects)*100:.1f}%)"
+                f"Опубликовано проектов: {published} ({published/len(self.projects)*100:.1f}%)"
             )
-            print(f"Projects draft: {draft} ({draft/len(self.projects)*100:.1f}%)")
+            print(f"Черновиков: {draft} ({draft/len(self.projects)*100:.1f}%)")
 
             # Статистика по изображениям
             has_image = sum(1 for p in self.projects if p.get("image_url"))
             print(
-                f"Projects with image: {has_image} ({has_image/len(self.projects)*100:.1f}%)"
+                f"Проектов с изображением: {has_image} ({has_image/len(self.projects)*100:.1f}%)"
             )
+
+            # Статистика по новым полям
+            has_practical_benefit = sum(1 for p in self.projects if p.get("practical_benefit"))
+            has_implementation_details = sum(1 for p in self.projects if p.get("implementation_details"))
+            has_results = sum(1 for p in self.projects if p.get("results"))
+
+            print(f"Проектов с практической пользой: {has_practical_benefit} ({has_practical_benefit/len(self.projects)*100:.1f}%)")
+            print(f"Проектов с деталями внедрения: {has_implementation_details} ({has_implementation_details/len(self.projects)*100:.1f}%)")
+            print(f"Проектов с результатами: {has_results} ({has_results/len(self.projects)*100:.1f}%)")
 
         # Выводим примеры пользователей и их проектов
         print("\n" + "=" * 50)
-        print("Sample data:")
+        print("Примеры данных:")
         print("=" * 50)
         for user_info in self.users[:3]:  # Показываем первых 3 пользователей
             user_projects = [
                 p for p in self.projects if p.get("owner", {}).get("id") == user_info["id"]
             ]
-            print(f"\nUser: {user_info['name']} (ID: {user_info['id']})")
+            print(f"\nПользователь: {user_info['name']} (ID: {user_info['id']})")
             print(f"  Email: {user_info['email']}")
-            print(f"  Projects: {len(user_projects)}")
+            print(f"  Проектов: {len(user_projects)}")
 
             # Показываем комментарии и лайки для проектов
             for project in user_projects[:3]:  # Показываем первые 3 проекта
                 image_status = "✅" if project.get("image_url") else "❌"
                 print(
-                    f"    {image_status} {project['title']} ({project.get('status', 'unknown')})"
+                    f"    {image_status} {project['title']} ({project.get('status', 'неизвестно')})"
                 )
+
+                # Показываем новые поля
+                if project.get("practical_benefit"):
+                    print(f"       Практическая польза: {project['practical_benefit'][:60]}...")
+                if project.get("implementation_details"):
+                    print(f"       Детали внедрения: {project['implementation_details'][:60]}...")
+                if project.get("results"):
+                    print(f"       Результаты: {project['results'][:60]}...")
 
                 # Считаем комментарии и лайки для этого проекта
                 project_comments = [
@@ -482,19 +633,17 @@ class TestDataGenerator:
                 ]
 
                 if project_comments:
-                    print(f"       Comments: {len(project_comments)}")
-                    for comment in project_comments[
-                        :2
-                    ]:  # Показываем первые 2 комментария
+                    print(f"       Комментариев: {len(project_comments)}")
+                    for comment in project_comments[:2]:
                         print(f"         - {comment.get('text', '')[:50]}...")
                 if project_likes:
-                    print(f"       Likes: {len(project_likes)}")
+                    print(f"       Лайков: {len(project_likes)}")
 
                 if project.get("image_url"):
-                    print(f"       Image: {project['image_url']}")
+                    print(f"       Изображение: {project['image_url']}")
 
             if len(user_projects) > 3:
-                print(f"    ... and {len(user_projects) - 3} more projects")
+                print(f"    ... и еще {len(user_projects) - 3} проектов")
 
 
 def main():
@@ -506,22 +655,22 @@ def main():
         response = requests.get(f"{BASE_URL}/category/")
         if response.status_code != 200:
             print(
-                f"Warning: API might not be available (status code: {response.status_code})"
+                f"Предупреждение: API может быть недоступен (код статуса: {response.status_code})"
             )
-            print("Make sure the server is running and the BASE_URL is correct.")
+            print("Убедитесь, что сервер запущен и BASE_URL указан правильно.")
             return
     except requests.exceptions.RequestException:
-        print(f"Error: Could not connect to API at {BASE_URL}")
-        print("Make sure the server is running and the BASE_URL is correct.")
+        print(f"Ошибка: Не удалось подключиться к API по адресу {BASE_URL}")
+        print("Убедитесь, что сервер запущен и BASE_URL указан правильно.")
         return
 
     try:
         # Генерируем тестовые данные
         generator.generate_all_data(num_users=5, projects_per_user=10)
     except KeyboardInterrupt:
-        print("\n\nData generation interrupted by user.")
+        print("\n\nГенерация данных прервана пользователем.")
     except Exception as e:
-        print(f"\nUnexpected error: {e}")
+        print(f"\nНеожиданная ошибка: {e}")
         import traceback
 
         traceback.print_exc()
