@@ -118,7 +118,7 @@ class ProjectsRepository:
             "status",
             "slug",
             "practical_benefit",
-            "implementation_benefit",
+            "implementation_details",
             "results",
         }
 
@@ -154,7 +154,7 @@ class ProjectsRepository:
             "status",
             "slug",
             "practical_benefit",
-            "implementation_benefit",
+            "implementation_details",
             "results",
         }
 
