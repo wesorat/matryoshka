@@ -1,11 +1,13 @@
 import requests
 import random
 import time
+from functools import lru_cache
 from faker import Faker
 from typing import List, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
+import subprocess
 import sys
 
 # Инициализация Faker для генерации данных на русском языке
@@ -39,6 +41,90 @@ DEMO_SEED_MAX_LIKES_PER_PROJECT = env_int(
 DEMO_SEED_EMAIL_DOMAIN = os.getenv("DEMO_SEED_EMAIL_DOMAIN", "example.com")
 DEMO_SEED_USER_PREFIX = os.getenv("DEMO_SEED_USER_PREFIX", "demo")
 DEMO_SEED_PASSWORD = os.getenv("DEMO_SEED_PASSWORD", "TestPassword123!")
+DEMO_SEED_FONT_PATH = os.getenv("DEMO_SEED_FONT_PATH")
+
+CYRILLIC_FONT_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+    "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
+    "C:/Windows/Fonts/arial.ttf",
+    "C:/Windows/Fonts/times.ttf",
+    "/System/Library/Fonts/Helvetica.ttc",
+]
+
+_FONT_WARNING_PRINTED = False
+
+
+@lru_cache(maxsize=8)
+def load_cyrillic_font(size: int):
+    """Load a TrueType/OpenType font that can render Cyrillic text."""
+    global _FONT_WARNING_PRINTED
+
+    candidates = []
+    if DEMO_SEED_FONT_PATH:
+        candidates.append(DEMO_SEED_FONT_PATH)
+    candidates.extend(CYRILLIC_FONT_PATHS)
+
+    fc_match_path = find_font_with_fc_match()
+    if fc_match_path:
+        candidates.append(fc_match_path)
+
+    seen = set()
+    for font_path in candidates:
+        if not font_path or font_path in seen:
+            continue
+        seen.add(font_path)
+
+        if not os.path.isfile(font_path):
+            if font_path == DEMO_SEED_FONT_PATH:
+                print(
+                    f"Предупреждение: DEMO_SEED_FONT_PATH={font_path!r} не найден. "
+                    "Пробуем системные шрифты."
+                )
+            continue
+
+        try:
+            return ImageFont.truetype(font_path, size)
+        except OSError as e:
+            if font_path == DEMO_SEED_FONT_PATH:
+                print(
+                    f"Предупреждение: Pillow не смог открыть DEMO_SEED_FONT_PATH={font_path!r}: {e}. "
+                    "Пробуем системные шрифты."
+                )
+
+    if not _FONT_WARNING_PRINTED:
+        print(
+            "Предупреждение: не найден TTF/TTC-шрифт с поддержкой кириллицы. "
+            "Preview-текст может отображаться квадратами. "
+            "Установите DejaVu, Noto или Liberation Sans либо задайте DEMO_SEED_FONT_PATH."
+        )
+        _FONT_WARNING_PRINTED = True
+
+    return ImageFont.load_default()
+
+
+@lru_cache(maxsize=1)
+def find_font_with_fc_match() -> str:
+    """Ask fontconfig for a suitable font when fc-match is available."""
+    try:
+        result = subprocess.run(
+            ["fc-match", "-f", "%{file}", "DejaVu Sans,Noto Sans,Liberation Sans"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError, OSError):
+        return ""
+
+    font_path = result.stdout.strip()
+    if result.returncode == 0 and font_path:
+        return font_path
+    return ""
 
 # Список категорий (только для справки, не используются для создания)
 CATEGORIES = [
@@ -195,31 +281,7 @@ class TestDataGenerator:
         # Пытаемся загрузить шрифт с поддержкой кириллицы
         font_size = min(width, height) // 12
 
-        try:
-            # Пробуем загрузить шрифт с поддержкой кириллицы
-            font_paths = [
-                "/usr/share/fonts/truetype/dejavu/DejaVu-Sans.ttf",
-                "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-                "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
-                "C:/Windows/Fonts/arial.ttf",
-                "C:/Windows/Fonts/times.ttf",
-                "/System/Library/Fonts/Helvetica.ttc",
-            ]
-            font = None
-            for font_path in font_paths:
-                try:
-                    font = ImageFont.truetype(font_path, font_size)
-                    break
-                except:
-                    continue
-
-            if font is None:
-                # Если шрифт не найден, используем стандартный
-                font = ImageFont.load_default()
-                font_size = min(width, height) // 15
-        except:
-            font = ImageFont.load_default()
-            font_size = min(width, height) // 15
+        font = load_cyrillic_font(font_size)
 
         # Разбиваем длинный заголовок на строки
         max_chars_per_line = width // (font_size // 2)
