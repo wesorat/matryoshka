@@ -9,8 +9,8 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
-import { fetchCategories, fetchProjects, fetchProjectsByCategory, 
-         fetchCurrentUser, logout, fetchMyProjects, createProject, 
+import { fetchCategories, fetchProjects, fetchProjectsByCategory,
+         fetchCurrentUser, logout, fetchMyProjects, createProject,
          updateProject, fetchProjectById } from '../api.js'
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
   const [user, setUser] = useState(null)
-  const [myProjects, setMyProjects] = useState([]) 
+  const [myProjects, setMyProjects] = useState([])
   const [myProjectsLoading, setMyProjectsLoading] = useState(true)
   const [currentProject, setCurrentProject] = useState(null)
   const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
@@ -72,8 +72,8 @@ function App() {
   // Обработка скролла шапки
   useEffect(() => {
     let ticking = false
-    const threshold = 40      
-    const hysteresis = 10     
+    const threshold = 40
+    const hysteresis = 10
 
     const handleScroll = () => {
       if (ticking) return
@@ -132,7 +132,7 @@ function App() {
   useEffect(() => {
     let mounted = true
     // Передаем true, как ты и настроил на бэкенде
-    fetchCategories(true) 
+    fetchCategories(true)
       .then((items) => { if (mounted) setHomeCategories(items) })
       .catch((error) => console.error('Не удалось загрузить категории для главной:', error))
       .finally(() => { if (mounted) setHomeCategoriesLoading(false) })
@@ -194,7 +194,7 @@ function App() {
   const handleEditProjectClick = (project) => {
     const projectId = project.id || project._id
     setSelectedProjectId(projectId)
-    setIsEditMode(true) 
+    setIsEditMode(true)
     setPage('project')
     window.scrollTo({ top: 0, behavior: 'smooth' })
     window.history.pushState({ page: 'project', projectId }, '')
@@ -380,11 +380,12 @@ function App() {
           <LogPage type={logType} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
         {page === 'project' && (
-          <ProjectPage 
-            project={currentProject} 
-            projectId={selectedProjectId} 
-            editMode={isEditMode}         
-            onBack={handleBackToHome} 
+          <ProjectPage
+            project={currentProject}
+            projectId={selectedProjectId}
+            editMode={isEditMode}
+            onBack={handleBackToHome}
+            user={user}
           />
         )}
       </main>

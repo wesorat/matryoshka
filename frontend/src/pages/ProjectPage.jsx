@@ -7,7 +7,7 @@ import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false }) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null}) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -279,9 +279,11 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {/* Дополнительная кнопка редактирования из режима просмотра */}
-          <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
-            Редактировать
-          </Button>
+          {user && project.owner && user.id === project.owner.id && (
+            <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
+              Редактировать
+            </Button>
+          )}
         </div>
       </div>
 
