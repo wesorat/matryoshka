@@ -5,10 +5,21 @@ import styles from './HomePage.module.scss'
 
 function HomePage({ categories = [], loading = false, projects = [], projectsLoading = false, onCategoryClick, onProjectClick }) {
   const buildCategoryProjects = (categoryId) => projects.filter((project) => project.category?.id === categoryId)
+  const topProjects = [...projects]
+  .sort((a, b) => b.like_count - a.like_count)
+  .slice(0, 5);
+
+  const heroSlides = topProjects.map((project) => ({
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    image: project.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/media/uploads/${project.image_url}` : 'https://placehold.co/1920x1080?text=No+Image',
+  }));
+
 
   return (
     <>
-      <HeroGallery />
+      {heroSlides.length > 0 && <HeroGallery slides={heroSlides} onSlideClick={onProjectClick} />}
 
       {loading ? (
         <section>
