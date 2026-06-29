@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import PublishPage from '../components/PublishForm/PublishForm.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
 import styles from './UserPage.module.scss';
 
