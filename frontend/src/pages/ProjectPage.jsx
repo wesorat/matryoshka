@@ -20,6 +20,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [editResults, setEditResults] = useState('');
   const [editMedia, setEditMedia] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editStatus, setEditStatus] = useState('draft');
 
   useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
@@ -46,6 +47,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   useEffect(() => {
     if (project) {
       setEditTitle(project.title || '');
+      setEditStatus(project.status || 'draft');
       setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setEditResults(project.results || '');
@@ -80,11 +82,12 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       const updatedData = {
         title: editTitle,
         practicalBenefit: editPracticalBenefit,
+        status: editStatus,
         implementationDetails: editImplementationDetails,
         results: editResults,
         media: editMedia, // Файл отправится, только если выбран новый
       };
-      
+
       const updatedProject = await updateProject(id, updatedData);
       setProject(updatedProject);
       setIsEditing(false);
@@ -118,6 +121,14 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
               onChange={(e) => setEditTitle(e.target.value)}
               required
             />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Статус</label>
+            <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+              <option value="draft">Черновик</option>
+              <option value="published">Опубликовано</option>
+            </select>
           </div>
 
           <div className={styles.formGroup}>
@@ -176,7 +187,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
     if (cleanUrl.startsWith('media/uploads/')) {
       return `${API_URL}/${cleanUrl}`;
     }
-    return `${API_URL}/media/uploads/${cleanUrl}`; 
+    return `${API_URL}/media/uploads/${cleanUrl}`;
   };
 
   const slides = [];
