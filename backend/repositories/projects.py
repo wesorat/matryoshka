@@ -1,4 +1,4 @@
-from sqlalchemy import delete, or_, select
+from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from core.dependencies import SessionDep
@@ -216,6 +216,24 @@ class ProjectsRepository:
                 Projects.title.ilike(f"%{title}%"),
                 Projects.status == ProjectStatus.PUBLISHED,
             )
+            .order_by(Projects.like_count.desc())
+        )
+        return res.scalars().all()
+
+    async def get_by_user(self, user_id: int) -> list[Projects]:
+        res = await self.session.execute(
+            select(Projects)
+            .outerjoin(Projects.member_roles)
+            .where(
+                or_(
+                    Projects.owner_id == user_id,
+                    and_(
+                        MemberRoles.user_id == user_id,
+                        Projects.status != ProjectStatus.DRAFT,
+                    )
+                )
+            )
+            .distinct()
             .order_by(Projects.like_count.desc())
         )
         return res.scalars().all()

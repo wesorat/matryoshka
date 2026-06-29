@@ -50,6 +50,9 @@ class ProjectService:
     async def get_projects_by_category(self, category_id: int) -> list[Projects]:
         return await self.repo.get_by_category(category_id)
 
+    async def get_projects_by_user(self, user_id: int) -> list[Projects]:
+        return await self.repo.get_by_user(user_id)
+
     async def get_projects_by_category_by_slug(self, slug: str) -> list[Projects]:
 
         return await self.repo.get_by_category_by_slug(slug)

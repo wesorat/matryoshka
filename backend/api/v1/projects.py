@@ -99,6 +99,10 @@ async def remove_project_member(
             status_code=403, detail=f"Project id {project_id} is not yours"
         )
 
+@project_router.get("/users/{user_id:int}", response_model=list[ProjectsRead])
+async def get_projects_by_user(user_id: int, service: ProjectServiceDep):
+    projects = await service.get_projects_by_user(user_id)
+    return projects
 
 
 @project_router.get("/category/{category_id:int}", response_model=list[ProjectsRead])
