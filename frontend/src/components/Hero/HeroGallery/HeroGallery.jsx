@@ -5,7 +5,7 @@ import styles from './HeroGallery.module.scss';
 
 const AUTOPLAY_INTERVAL = 5000;
 
-function HeroGallery({ slides = defaultSlides }) {
+function HeroGallery({ slides = defaultSlides, onSlideClick = () => {} }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef(null);
@@ -50,7 +50,7 @@ function HeroGallery({ slides = defaultSlides }) {
             />
           </article>
 
-          <article className={`${styles.slide} ${styles.active}`}>
+          <article className={`${styles.slide} ${styles.active}`} onClick={() => onSlideClick(activeSlide.id)} style={{ cursor: 'pointer' }}>
             <img
               src={activeSlide.image}
               alt={activeSlide.title}
