@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject } from '../api.js';
+import { fetchProjectById, updateProject, deleteProject } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -283,10 +283,20 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         <div style={{ display: 'flex', gap: '10px' }}>
           {/* Дополнительная кнопка редактирования из режима просмотра */}
           {user && project.owner && user.id === project.owner.id && (
-            <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
-              Редактировать
-            </Button>
+            <>
+              <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
+                Редактировать
+              </Button>
+              <Button type="button" variant="outline" onClick={async () => {
+                if (!confirm('Удалить проект?')) return;
+                await deleteProject(project.id);
+                onBack();
+              }}>
+                Удалить
+              </Button>
+            </>
           )}
+
         </div>
       </div>
 
