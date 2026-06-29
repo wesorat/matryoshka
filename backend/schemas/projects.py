@@ -16,7 +16,7 @@ class ProjectsCreate(BaseModel):
     title: str
     description: str = ""
     category_id: Optional[int] = None
-    status: ProjectStatus = ProjectStatus.DRAFT
+    status: ProjectStatus = ProjectStatus.PUBLISHED
 
     practical_benefit: Optional[str] = ""
     implementation_details: Optional[str] = ""
