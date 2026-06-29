@@ -57,6 +57,26 @@ find_postgres_bin() {
     try_find_postgres_bin || die "PostgreSQL server binaries not found. Install postgresql package."
 }
 
+try_find_psql_bin() {
+    if command -v psql >/dev/null 2>&1; then
+        return 0
+    fi
+
+    local candidate
+    for candidate in /usr/lib/postgresql/*/bin; do
+        if [ -x "${candidate}/psql" ]; then
+            export PATH="${candidate}:${PATH}"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_psql_bin() {
+    try_find_psql_bin || die "psql not found. Install postgresql-client package."
+}
+
 container_native_defaults() {
     : "${PROJECT_DIR:=${REPO_ROOT}}"
     : "${RUNTIME_DIR:=${HOME}/matryoshka-runtime}"

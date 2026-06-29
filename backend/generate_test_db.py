@@ -6,12 +6,39 @@ from typing import List, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
+import sys
 
 # Инициализация Faker для генерации данных на русском языке
 fake = Faker('ru_RU')
 
-# Базовый URL API
-BASE_URL = "http://localhost:8000"  # Измените на ваш URL
+def env_int(name: str, default: int, minimum: int = 0) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        print(f"{name} должен быть целым числом, получено: {value!r}")
+        sys.exit(2)
+    if parsed < minimum:
+        print(f"{name} должен быть >= {minimum}, получено: {parsed}")
+        sys.exit(2)
+    return parsed
+
+
+# Базовый URL API. На сервере используйте http://127.0.0.1:8000.
+BASE_URL = os.getenv("DEMO_SEED_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+DEMO_SEED_USERS = env_int("DEMO_SEED_USERS", 3, minimum=1)
+DEMO_SEED_PROJECTS_PER_USER = env_int("DEMO_SEED_PROJECTS_PER_USER", 4, minimum=0)
+DEMO_SEED_MAX_COMMENTS_PER_PROJECT = env_int(
+    "DEMO_SEED_MAX_COMMENTS_PER_PROJECT", 3, minimum=0
+)
+DEMO_SEED_MAX_LIKES_PER_PROJECT = env_int(
+    "DEMO_SEED_MAX_LIKES_PER_PROJECT", 2, minimum=0
+)
+DEMO_SEED_EMAIL_DOMAIN = os.getenv("DEMO_SEED_EMAIL_DOMAIN", "example.com")
+DEMO_SEED_USER_PREFIX = os.getenv("DEMO_SEED_USER_PREFIX", "demo")
+DEMO_SEED_PASSWORD = os.getenv("DEMO_SEED_PASSWORD", "TestPassword123!")
 
 # Список категорий (только для справки, не используются для создания)
 CATEGORIES = [
@@ -77,7 +104,11 @@ class TestDataGenerator:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Ошибка при регистрации пользователя {email}: {e}")
+            status_code = getattr(getattr(e, "response", None), "status_code", None)
+            if status_code == 400:
+                print(f"Пользователь {email} уже существует, пробуем войти")
+            else:
+                print(f"Ошибка при регистрации пользователя {email}: {e}")
             return None
 
     def login_user(self, email: str, password: str) -> bool:
@@ -97,35 +128,50 @@ class TestDataGenerator:
             print(f"Ошибка при входе пользователя {email}: {e}")
             return False
 
-    def create_user(self) -> Dict[str, Any]:
+    def get_current_user(self, cookies: Dict[str, Any]) -> Dict[str, Any]:
+        """Получение текущего пользователя после входа"""
+        url = f"{self.base_url}/users/me"
+        try:
+            response = requests.get(url, cookies=cookies)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка при получении текущего пользователя: {e}")
+            return None
+
+    def get_my_projects(self, user_info: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Получение проектов demo-пользователя для безопасного повторного запуска"""
+        url = f"{self.base_url}/projects/my"
+        try:
+            response = requests.get(url, cookies=user_info.get("cookies", {}))
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка при получении проектов пользователя {user_info['email']}: {e}")
+            return []
+
+    def create_user(self, user_number: int) -> Dict[str, Any]:
         """Создание пользователя с регистрацией и входом"""
         # Генерируем данные пользователя на русском
         first_name = fake.first_name_male() if random.choice([True, False]) else fake.first_name_female()
         last_name = fake.last_name_male() if random.choice([True, False]) else fake.last_name_female()
         name = f"{first_name} {last_name}"
 
-        # Транслитерируем для email
-        translit_map = {
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-            'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
-        }
-
-        email_name = ''.join(translit_map.get(c, c) for c in first_name.lower())
-        email_surname = ''.join(translit_map.get(c, c) for c in last_name.lower())
-        email = f"{email_name}.{email_surname}@example.com"
-        password = "TestPassword123!"
+        email = f"{DEMO_SEED_USER_PREFIX}{user_number}@{DEMO_SEED_EMAIL_DOMAIN}"
+        password = DEMO_SEED_PASSWORD
 
         # Регистрируем пользователя
         user = self.register_user(email, password, name)
-        if not user:
-            return None
+        user_created = user is not None
 
         # Входим в систему
         if not self.login_user(email, password):
             return None
+
+        if not user:
+            user = self.get_current_user(self.cookies)
+            if not user:
+                return None
 
         # Сохраняем данные для использования в проектах
         user_info = {
@@ -134,6 +180,7 @@ class TestDataGenerator:
             "password": password,
             "name": name,
             "cookies": self.cookies.copy(),
+            "created": user_created,
         }
         return user_info
 
@@ -508,13 +555,13 @@ class TestDataGenerator:
 
                 # Добавляем комментарии и лайки только для опубликованных проектов
                 if project["status"] == "published" and len(self.users) > 1:
-                    # Количество комментариев: от 0 до 5
-                    num_comments = random.randint(0, 5)
+                    # Количество комментариев: от 0 до заданного env-лимита
+                    num_comments = random.randint(0, DEMO_SEED_MAX_COMMENTS_PER_PROJECT)
                     if num_comments > 0:
                         self.generate_comments_for_project(project, num_comments)
 
-                    # Количество лайков: от 0 до 3
-                    num_likes = random.randint(0, 3)
+                    # Количество лайков: от 0 до заданного env-лимита
+                    num_likes = random.randint(0, DEMO_SEED_MAX_LIKES_PER_PROJECT)
                     if num_likes > 0:
                         self.generate_likes_for_project(project, num_likes)
                 else:
@@ -546,11 +593,12 @@ class TestDataGenerator:
         # Создаем пользователей
         print("\nСоздание пользователей...")
         for i in range(num_users):
-            user_info = self.create_user()
+            user_info = self.create_user(i + 1)
             if user_info:
                 self.users.append(user_info)
+                action = "Создан" if user_info.get("created") else "Использован"
                 print(
-                    f"  Создан пользователь: {user_info['name']} (email: {user_info['email']})"
+                    f"  {action} пользователь: {user_info['name']} (email: {user_info['email']})"
                 )
             else:
                 print(f"  Не удалось создать пользователя {i+1}")
@@ -561,6 +609,14 @@ class TestDataGenerator:
         # Создаем проекты для каждого пользователя
         print(f"\nСоздание проектов для {len(self.users)} пользователей...")
         for user_info in self.users:
+            existing_projects = self.get_my_projects(user_info)
+            if existing_projects:
+                print(
+                    f"У пользователя {user_info['email']} уже есть проекты: {len(existing_projects)}. "
+                    "Пропускаем, чтобы повторный запуск не создавал дубли."
+                )
+                self.projects.extend(existing_projects)
+                continue
             self.generate_project_data(user_info, projects_per_user)
 
         # Выводим статистику
@@ -646,7 +702,11 @@ class TestDataGenerator:
                 print(f"    ... и еще {len(user_projects) - 3} проектов")
 
 
-def main():
+def main() -> int:
+    if os.getenv("ALLOW_DEMO_SEED") != "1":
+        print("Demo seed отключен. Запустите вручную с ALLOW_DEMO_SEED=1.")
+        return 1
+
     # Создаем экземпляр генератора
     generator = TestDataGenerator(BASE_URL)
 
@@ -658,23 +718,30 @@ def main():
                 f"Предупреждение: API может быть недоступен (код статуса: {response.status_code})"
             )
             print("Убедитесь, что сервер запущен и BASE_URL указан правильно.")
-            return
+            return 1
     except requests.exceptions.RequestException:
         print(f"Ошибка: Не удалось подключиться к API по адресу {BASE_URL}")
         print("Убедитесь, что сервер запущен и BASE_URL указан правильно.")
-        return
+        return 1
 
     try:
         # Генерируем тестовые данные
-        generator.generate_all_data(num_users=5, projects_per_user=10)
+        generator.generate_all_data(
+            num_users=DEMO_SEED_USERS,
+            projects_per_user=DEMO_SEED_PROJECTS_PER_USER,
+        )
     except KeyboardInterrupt:
         print("\n\nГенерация данных прервана пользователем.")
+        return 130
     except Exception as e:
         print(f"\nНеожиданная ошибка: {e}")
         import traceback
 
         traceback.print_exc()
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

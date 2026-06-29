@@ -6,16 +6,30 @@
 ```bash
     docker exec -it matryoshka_backend alembic upgrade head
 ```
-# Для тестовой генерации в бд (пользователи, категории, проекты (превью), лайки, комменты)
+# Для заполнения словарей и ручной demo-генерации
+
+`seed_for_db.sql` содержит постоянные справочники: категории проектов и роли. Его нужно применить до запуска demo generator. Файл идемпотентен: категории обновляются по `project_category.slug`, роли обновляются по `roles.name`.
+
+На сервере в native container mode:
+
 ```bash
-    docker exec -it matryoshka_backend python generate_test_db.py
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/status.sh
+curl http://127.0.0.1:8000/api/health
+
+ENV_FILE="$PWD/.env.native" ./scripts/container-native/apply-seed-dictionaries.sh
+
+ALLOW_DEMO_SEED=1 \
+ENV_FILE="$PWD/.env.native" \
+DEMO_SEED_BASE_URL=http://127.0.0.1:8000 \
+./scripts/container-native/seed-demo-data.sh
+
+curl http://127.0.0.1:8000/projects/
+curl 'http://127.0.0.1:8000/category/?has_projects=true'
 ```
 
-# Для заполенения категорий и ролей в бд
-```bash
-    docker cp seed_for_db.sql matryoshka_db:/tmp/seed.sql
-    docker exec -it matryoshka_db psql -U postgres -d matr_db -f /tmp/seed.sql
-```
+Demo generator запускается только вручную и только с `ALLOW_DEMO_SEED=1`. По умолчанию он создает умеренный набор русских demo-данных: `DEMO_SEED_USERS=3`, `DEMO_SEED_PROJECTS_PER_USER=4`. При повторном запуске существующие demo-пользователи `demoN@example.com` переиспользуются, а создание проектов для пользователя пропускается, если у него уже есть проекты.
+
+Для локального Docker-режима порядок такой же: сначала применить `seed_for_db.sql`, затем запускать `backend/generate_test_db.py` с `ALLOW_DEMO_SEED=1` и `DEMO_SEED_BASE_URL` на backend API.
 
 # Production
 

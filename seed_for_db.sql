@@ -12,7 +12,10 @@ INSERT INTO project_category (name, slug) VALUES
 ('Социальные сети и знакомства', 'sotsialnye-seti-i-znakomstva'),
 ('Управление персоналом и компетенциями', 'upravlenie-personalom-i-kompetentsiyami'),
 ('Управление проектами и баг-трекинг', 'upravlenie-proektami-i-bag-treking'),
-('Фриланс и биржи', 'frilans-i-birzhi');
+('Фриланс и биржи', 'frilans-i-birzhi')
+ON CONFLICT (slug) DO UPDATE
+SET name = EXCLUDED.name;
+
 INSERT INTO roles (name, description) VALUES
 -- Управление проектом
 ('Руководитель проекта', 'Руководитель проекта, отвечает за планирование и координацию'),
@@ -98,4 +101,6 @@ INSERT INTO roles (name, description) VALUES
 -- Базовые роли для студенческих проектов
 ('Студент', 'Студент, участник проекта'),
 ('Ментор', 'Ментор, наставник проекта'),
-('Наблюдатель', 'Наблюдатель, следит за ходом проекта');
+('Наблюдатель', 'Наблюдатель, следит за ходом проекта')
+ON CONFLICT (name) DO UPDATE
+SET description = EXCLUDED.description;
