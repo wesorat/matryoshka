@@ -12,7 +12,7 @@ import { defaultProjects } from '../data/slides'
 import { fetchCategories, fetchProjects, fetchProjectsByCategory,
          fetchCurrentUser, logout, fetchMyProjects, createProject,
          updateProject, fetchProjectById } from '../api.js'
-
+import AuthorPage from '../pages/AuthorPage.jsx'
 function App() {
   const [isShrunk, setIsShrunk] = useState(false)
   const [page, setPage] = useState('home')
@@ -40,6 +40,8 @@ function App() {
   const [categoryLoading, setCategoryLoading] = useState(false)
 
   const [isEditMode, setIsEditMode] = useState(false)
+
+  const [selectedAuthorId, setSelectedAuthorId] = useState(null);
 
   // Проверка сессии при запуске
   useEffect(() => {
@@ -108,6 +110,9 @@ function App() {
         setPage('category')
       } else if (event.state?.page === 'user') {
         setPage('user')
+      } else if (event.state?.page === 'author') {
+        setSelectedAuthorId(event.state.authorId);
+        setPage('author');
       } else {
         setSelectedProjectId(null)
         setSelectedCategoryId(null)
@@ -243,6 +248,12 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
+  const handleAuthorClick = (authorId) => {
+    setSelectedAuthorId(authorId);
+    setPage('author');
+    window.history.pushState({ page: 'author', authorId }, '');
+  };
+
   const handlePublishSuccess = (savedProject) => {
   const projectId = savedProject.id || savedProject._id
 
@@ -376,6 +387,13 @@ function App() {
             onPublishSuccess={handlePublishSuccess}
           />
         )}
+        {page === 'author' && (
+          <AuthorPage
+            userId={selectedAuthorId}
+            onBack={handleBackToHome}
+            onProjectClick={handleProjectClick}
+          />
+        )}
         {page === 'log' && (
           <LogPage type={logType} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
@@ -386,6 +404,8 @@ function App() {
             editMode={isEditMode}
             onBack={handleBackToHome}
             user={user}
+            onAuthorClick={handleAuthorClick}
+            onUserPageClick={handleAccountClick}
           />
         )}
       </main>

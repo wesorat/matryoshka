@@ -7,7 +7,7 @@ import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null}) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {} }) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -21,6 +21,8 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [editMedia, setEditMedia] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [editStatus, setEditStatus] = useState('draft');
+
+
 
   useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
@@ -263,10 +265,11 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
                       type="button"
                       className={styles.author}
                       onClick={() => {
-                        const userPageState = { page: 'user', projectId: project.id || project._id };
-                        window.history.pushState(userPageState, '');
-                        const event = new PopStateEvent('popstate', { state: userPageState });
-                        window.dispatchEvent(event);
+                        if (user && project.owner && user.id === project.owner.id) {
+                          onUserPageClick();
+                        } else {
+                          onAuthorClick(project.owner.id);
+                        }
                       }}
                     >
                       {project.owner.name}
