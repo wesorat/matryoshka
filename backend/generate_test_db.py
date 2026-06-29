@@ -1,3 +1,24 @@
+import os
+import sys
+
+ALLOW_DEMO_SEED_ENV = "ALLOW_DEMO_SEED"
+
+
+def ensure_demo_seed_allowed():
+    if os.environ.get(ALLOW_DEMO_SEED_ENV) != "1":
+        print(
+            "Refusing to run demo seed. This script creates users, projects, "
+            "uploads, comments and likes through the configured API.\n"
+            f"Run intentionally with `{ALLOW_DEMO_SEED_ENV}=1 python generate_test_db.py` "
+            "against a local/demo backend only."
+        )
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    ensure_demo_seed_allowed()
+
+
 import requests
 import random
 import time
@@ -5,13 +26,18 @@ from faker import Faker
 from typing import List, Dict, Any
 from PIL import Image, ImageDraw, ImageFont
 import io
-import os
 
 # Инициализация Faker для генерации данных
 fake = Faker()
 
 # Базовый URL API
-BASE_URL = "http://localhost:8000"  # Измените на ваш URL
+BASE_URL = os.environ.get("DEMO_SEED_BASE_URL", "http://localhost:8000").rstrip("/")
+
+PROJECT_DETAIL_FIELDS = {
+    "practical_benefit",
+    "implementation_details",
+    "results",
+}
 
 # Список категорий
 CATEGORIES = [
@@ -32,6 +58,51 @@ CATEGORIES = [
 # Статусы проектов
 PROJECT_STATUSES = ["draft", "published"]
 
+PROJECT_DETAIL_TEMPLATES = [
+    {
+        "practical_benefit": (
+            "Проект помогает команде быстрее проверять гипотезы и показывает "
+            "понятный результат для пользователей."
+        ),
+        "implementation_details": (
+            "Реализация включает backend API, пользовательский интерфейс и "
+            "простую схему хранения данных для демонстрационного сценария."
+        ),
+        "results": (
+            "Получен рабочий прототип с заполненной витриной, карточками, "
+            "изображениями и публичным просмотром проекта."
+        ),
+    },
+    {
+        "practical_benefit": (
+            "Решение снижает ручную работу и делает процесс публикации проекта "
+            "более прозрачным для участников."
+        ),
+        "implementation_details": (
+            "В проекте используются формы публикации, категории, статусы и "
+            "загрузка preview-изображения через существующий API."
+        ),
+        "results": (
+            "Демо-данные позволяют проверить главную страницу, страницы категорий "
+            "и детальную карточку без ручного наполнения базы."
+        ),
+    },
+    {
+        "practical_benefit": (
+            "Проект показывает прикладную ценность идеи и помогает сравнивать "
+            "несколько работ в общей витрине."
+        ),
+        "implementation_details": (
+            "Основной поток строится вокруг владельца проекта, категории, "
+            "описания, статуса публикации и медиа-превью."
+        ),
+        "results": (
+            "После публикации проект появляется в списках, участвует в сортировке "
+            "по лайкам и открывается на детальной странице."
+        ),
+    },
+]
+
 
 class TestDataGenerator:
     def __init__(self, base_url: str):
@@ -43,10 +114,47 @@ class TestDataGenerator:
         self.comments = []
         self.likes = []
         self.cookies = {}
+        self.project_sequence = 0
+        self.project_detail_fields_supported = True
         # Создаем папку для временных изображений
         self.temp_dir = "temp_images"
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
+
+    def detect_project_detail_field_support(self) -> bool:
+        """Проверяет, принимает ли текущий API detail-поля проекта в form schema."""
+        try:
+            response = self.session.get(f"{self.base_url}/openapi.json", timeout=5)
+            response.raise_for_status()
+            openapi = response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Could not inspect OpenAPI schema, assuming detail fields are supported: {e}")
+            return True
+
+        schemas = openapi.get("components", {}).get("schemas", {})
+        for schema in schemas.values():
+            properties = set(schema.get("properties", {}).keys())
+            if PROJECT_DETAIL_FIELDS.issubset(properties):
+                print("Project detail fields are supported by current API schema")
+                return True
+
+        print(
+            "Project detail fields are not present in current API schema; "
+            "they will be skipped"
+        )
+        return False
+
+    def fetch_categories(self) -> List[Dict[str, Any]]:
+        """Получение существующих категорий из API."""
+        url = f"{self.base_url}/category/"
+        try:
+            response = self.session.get(url)
+            response.raise_for_status()
+            categories = response.json()
+            return categories if isinstance(categories, list) else []
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching existing categories: {e}")
+            return []
 
     def create_category(self, name: str) -> Dict[str, Any]:
         """Создание категории"""
@@ -57,6 +165,10 @@ class TestDataGenerator:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            response = getattr(e, "response", None)
+            if response is not None and response.status_code == 409:
+                print(f"  Category already exists: {name}")
+                return None
             print(f"Error creating category {name}: {e}")
             return None
 
@@ -68,7 +180,26 @@ class TestDataGenerator:
             if category:
                 self.categories.append(category)
                 print(f"  Created category: {category['name']}")
-        print(f"Created {len(self.categories)} categories")
+
+        existing_categories = self.fetch_categories()
+        known_names = set(CATEGORIES)
+        usable_categories = [
+            category
+            for category in existing_categories
+            if category.get("name") in known_names
+        ]
+
+        if not usable_categories:
+            usable_categories = existing_categories
+
+        by_id = {}
+        for category in self.categories + usable_categories:
+            category_id = category.get("id")
+            if category_id is not None:
+                by_id[category_id] = category
+
+        self.categories = list(by_id.values())
+        print(f"Categories available for projects: {len(self.categories)}")
 
     def register_user(self, email: str, password: str, name: str) -> Dict[str, Any]:
         """Регистрация пользователя"""
@@ -112,7 +243,14 @@ class TestDataGenerator:
         first_name = fake.first_name()
         last_name = fake.last_name()
         name = f"{first_name} {last_name}"
-        email = f"{first_name.lower()}.{last_name.lower()}@example.com"
+        email_suffix = f"{int(time.time())}.{random.randint(1000, 9999)}"
+        first_email_part = "".join(
+            ch for ch in first_name.lower() if ch.isascii() and ch.isalnum()
+        ) or "user"
+        last_email_part = "".join(
+            ch for ch in last_name.lower() if ch.isascii() and ch.isalnum()
+        ) or "demo"
+        email = f"demo.{first_email_part}.{last_email_part}.{email_suffix}@example.com"
         password = "TestPassword123!"
 
         # Регистрируем пользователя
@@ -212,6 +350,7 @@ class TestDataGenerator:
         description: str,
         category_id: int = None,
         status: str = "draft",
+        detail_fields: Dict[str, str] = None,
     ) -> Dict[str, Any]:
         """Создание проекта с изображением"""
         url = f"{self.base_url}/projects/"
@@ -227,6 +366,8 @@ class TestDataGenerator:
         }
         if category_id:
             data["category_id"] = str(category_id)
+        if self.project_detail_fields_supported and detail_fields:
+            data.update(detail_fields)
 
         # Файл для загрузки
         files = {}
@@ -249,6 +390,20 @@ class TestDataGenerator:
                 print(f"Status code: {e.response.status_code}")
                 print(f"Response: {e.response.text}")
             return None
+
+    def generate_project_details(
+        self, title: str, category: Dict[str, Any] = None
+    ) -> Dict[str, str]:
+        """Генерация текстов, которые реально отображаются на детальной странице."""
+        template = random.choice(PROJECT_DETAIL_TEMPLATES).copy()
+        category_name = category.get("name") if category else "общей категории"
+        template["practical_benefit"] = (
+            f"{template['practical_benefit']} Направление: {category_name}."
+        )
+        template["implementation_details"] = (
+            f"{template['implementation_details']} Демонстрационный проект: {title}."
+        )
+        return template
 
     def create_comment(
         self, user_info: Dict[str, Any], project_id: int, text: str
@@ -354,26 +509,38 @@ class TestDataGenerator:
         print(f"\nGenerating projects for user: {user_info['name']}")
 
         for i in range(num_projects):
+            sequence = self.project_sequence
+            self.project_sequence += 1
+
             # Генерация данных проекта
             title = fake.sentence(nb_words=3)[:-1] + f" - {i+1}"
             description = fake.text(max_nb_chars=200)
 
             # Выбираем случайную категорию
-            category = random.choice(self.categories) if self.categories else None
+            category = (
+                self.categories[sequence % len(self.categories)]
+                if self.categories
+                else None
+            )
             category_id = category["id"] if category else None
 
-            # Статус: 80% published, 20% draft
-            status = random.choices(["published", "draft"], weights=[0.8, 0.2], k=1)[0]
+            # Статус: 80% published, 20% draft. Последовательное распределение
+            # гарантирует опубликованные проекты в разных категориях.
+            status = "draft" if sequence % 5 == 4 else "published"
+            detail_fields = self.generate_project_details(title, category)
 
             # Создаем проект с изображением
             project = self.create_project_with_image(
-                user_info, title, description, category_id, status
+                user_info, title, description, category_id, status, detail_fields
             )
 
             if project:
                 self.projects.append(project)
+                category_data = project.get("category") or {}
                 print(
-                    f"  Created project: {project['title']} (status: {project['status']}, has image: {bool(project.get('image_url'))})"
+                    f"  Created project: {project['title']} "
+                    f"(status: {project['status']}, category_id: {category_data.get('id')}, "
+                    f"has image: {bool(project.get('image_url'))})"
                 )
                 if project.get("image_url"):
                     print(f"    Image URL: {project['image_url']}")
@@ -408,6 +575,9 @@ class TestDataGenerator:
 
         # Создаем категории
         self.create_all_categories()
+        if not self.categories:
+            print("No categories available. Projects would not populate the storefront.")
+            return
 
         # Создаем пользователей
         print("\nCreating users...")
@@ -498,8 +668,11 @@ class TestDataGenerator:
 
 
 def main():
+    ensure_demo_seed_allowed()
+
     # Создаем экземпляр генератора
     generator = TestDataGenerator(BASE_URL)
+    print(f"Demo seed target API: {BASE_URL}")
 
     # Проверяем доступность API
     try:
@@ -514,6 +687,10 @@ def main():
         print(f"Error: Could not connect to API at {BASE_URL}")
         print("Make sure the server is running and the BASE_URL is correct.")
         return
+
+    generator.project_detail_fields_supported = (
+        generator.detect_project_detail_field_support()
+    )
 
     try:
         # Генерируем тестовые данные
