@@ -15,3 +15,6 @@ class University(Base):
     projects: Mapped[list["Projects"]] = relationship(
         "Projects", back_populates="university", lazy="selectin"
     )
+    users: Mapped[list["User"]] = relationship(
+        "User", back_populates="university", lazy="selectin"
+    )

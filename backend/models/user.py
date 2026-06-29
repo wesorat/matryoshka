@@ -1,8 +1,10 @@
 from datetime import datetime
+from typing import Optional
 
 from fastapi_users.db import SQLAlchemyBaseUserTable
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from models.university import University
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -13,6 +15,9 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=100), nullable=False)
+    university_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("universities.id"), nullable=True
+    )
     image_url: Mapped[str] = mapped_column(String(length=500), default="")
     bio: Mapped[str] = mapped_column(String(length=500), default="")
     skills: Mapped[str] = mapped_column(String(length=500), default="")
@@ -35,7 +40,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         back_populates="owner",
     )
     comments: Mapped["Comments"] = relationship(
-        "Comments", back_populates="user", lazy="selectin"
+        "Comments", back_populates="user"
     )
 
     sent_invites: Mapped[list["ProjectInvite"]] = relationship(
@@ -49,6 +54,10 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         foreign_keys="ProjectInvite.invitee_id",
         back_populates="invitee",
         lazy="selectin"
+    )
+
+    university: Mapped[Optional["University"]] = relationship(
+        "University", back_populates="users", lazy="selectin"
     )
 
     @property
