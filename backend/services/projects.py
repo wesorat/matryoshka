@@ -94,6 +94,7 @@ class ProjectService:
                 updated_project.image_url = await media_service.create(file)
             else:
                 await media_service.update(updated_project.image_url, file)
+        await self.session.refresh(updated_project, attribute_names=["university"])
         await self.session.commit()
         return updated_project
 
@@ -111,6 +112,8 @@ class ProjectService:
                 updated_project.image_url = await media_service.create(file)
             else:
                 await media_service.update(updated_project.image_url, file)
+
+        await self.session.refresh(updated_project, attribute_names=["university"])
 
         await self.session.commit()
         return updated_project

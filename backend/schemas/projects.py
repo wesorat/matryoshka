@@ -7,6 +7,7 @@ from models.project import ProjectStatus
 from schemas.category import CategoryRead
 from schemas.comments import CommentsRead
 from schemas.media import MediaRead
+from schemas.university import UniversityRead
 from schemas.user import MemberRead, UserRead
 
 
@@ -17,6 +18,7 @@ class ProjectsCreate(BaseModel):
     description: str = ""
     category_id: Optional[int] = None
     status: ProjectStatus = ProjectStatus.PUBLISHED
+    university_id: Optional[int] = None
 
     practical_benefit: Optional[str] = ""
     implementation_details: Optional[str] = ""
@@ -28,6 +30,7 @@ class ProjectsUpdate(BaseModel):
     description: Optional[str] = None
     # image_url: Optional[str] = None
     category_id: Optional[int] = None
+    university_id: Optional[int] = None
     status: Optional[ProjectStatus] = None
     practical_benefit: Optional[str] = ""
     implementation_details: Optional[str] = ""
@@ -42,6 +45,7 @@ class ProjectsRead(BaseModel):
     description: str
     image_url: str = ""
     owner: UserRead
+    university: Optional[UniversityRead] = None
     category: Optional[CategoryRead] = None
     status: ProjectStatus
     like_count: int
@@ -61,6 +65,7 @@ class ProjectsReadOne(BaseModel):
     description: str
     image_url: str = ""
     owner: UserRead
+    university: Optional[UniversityRead] = None
     member_roles: list[MemberRead]
     category: Optional[CategoryRead] = None
     status: ProjectStatus

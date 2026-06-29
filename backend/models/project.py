@@ -8,6 +8,7 @@ from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.comments import Comments
 from models.media import Media
+from models.university import University
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -28,6 +29,9 @@ class Projects(Base):
     description: Mapped[str] = mapped_column(String, default="")
     image_url: Mapped[str] = mapped_column(String(length=500), default="")
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    university_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("universities.id"), nullable=True
+    )
     practical_benefit:  Mapped[str] = mapped_column(String(length=500), default="")
     implementation_details:  Mapped[str] = mapped_column(String(length=500), default="")
     results:  Mapped[str] = mapped_column(String(length=500), default="")
@@ -66,6 +70,10 @@ class Projects(Base):
     medias: Mapped[list["Media"]] = relationship("Media", back_populates="project")
 
     invites: Mapped[list["ProjectInvite"]] = relationship("ProjectInvite", back_populates="project", lazy="selectin")
+
+    university: Mapped[Optional["University"]] = relationship(
+        "University", back_populates="projects", lazy="selectin"
+    )
 
     @property
     def members(self):
