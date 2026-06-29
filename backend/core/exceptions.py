@@ -11,6 +11,11 @@ class UserNotFound(HTTPException):
         super().__init__(status_code=404, detail=f"User with id= {user_id} not found")
         self.user_id = user_id
 
+class TechnologyNotFound(HTTPException):
+    def __init__(self, technology_id: id):
+        super().__init__(status_code=404, detail=f"Technology with id= {technology_id} not found")
+        self.technology_id = technology_id
+
 class NotOwnProject(HTTPException):
     def __init__(self, user_id: int):
         super().__init__(

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
 
 from api.v1.dependencies import (
@@ -16,6 +16,7 @@ from core.exceptions import NotOwnProject, ProjectNotFound
 from models.project import ProjectStatus
 from models.user import User
 from schemas.projects import (
+    ProjectFilterParams,
     ProjectsCreate,
     ProjectsRead,
     ProjectsReadOne,
@@ -194,3 +195,13 @@ async def delete_project(
     except ProjectNotFound:
         raise HTTPException(status_code=404, detail=f"Project {project_slug} not found")
 
+
+
+@project_router.get("/filter/", response_model=list[ProjectsRead])
+async def project_filter(
+    service: ProjectServiceDep, university_id: Optional[int] = Query(None),
+    category_id: Optional[int] = Query(None),
+    technologies: Optional[list[int]] = Query(None),
+):
+    projects = await service.filter_projects(university_id, category_id, technologies)
+    return projects

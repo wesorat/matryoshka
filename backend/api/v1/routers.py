@@ -8,6 +8,7 @@ from api.v1.media import media_router
 from api.v1.invites import invites_router
 from api.v1.roles import roles_router
 from api.v1.university import university_router
+from api.v1.technology import technology_router
 from schemas.user import UserCreate, UserRead, UserUpdate
 from services.auth import auth_backend, fastapi_users
 
@@ -36,3 +37,4 @@ def include_routers(app):
     app.include_router(invites_router)
     app.include_router(roles_router)
     app.include_router(university_router)
+    app.include_router(technology_router)

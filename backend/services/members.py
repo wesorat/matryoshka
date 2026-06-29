@@ -1,7 +1,5 @@
 import email
 
-from fastapi_users import password
-from fastapi_users.db import SQLAlchemyUserDatabase
 
 from core.dependencies import SessionDep
 from core.exceptions import NotCorrectEmail, NotOwnProject, ProjectNotFound, UserNotFound
@@ -61,5 +59,4 @@ class MembersService:
         if not name or len(name.strip()) == 1:
             return []
         return await self.repo.search_by_name(name.strip())
-
 

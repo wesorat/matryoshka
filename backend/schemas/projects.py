@@ -7,6 +7,7 @@ from models.project import ProjectStatus
 from schemas.category import CategoryRead
 from schemas.comments import CommentsRead
 from schemas.media import MediaRead
+from schemas.project_technology import ProjectTechnologyRead
 from schemas.university import UniversityRead
 from schemas.user import MemberRead, UserRead
 
@@ -37,6 +38,29 @@ class ProjectsUpdate(BaseModel):
     results: Optional[str] = ""
 
 
+class ProjectsReadOne(BaseModel):
+    id: int
+    title: str
+    slug: str
+    description: str
+    image_url: str = ""
+    owner: UserRead
+    university: Optional[UniversityRead] = None
+    member_roles: list[MemberRead]
+    category: Optional[CategoryRead] = None
+    status: ProjectStatus
+    medias: list[MediaRead]
+    project_technologies: list[ProjectTechnologyRead]
+    like_count: int
+    practical_benefit: Optional[str] = ""
+    implementation_details: Optional[str] = ""
+    results: Optional[str] = ""
+
+    comments: list[CommentsRead]
+    created_at: datetime
+    updated_at: datetime
+
+
 
 class ProjectsRead(BaseModel):
     id: int
@@ -58,23 +82,8 @@ class ProjectUpdateStatus(BaseModel):
     status: ProjectStatus
 
 
-class ProjectsReadOne(BaseModel):
-    id: int
-    title: str
-    slug: str
-    description: str
-    image_url: str = ""
-    owner: UserRead
-    university: Optional[UniversityRead] = None
-    member_roles: list[MemberRead]
-    category: Optional[CategoryRead] = None
-    status: ProjectStatus
-    medias: list[MediaRead]
-    like_count: int
-    practical_benefit: Optional[str] = ""
-    implementation_details: Optional[str] = ""
-    results: Optional[str] = ""
-
-    comments: list[CommentsRead]
-    created_at: datetime
-    updated_at: datetime
+class ProjectFilterParams(BaseModel):
+    university_id: Optional[int] = None
+    category_id: Optional[int] = None
+    technologies: list[int]
+    limit: int = 100

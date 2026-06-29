@@ -1,4 +1,6 @@
-from sqlalchemy import and_, delete, or_, select
+from typing import Optional
+
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from core.dependencies import SessionDep
@@ -10,6 +12,7 @@ from models.likes import Likes
 from models.project import MemberRoles, Projects, ProjectStatus
 from slugify import slugify
 
+from models.technology import ProjectTechnology
 from schemas.projects import ProjectsReadOne
 
 
@@ -263,3 +266,44 @@ class ProjectsRepository:
             slug = f"{base_slug}-{counter}"
 
         return slug
+
+
+
+    async def filter_projects(
+        self,
+        university_id: Optional[int] = None,
+        category_id: Optional[int] = None,
+        technologies: Optional[list[int]] = None,
+    ) -> list[Projects]:
+        query = select(Projects).where(Projects.status == ProjectStatus.PUBLISHED)
+
+        if university_id is not None:
+            query = query.where(Projects.university_id == university_id)
+
+        if category_id is not None:
+            query = query.where(Projects.category_id == category_id)
+
+        if technologies:
+            tech_subquery = (
+                select(ProjectTechnology.project_id)
+                .where(ProjectTechnology.technology_id.in_(technologies))
+                .group_by(ProjectTechnology.project_id)
+                .having(func.count(ProjectTechnology.technology_id) == len(technologies))
+            )
+            query = query.where(Projects.id.in_(tech_subquery))
+
+        query = query.options(
+            selectinload(Projects.owner),
+            selectinload(Projects.university),
+            selectinload(Projects.category),
+            selectinload(Projects.project_technologies).selectinload(ProjectTechnology.technology),
+            selectinload(Projects.medias),
+            selectinload(Projects.comments),
+        )
+
+        query = query.order_by(Projects.like_count.desc())
+
+        result = await self.session.execute(query)
+        projects = result.scalars().all()
+
+        return projects

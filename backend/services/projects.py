@@ -6,7 +6,7 @@ from slugify import slugify
 from core.dependencies import SessionDep
 from models.project import Projects
 from repositories.projects import ProjectsRepository
-from schemas.projects import ProjectsCreate, ProjectsReadOne, ProjectsUpdate
+from schemas.projects import ProjectFilterParams, ProjectsCreate, ProjectsReadOne, ProjectsUpdate
 from services.media import MediaStorageService
 from services.storage import storage
 
@@ -117,3 +117,6 @@ class ProjectService:
 
         await self.session.commit()
         return updated_project
+
+    async def filter_projects(self, university_id: int = None, category_id: int = None,technologies: list[int] = None) -> list[Projects]:
+        return await self.repo.filter_projects(university_id, category_id, technologies)
