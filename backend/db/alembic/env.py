@@ -13,6 +13,7 @@ from models.comments import Comments
 from models.media import Media
 from models.invites import ProjectInvite, InviteStatus
 from models.university import University
+from models.technology import Technology, ProjectTechnology
 
 
 # this is the Alembic Config object, which provides

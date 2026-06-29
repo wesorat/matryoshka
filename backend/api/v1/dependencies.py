@@ -17,6 +17,7 @@ from services.members import MembersService
 from services.projects import ProjectService
 from services.auth import current_active_user, current_active_user_optional
 from services.roles import RolesService
+from services.technology import TechnologyService
 from services.university import UniversityService
 from services.user import UserService
 
@@ -56,6 +57,9 @@ async def get_roles_service(session: SessionDep) -> RolesService:
 async def get_university_service(session: SessionDep) -> UniversityService:
     return UniversityService(session)
 
+async def get_technology_service(session: SessionDep) -> TechnologyService:
+    return TechnologyService(session)
+
 
 CategoryServiceDep = Annotated[CategoryService, Depends(get_category_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
@@ -69,6 +73,7 @@ MembersServiceDep = Annotated[MembersService, Depends(get_member_service)]
 InviteServiceDep = Annotated[InviteService, Depends(get_invite_service)]
 RolesServiceDep = Annotated[RolesService, Depends(get_roles_service)]
 UniversityServiceDep = Annotated[UniversityService, Depends(get_university_service)]
+TechnologyServiceDep = Annotated[TechnologyService, Depends(get_technology_service)]
 
 CurrentUserDep = Annotated[User, Depends(current_active_user)]
 CurrentUserOptionalDep = Annotated[User, Depends(current_active_user_optional)]

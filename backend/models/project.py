@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from models.comments import Comments
 from models.media import Media
 from models.university import University
+from models.technology import Technology
 
 from db.base import Base
 from utils.get_datetime_utc_now import get_datetime_utc_now
@@ -75,6 +76,15 @@ class Projects(Base):
         "University", back_populates="projects", lazy="selectin"
     )
 
+    project_technologies: Mapped[list["ProjectTechnology"]] = relationship(
+        "ProjectTechnology",
+        back_populates="project",
+        lazy="selectin",
+        cascade="all"
+    )
+
+
+
     @property
     def members(self):
         return [i.user for i in self.member_roles]
@@ -103,3 +113,6 @@ class Role(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=True)
+
+
+
