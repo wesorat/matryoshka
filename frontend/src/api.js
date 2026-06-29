@@ -177,3 +177,34 @@ export async function deleteProject(projectId) {
     })
   )
 }
+
+
+export async function createLike(projectId) {
+  return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
+    method: 'POST',
+    credentials: 'include',
+  }))
+}
+
+export async function deleteLike(projectId) {
+  return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  }))
+}
+
+export async function createComment(projectId, text) {
+  return handleResponse(await fetch(`${API_URL}/comments/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project_id: projectId, text }),
+  }))
+}
+
+export async function deleteComment(commentId) {
+  return handleResponse(await fetch(`${API_URL}/comments/?comment_id=${commentId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  }))
+}
