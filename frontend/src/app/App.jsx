@@ -406,6 +406,7 @@ function App() {
             user={user}
             onAuthorClick={handleAuthorClick}
             onUserPageClick={handleAccountClick}
+            categories={categories}
           />
         )}
       </main>

@@ -2,9 +2,11 @@ from sqlalchemy import and_, delete, or_, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from core.dependencies import SessionDep
-from core.exceptions import ProjectNotFound
+from core.exceptions import NotOwnProject, ProjectNotFound
+from db import session
 from models.category import Category
 from models.comments import Comments
+from models.likes import Likes
 from models.project import MemberRoles, Projects, ProjectStatus
 from slugify import slugify
 
@@ -164,17 +166,21 @@ class ProjectsRepository:
 
         return project
 
-    async def delete(self, user_id: int, id: int) -> int:
-        res = await self.session.execute(
-            delete(Projects)
-            .where(
-                Projects.id == id,
-                Projects.owner_id == user_id,
-            )
-            .returning(Projects.image_url)
+    async def delete(self, owner_id: int, project_id: int):
+        project = await self.session.get(Projects, project_id)
+        if not project:
+            raise ProjectNotFound(project_id)
+        if project.owner_id != owner_id:
+            raise NotOwnProject(owner_id)
+
+        await self.session.execute(
+            delete(Likes).where(Likes.project_id == project_id)
         )
 
-        return res.scalar_one_or_none()
+        await self.session.delete(project)
+        await self.session.commit()
+
+        return project.image_url
 
     async def delete_by_slug(self, user_id: int, slug: str) -> int:
         res = await self.session.execute(

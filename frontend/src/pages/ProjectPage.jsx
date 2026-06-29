@@ -7,7 +7,7 @@ import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {} }) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {}, categories = [] }) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -21,6 +21,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [editMedia, setEditMedia] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [editStatus, setEditStatus] = useState('draft');
+  const [editCategoryId, setEditCategoryId] = useState('');
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -95,6 +96,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
     if (project) {
       setEditTitle(project.title || '');
       setEditStatus(project.status || 'draft');
+      setEditCategoryId(project.category?.id || '');
       setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setEditResults(project.results || '');
@@ -135,6 +137,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       const id = projectId || project?.id || project?._id;
       const updatedData = {
         title: editTitle,
+        categoryId: editCategoryId,
         practicalBenefit: editPracticalBenefit,
         status: editStatus,
         implementationDetails: editImplementationDetails,
@@ -184,6 +187,16 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
               <option value="published">Опубликовано</option>
             </select>
           </div>
+
+            <div className={styles.formGroup}>
+              <label>Категория</label>
+              <select value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)}>
+                <option value="">Выберите категорию</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
 
           <div className={styles.formGroup}>
             <label>Главное изображение (выберите файл для замены)</label>
