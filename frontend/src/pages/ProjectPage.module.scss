@@ -228,7 +228,7 @@
     option:disabled {
       color: vars.$text-muted;
     }
-    
+
     option {
       background-color: vars.$bg-main;
       color: vars.$text-main;
@@ -332,4 +332,114 @@
     line-height: 1.6;
     white-space: pre-wrap;
   }
+}
+
+.likeRow {
+  margin: 24px 0;
+}
+
+.likeBtn {
+  background: transparent;
+  border: 2px solid vars.$border-color;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: vars.$text-main;
+
+  &:hover:not(:disabled) {
+    border-color: vars.$basic-accent;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.liked {
+  color: #e53935;
+  border-color: #e53935;
+}
+
+.comments {
+  margin-top: 32px;
+
+  h3 {
+    @include mixins.h2-heading;
+    margin-bottom: 16px;
+  }
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+
+  textarea {
+    padding: 10px;
+    border: 1px solid vars.$border-color;
+    border-radius: 8px;
+    font-family: vars.$font-secondary;
+    font-size: 14px;
+    resize: vertical;
+  }
+}
+
+.authNote {
+  color: vars.$text-muted;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.commentList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comment {
+  background: vars.$basic-light;
+  border: 1px solid vars.$border-color;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.commentAuthor {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.commentDate {
+  font-size: 12px;
+  color: vars.$text-muted;
+  margin-left: auto;
+}
+
+.deleteComment {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: vars.$text-muted;
+  font-size: 12px;
+  padding: 2px 6px;
+
+  &:hover {
+    color: #e53935;
+  }
+}
+
+.commentText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
 }

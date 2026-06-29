@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject, deleteProject } from '../api.js';
+import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -22,6 +22,51 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [isSaving, setIsSaving] = useState(false);
   const [editStatus, setEditStatus] = useState('draft');
 
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+
+  const handleLike = async () => {
+    if (!user) return;
+    try {
+      if (liked) {
+        await deleteLike(project.id);
+        setLikeCount(prev => prev - 1);
+      } else {
+        await createLike(project.id);
+        setLikeCount(prev => prev + 1);
+      }
+      setLiked(prev => !prev);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setCommentLoading(true);
+    try {
+      const newComment = await createComment(project.id, commentText);
+      setComments(prev => [...prev, newComment]);
+      setCommentText('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
 
   useEffect(() => {
@@ -53,6 +98,13 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setEditResults(project.results || '');
+      setLikeCount(project.like_count || 0);
+      setComments(project.comments || []);
+      // проверяем лайкнул ли текущий пользователь
+      if (user && project.comments) {
+        // лайки не приходят в ответе напрямую, оставим false по умолчанию
+        setLiked(false);
+      }
     }
   }, [project]);
 
@@ -329,6 +381,52 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
           </div>
         </>
       )}
+      <div className={styles.likeRow}>
+          <button
+            className={`${styles.likeBtn} ${liked ? styles.liked : ''}`}
+            onClick={handleLike}
+            disabled={!user}
+            title={!user ? 'Войдите чтобы поставить лайк' : ''}
+          >
+            ♥ {likeCount}
+          </button>
+        </div>
+
+        <div className={styles.comments}>
+          <h3>Комментарии</h3>
+          {user ? (
+            <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Напишите комментарий..."
+                rows={3}
+              />
+              <Button type="submit" disabled={commentLoading}>
+                {commentLoading ? 'Отправка...' : 'Отправить'}
+              </Button>
+            </form>
+          ) : (
+            <p className={styles.authNote}>Войдите чтобы оставить комментарий</p>
+          )}
+
+          <div className={styles.commentList}>
+            {comments.map((comment) => (
+              <div key={comment.id} className={styles.comment}>
+                <div className={styles.commentHeader}>
+                  <span className={styles.commentAuthor}>{comment.user?.name}</span>
+                  <span className={styles.commentDate}>
+                    {new Date(comment.created_at).toLocaleDateString()}
+                  </span>
+                  {user && (comment.user?.id === user.id || project.owner?.id === user.id) && (
+                    <button className={styles.deleteComment} onClick={() => handleDeleteComment(comment.id)}>✕</button>
+                  )}
+                </div>
+                <p className={styles.commentText}>{comment.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
     </section>
   );
 }
