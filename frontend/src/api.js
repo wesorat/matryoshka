@@ -164,3 +164,16 @@ export async function updateProject(projectId, projectData) {
     })
   )
 }
+
+export async function fetchProjectsByUser(userId) {
+  return handleResponse(await fetch(`${API_URL}/projects/users/${userId}`, fetchOptions()))
+}
+
+export async function deleteProject(projectId) {
+  return handleResponse(
+    await fetch(`${API_URL}/projects/${projectId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+  )
+}

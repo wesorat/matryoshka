@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject } from '../api.js';
+import { fetchProjectById, updateProject, deleteProject } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false }) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {} }) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -20,6 +20,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [editResults, setEditResults] = useState('');
   const [editMedia, setEditMedia] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editStatus, setEditStatus] = useState('draft');
+
+
 
   useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
@@ -46,6 +49,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   useEffect(() => {
     if (project) {
       setEditTitle(project.title || '');
+      setEditStatus(project.status || 'draft');
       setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setEditResults(project.results || '');
@@ -80,11 +84,12 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       const updatedData = {
         title: editTitle,
         practicalBenefit: editPracticalBenefit,
+        status: editStatus,
         implementationDetails: editImplementationDetails,
         results: editResults,
         media: editMedia, // Файл отправится, только если выбран новый
       };
-      
+
       const updatedProject = await updateProject(id, updatedData);
       setProject(updatedProject);
       setIsEditing(false);
@@ -118,6 +123,14 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
               onChange={(e) => setEditTitle(e.target.value)}
               required
             />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Статус</label>
+            <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+              <option value="draft">Черновик</option>
+              <option value="published">Опубликовано</option>
+            </select>
           </div>
 
           <div className={styles.formGroup}>
@@ -176,7 +189,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
     if (cleanUrl.startsWith('media/uploads/')) {
       return `${API_URL}/${cleanUrl}`;
     }
-    return `${API_URL}/media/uploads/${cleanUrl}`; 
+    return `${API_URL}/media/uploads/${cleanUrl}`;
   };
 
   const slides = [];
@@ -252,10 +265,11 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
                       type="button"
                       className={styles.author}
                       onClick={() => {
-                        const userPageState = { page: 'user', projectId: project.id || project._id };
-                        window.history.pushState(userPageState, '');
-                        const event = new PopStateEvent('popstate', { state: userPageState });
-                        window.dispatchEvent(event);
+                        if (user && project.owner && user.id === project.owner.id) {
+                          onUserPageClick();
+                        } else {
+                          onAuthorClick(project.owner.id);
+                        }
                       }}
                     >
                       {project.owner.name}
@@ -268,9 +282,21 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {/* Дополнительная кнопка редактирования из режима просмотра */}
-          <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
-            Редактировать
-          </Button>
+          {user && project.owner && user.id === project.owner.id && (
+            <>
+              <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
+                Редактировать
+              </Button>
+              <Button type="button" variant="outline" onClick={async () => {
+                if (!confirm('Удалить проект?')) return;
+                await deleteProject(project.id);
+                onBack();
+              }}>
+                Удалить
+              </Button>
+            </>
+          )}
+
         </div>
       </div>
 

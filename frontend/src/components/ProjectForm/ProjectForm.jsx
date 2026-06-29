@@ -5,7 +5,7 @@ import styles from './ProjectForm.module.scss';
 
 function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onBack }) {
   const isEditMode = !!project;
-  
+
   // Защита от нестыковки пропсов: сработает и onCancel, и onBack из UserPage
   const closeForm = onCancel || onBack;
 
@@ -17,7 +17,8 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
   const [practicalBenefit, setPracticalBenefit] = useState('');
   const [implementationDetails, setImplementationDetails] = useState('');
   const [results, setResults] = useState('');
-  
+  const [status, setStatus] = useState('draft');
+
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,6 +28,7 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       setTitle(project.title || '');
       setDescription(project.description || ''); // <-- ИСПРАВЛЕНО: теперь описание не потеряется при редактировании
       setCategoryId(project.category_id || project.categoryId || '');
+      setStatus(project.status || 'draft');
       setPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setResults(project.results || project.results || '');
@@ -35,6 +37,7 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       setTitle('');
       setDescription('');
       setCategoryId('');
+      setStatus('draft');
       setMedia(null);
       setPracticalBenefit('');
       setImplementationDetails('');
@@ -51,12 +54,13 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
     // Формируем объект данных для отправки в api.js
     const projectData = {
       title,
-      description, 
+      description,
       categoryId,
+      status,
       practicalBenefit,
       implementationDetails,
       results,
-      media, 
+      media,
     };
 
     try {
@@ -116,8 +120,8 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
           {categories.length > 0 && (
             <div className={styles.formGroup}>
               <label>Категория</label>
-              <select 
-                value={categoryId} 
+              <select
+                value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
                 <option value="">Выберите категорию</option>
@@ -129,6 +133,13 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
               </select>
             </div>
           )}
+          <div className={styles.formGroup}>
+            <label>Статус</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="draft">Черновик</option>
+              <option value="published">Опубликовано</option>
+            </select>
+          </div>
 
           <div className={styles.formGroup}>
             <label>
