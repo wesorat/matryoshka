@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from slugify import slugify
 
 from core.dependencies import SessionDep
+from models.media import MediaView
 from models.project import Projects
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectFilterParams, ProjectsCreate, ProjectsReadOne, ProjectsUpdate
@@ -27,7 +28,7 @@ class ProjectService:
 
         if file:
             media_service = MediaStorageService()
-            created_project.image_url = await media_service.create(file)
+            created_project.image_url = await media_service.create(file, MediaView.IMAGE)
 
         await self.repo.create(created_project)
         await self.session.commit()
@@ -91,7 +92,7 @@ class ProjectService:
         if file:
             media_service = MediaStorageService()
             if updated_project.image_url == "":
-                updated_project.image_url = await media_service.create(file)
+                updated_project.image_url = await media_service.create(file, MediaView.IMAGE)
             else:
                 await media_service.update(updated_project.image_url, file)
         await self.session.refresh(updated_project, attribute_names=["university"])
@@ -109,7 +110,7 @@ class ProjectService:
         if file:
             media_service = MediaStorageService()
             if updated_project.image_url == "":
-                updated_project.image_url = await media_service.create(file)
+                updated_project.image_url = await media_service.create(file, MediaView.IMAGE)
             else:
                 await media_service.update(updated_project.image_url, file)
 
