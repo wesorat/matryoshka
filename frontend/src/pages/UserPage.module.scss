@@ -70,12 +70,13 @@
 }
 
 .bioBlock {
-  width: 100%; // Убрали max-width: 500px, теперь блок растягивается вровень с вузом
+  @include mixins.text-ordinary;
+  width: 100%;
   margin-top: 4px; 
 }
 
 .bioText {
-  @include mixins.text-ordinary;
+  // @include mixins.text-ordinary;
   font-size: 14px;
   color: vars.$text-muted; 
   margin: 0;

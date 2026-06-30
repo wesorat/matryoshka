@@ -86,7 +86,7 @@ function UserPage({
                   onKeyDown={handleBioKeyDown}
                   onBlur={handleSaveBio} 
                   autoFocus
-                  className={styles.inputGroup} // Переиспользовали базовый стиль инпута
+                  className={styles.bioInput} // <-- ИСПРАВЛЕНО: применили правильный класс из SCSS
                   maxLength={300} 
                   rows={3} 
                 />
