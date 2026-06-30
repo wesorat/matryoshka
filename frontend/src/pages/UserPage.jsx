@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
+import LogPage from './LogPage.jsx'; // Импортируем LogPage для переиспользования формы
 import { updateCurrentUser } from '../api.js'; 
 import styles from './UserPage.module.scss';
 
@@ -18,6 +19,7 @@ function UserPage({
 }) {
   const { name = 'Имя Пользователя', avatar } = user;
   const [isPublishOpen, setIsPublishOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false); // Состояние для открытия модалки редактирования
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [bio, setBio] = useState(user.bio || '');
@@ -50,9 +52,8 @@ function UserPage({
   };
 
   const handleBioKeyDown = (e) => {
-    // Enter отправляет форму, а Shift + Enter делает обычный перенос строки
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Отменяем стандартный перенос строки textarea при сохранении
+      e.preventDefault(); 
       handleSaveBio();
     }
   };
@@ -85,9 +86,9 @@ function UserPage({
                   onKeyDown={handleBioKeyDown}
                   onBlur={handleSaveBio} 
                   autoFocus
-                  className={styles.bioInput}
-                  maxLength={300} // Увеличили лимит символов для многострочного текста
-                  rows={3} // Начальная высота в строках
+                  className={styles.inputGroup} // Переиспользовали базовый стиль инпута
+                  maxLength={300} 
+                  rows={3} 
                 />
               ) : (
                 <p 
@@ -105,7 +106,10 @@ function UserPage({
             <Button type="button" variant="outline" onClick={handleCreateClick}>
               Создать проект
             </Button>
-            <Button type="button" variant="outline">Статистика</Button>
+            {/* ЗАМЕНЕНО: вместо Статистики теперь Редактировать профиль */}
+            <Button type="button" variant="outline" onClick={() => setIsEditProfileOpen(true)}>
+              Редактировать профиль
+            </Button>
             <Button type="button" variant="outline" onClick={onLogout}>Выйти</Button>
           </div>
         </header>
@@ -126,6 +130,19 @@ function UserPage({
           )}
         </main>
       </div>
+
+      {/* Модальное окно редактирования профиля на базе формы регистрации */}
+      {isEditProfileOpen && (
+        <LogPage 
+          type="edit" 
+          user={user} 
+          onBack={() => setIsEditProfileOpen(false)} 
+          onSuccess={(freshUserData) => {
+            onUserUpdate(freshUserData);
+            setIsEditProfileOpen(false); 
+          }} 
+        />
+      )}
 
       {isPublishOpen && (
         <ProjectForm

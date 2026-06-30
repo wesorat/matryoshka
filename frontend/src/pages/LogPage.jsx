@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './LogPage.module.scss';
-import { login, register, fetchCurrentUser, fetchUniversities } from '../api.js';
+import { login, register, fetchCurrentUser, fetchUniversities, updateCurrentUser } from '../api.js';
 
-export default function LogPage({ type = 'login', onBack = () => {}, onSuccess = () => {} }) {
+export default function LogPage({ type = 'login', onBack = () => {}, onSuccess = () => {}, user = {} }) {
    const [isOpen, setIsOpen] = useState(true);
    const [showPassword, setShowPassword] = useState(false);
 
@@ -27,7 +27,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       onBack();
    };
 
-   // Эффект закрытия выпадающего списка при клике в любое другое место экрана
+   // Эффект закрытия выпадающего списка при клике вне его области
    useEffect(() => {
       const handleClickOutside = (e) => {
          if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -38,18 +38,33 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       return () => document.removeEventListener('mousedown', handleClickOutside);
    }, []);
 
+   // Заполнение полей формы при монтировании/изменении режима
    useEffect(() => {
       setIsOpen(true);
       setError('');
       setAcceptedPolicy(false);
-      // Сброс состояний формы и поиска
-      setFormData({ name: '', email: '', password: '', confirmPassword: '', universityId: '' });
-      setUniversitySearch('');
       setIsDropdownOpen(false);
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
 
-      if (type === 'signup') {
+      if (type === 'edit' && user) {
+         // Заполняем форму текущими данными пользователя, включая email
+         setFormData({ 
+            name: user.name || '', 
+            email: user.email || '', 
+            password: '', 
+            confirmPassword: '', 
+            universityId: user.university?.id || '' 
+         });
+         setUniversitySearch(user.university?.name || user.university?.title || '');
+      } else {
+         // Сброс состояний для login / signup
+         setFormData({ name: '', email: '', password: '', confirmPassword: '', universityId: '' });
+         setUniversitySearch('');
+      }
+
+      // Загружаем университеты для регистрации и редактирования
+      if (type === 'signup' || type === 'edit') {
          fetchUniversities()
             .then(data => setUniversities(data))
             .catch(err => {
@@ -61,7 +76,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       return () => {
          document.body.style.overflow = "";
       };
-   }, [type]);
+   }, [type, user?.id]); // Защита от бесконечного рендеринга по примитиву
 
    useEffect(() => {
       const handleKeyDown = (e) => {
@@ -96,15 +111,17 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    const handleSubmit = async (e) => {
       e.preventDefault();
       setError('');
+
       if (type === 'signup' && !acceptedPolicy) {
-         setError('необходимо согласиться с политикой обработки персональных данных');
+         setError('Необходимо согласиться с политикой обработки персональных данных');
          return;
       }
-      // Валидация выбора университета из выпадающего списка
-      if (type === 'signup' && !formData.universityId) {
+      
+      if ((type === 'signup' || type === 'edit') && !formData.universityId) {
          setError('Пожалуйста, выберите учебное заведение из предложенного списка');
          return;
       }
+
       setLoading(true);
 
       try {
@@ -112,28 +129,53 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
             if (formData.password !== formData.confirmPassword) {
                throw new Error("Пароли не совпадают");
             }
-            // 1. Регистрируем с universityId
             await register(formData.email, formData.password, formData.name, formData.universityId);
-            // 2. Сразу авторизуем после успешной регистрации
             await login(formData.email, formData.password);
-         } else {
+            const userData = await fetchCurrentUser();
+            onSuccess(userData);
+         } else if (type === 'login') {
             await login(formData.email, formData.password);
-         }
+            const userData = await fetchCurrentUser();
+            onSuccess(userData);
+         } else if (type === 'edit') {
+            if (formData.password && formData.password !== formData.confirmPassword) {
+               throw new Error("Новые пароли не совпадают");
+            }
 
-         const userData = await fetchCurrentUser();
-         onSuccess(userData);
+            const updateData = {
+               name: formData.name,
+               email: formData.email,
+               university_id: Number(formData.universityId)
+            };
+
+            if (formData.password.trim() !== '') {
+               updateData.password = formData.password;
+            }
+
+            // 1. Отправляем изменения на сервер
+            await updateCurrentUser(updateData);
+            
+            // 2. КРИТИЧНО: Запрашиваем актуальный профиль целиком, чтобы бэкенд отдал развернутый объект ВУЗа
+            const freshUserData = await fetchCurrentUser();
+            
+            // 3. Передаем «чистые» и полные данные в родительский компонент
+            onSuccess(freshUserData);
+         }
       } catch (err) {
-         setError(err.message || 'Произошла ошибка при авторизации');
+         setError(err.message || 'Произошла ошибка');
       } finally {
          setLoading(false);
       }
    };
 
-   // Фильтрация списка вузов по мере ввода текста пользователем
    const filteredUniversities = universities.filter(uni => {
       const name = (uni.name || uni.title || '').toLowerCase();
       return name.includes(universitySearch.toLowerCase());
    });
+
+   const modalTitle = type === 'edit' ? 'Редактирование профиля' : (type === 'login' ? 'Вход' : 'Регистрация');
+   const modalSubtitle = type === 'edit' ? 'Обновите информацию о себе.' : (type === 'login' ? 'Войдите в свой профиль.' : 'Создайте новый аккаунт и делитесь своими работами!');
+   const submitText = loading ? 'Processing...' : (type === 'edit' ? 'Сохранить' : (type === 'login' ? 'Войти' : 'Создать'));
 
    return (
       <>
@@ -151,23 +193,22 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                </button>
 
                <div className={styles.header}>
-                  <h3 id="modal-title">{type === 'login' ? 'Вход' : 'Регистрация'}</h3>
-                  <p>{type === 'login' ? 'Войдите в свой профиль.' : 'Создайте новый аккаунт и делитесь своими работами!'}</p>
+                  <h3 id="modal-title">{modalTitle}</h3>
+                  <p>{modalSubtitle}</p>
                </div>
 
                <div className={styles.formContainer}>
                   {error && <p style={{ color: '#ff4d4d', marginBottom: '15px', fontSize: '14px' }}>{error}</p>}
 
                   <form className={styles.form} onSubmit={handleSubmit}>
-                     {type === 'signup' && (
+                     {(type === 'signup' || type === 'edit') && (
                         <div className={styles.inputGroup}>
                            <label htmlFor="name">Как к Вам обращаться?</label>
                            <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Имя Фамилия" required className={styles.input} />
                         </div>
                      )}
 
-                     {/* РЕАЛИЗАЦИЯ ВАРИАНТА 3: ComboBox с живым поиском */}
-                     {type === 'signup' && (
+                     {(type === 'signup' || type === 'edit') && (
                         <div className={styles.inputGroup}>
                            <label htmlFor="universitySearch">Учебное заведение</label>
                            <div className={styles.comboboxWrapper} ref={dropdownRef}>
@@ -179,7 +220,6 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                                  onChange={(e) => {
                                     setUniversitySearch(e.target.value);
                                     setIsDropdownOpen(true);
-                                    // Сбрасываем id, если пользователь стёр/изменил строку, чтобы заставить выбрать элемент из списка
                                     setFormData(prev => ({ ...prev, universityId: '' }));
                                  }}
                                  onFocus={() => setIsDropdownOpen(true)}
@@ -218,13 +258,15 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                         </div>
                      )}
 
+                     {/* Поле Почты теперь отображается ВСЕГДА (и при логине, и при регистрации, и при редактировании) */}
                      <div className={styles.inputGroup}>
-                        <label htmlFor="email">Почта</label>
+                        <label htmlFor="email">{type === 'edit' ? 'Электронная почта' : 'Почта'}</label>
                         <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="matryoshka@example.com" required className={styles.input} />
                      </div>
 
+                     {/* Поле Пароля отображается ВСЕГДА, но меняет поведение и плейсхолдер в режиме edit */}
                      <div className={styles.inputGroup}>
-                        <label htmlFor="password">Пароль</label>
+                        <label htmlFor="password">{type === 'edit' ? 'Новый пароль' : 'Пароль'}</label>
                         <button
                            type="button"
                            aria-label={showPassword ? "Спрятать" : "Показать"}
@@ -234,12 +276,24 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                            className={styles.togglePasswordBtn}>
                            {showPassword ? "Скрыть" : "Показать"}
                         </button>
-                        <input type={showPassword ? "text" : "password"} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required className={styles.input} />
+                        <input 
+                           type={showPassword ? "text" : "password"} 
+                           id="password" 
+                           name="password" 
+                           value={formData.password} 
+                           onChange={handleChange} 
+                           placeholder={type === 'edit' ? "Оставьте пустым, если не хотите менять" : "••••••••"} 
+                           required={type !== 'edit'} // Не обязателен при редактировании
+                           className={styles.input} 
+                        />
                      </div>
 
-                     {type === 'signup' && (
+                     {/* Повтор пароля: обязателен при регистрации ИЛИ появляется при изменении пароля в режиме редактирования */}
+                     {(type === 'signup' || (type === 'edit' && formData.password.length > 0)) && (
                         <div className={styles.inputGroup}>
-                           <label htmlFor="confirmPassword">Повторите пароль</label>
+                           <label htmlFor="confirmPassword">
+                              {type === 'edit' ? 'Повторите новый пароль' : 'Повторите пароль'}
+                           </label>
                            <input
                               type={showPassword ? "text" : "password"}
                               id="confirmPassword"
@@ -247,7 +301,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                               value={formData.confirmPassword}
                               onChange={handleChange}
                               placeholder="••••••••"
-                              required
+                              required={type === 'signup' || formData.password.length > 0}
                               className={styles.input}
                            />
                         </div>
@@ -277,7 +331,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                         disabled={loading || (type === 'signup' && !acceptedPolicy)}
                         className={styles.submitBtn}
                      >
-                        {loading ? 'Processing...' : (type === 'login' ? 'Войти' : 'Создать')}
+                        {submitText}
                      </button>
                   </form>
                </div>

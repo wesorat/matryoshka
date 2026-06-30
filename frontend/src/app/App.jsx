@@ -18,7 +18,7 @@ function App() {
   // Шапка ======================================================================================================
   const [isShrunk, setIsShrunk] = useState(false) // Уменьшение шапки при скролле
   const [page, setPage] = useState('home') // Имя текущей активной страницы
-  const [logType, setLogType] = useState(null) // Тип окна авторизации (ыход или регистрация)
+  const [logType, setLogType] = useState(null) // Тип окна авторизации (вход или регистрация)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
@@ -154,10 +154,15 @@ function App() {
     return () => { mounted = false }
   }, [])
 
-  // Успешный вход или регистрация
+  // Успешный вход, регистрация ИЛИ редактирование профиля
   const handleAuthSuccess = (userData) => {
     setUser(userData)
-    setPage('home')
+    // Если правили профиль, остаемся в личном кабинете, иначе идем на главную
+    if (logType === 'edit') {
+      setPage('user')
+    } else {
+      setPage('home')
+    }
     setLogType(null)
   }
 
@@ -237,7 +242,8 @@ function App() {
 
   // Закрытие окон авторизации
   const handleLogClose = () => {
-    setPage('home')
+    // Если закрыли редактирование, возвращаемся в профиль, иначе на главную
+    setPage(logType === 'edit' ? 'user' : 'home')
     setLogType(null)
   }
 
@@ -269,52 +275,53 @@ function App() {
   };
 
   const handlePublishSuccess = (savedProject) => {
-  const projectId = savedProject.id || savedProject._id
+    const projectId = savedProject.id || savedProject._id
 
-  // Обновить общий список проектов
-  setProjects((prev) => {
-    const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
-    if (isExisting) {
-      return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
-    } else {
-      return [savedProject, ...prev]
-    }
-  })
+    // Обновить общий список проектов
+    setProjects((prev) => {
+      const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
+      if (isExisting) {
+        return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
+      } else {
+        return [savedProject, ...prev]
+      }
+    })
 
-  // Обновить список личных проектов пользователя
-  setMyProjects((prev) => {
-    const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
-    if (isExisting) {
-      return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
-    } else {
-      return [savedProject, ...prev]
-    }
-  })
-  console.log('Стейт проектов успешно синхронизирован с сервером')}
+    // Обновить список личных проектов пользователя
+    setMyProjects((prev) => {
+      const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
+      if (isExisting) {
+        return prev.map((proj) => (proj.id === projectId || proj._id === projectId ? savedProject : proj))
+      } else {
+        return [savedProject, ...prev]
+      }
+    })
+    console.log('Стейт проектов успешно синхронизирован с сервером')
+  }
 
   // Получить информацию о проекте по его ID при открытии страницы проекта
   useEffect(() => {
-  if (!selectedProjectId || page !== 'project') {
-    setCurrentProject(null)
-    return
-  }
+    if (!selectedProjectId || page !== 'project') {
+      setCurrentProject(null)
+      return
+    }
 
-  let mounted = true
-  setCurrentProjectLoading(true)
+    let mounted = true
+    setCurrentProjectLoading(true)
 
-  fetchProjectById(selectedProjectId)
-    .then((data) => {
-      if (mounted) setCurrentProject(data)
-    })
-    .catch((err) => {
-      console.error('Не удалось загрузить данные проекта:', err)
-    })
-    .finally(() => {
-      if (mounted) setCurrentProjectLoading(false)
-    })
+    fetchProjectById(selectedProjectId)
+      .then((data) => {
+        if (mounted) setCurrentProject(data)
+      })
+      .catch((err) => {
+        console.error('Не удалось загрузить данные проекта:', err)
+      })
+      .finally(() => {
+        if (mounted) setCurrentProjectLoading(false)
+      })
 
-  return () => { mounted = false }
-}, [selectedProjectId, page])
+    return () => { mounted = false }
+  }, [selectedProjectId, page])
 
   // Поиск выбранной категории оставляем по полному списку categories,
   // чтобы страница категории CatPage открывалась корректно в любом случае
@@ -393,6 +400,7 @@ function App() {
         {page === 'user' && user && (
           <UserPage
             user={user}
+            onUserUpdate={setUser} /* ИЗМЕНЕНИЕ: Передаем функцию обновления данных пользователя */
             projects={myProjects}
             loading={myProjectsLoading}
             categories={categories}
@@ -410,7 +418,8 @@ function App() {
           />
         )}
         {page === 'log' && (
-          <LogPage type={logType} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
+          /* ИЗМЕНЕНИЕ: Добавили проп user={user}, чтобы форма подтягивала текущие данные при редактировании */
+          <LogPage type={logType} user={user} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
         {page === 'project' && (
           <ProjectPage
