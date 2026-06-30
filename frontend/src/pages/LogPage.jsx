@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './LogPage.module.scss';
-import { login, register, fetchCurrentUser } from '../api.js';
+import { login, register, fetchCurrentUser, fetchUniversities } from '../api.js';
 
 export default function LogPage({ type = 'login', onBack = () => {}, onSuccess = () => {} }) {
    const [isOpen, setIsOpen] = useState(true);
    const [showPassword, setShowPassword] = useState(false);
 
    // Стейт полей формы
-   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', universityId: '' });
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
    const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+
+   const [universities, setUniversities] = useState([]);
 
    const overlayRef = useRef(null);
    const dialogRef = useRef(null);
@@ -29,7 +31,14 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       setFormData({ name: '', email: '', password: '', confirmPassword: '' });
       document.body.style.overflow = "hidden";
       setTimeout(() => dialogRef.current?.focus(), 0);
-
+      if (type === 'signup') {
+         fetchUniversities()
+            .then(data => setUniversities(data))
+            .catch(err => {
+               console.error("Не удалось загрузить список университетов", err);
+               setError("Ошибка при загрузке списка учебных заведений");
+            });
+      }
       return () => {
          document.body.style.overflow = "";
       };
@@ -80,15 +89,13 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                throw new Error("Пароли не совпадают");
             }
             // 1. Регистрируем
-            await register(formData.email, formData.password, formData.name);
+            await register(formData.email, formData.password, formData.name, formData.universityId);
             // 2. Сразу авторизуем после успешной регистрации
             await login(formData.email, formData.password);
          } else {
             // Обычный логин
             await login(formData.email, formData.password);
          }
-
-         // Получаем профиль вошедшего пользователя и прокидываем в App.jsx
          const userData = await fetchCurrentUser();
          onSuccess(userData);
       } catch (err) {
@@ -126,6 +133,26 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
                         <div className={styles.inputGroup}>
                            <label htmlFor="name">Как к Вам обращаться?</label>
                            <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Имя Фамилия" required className={styles.input} />
+                        </div>
+                     )}
+                     {type === 'signup' && (
+                        <div className={styles.inputGroup}>
+                           <label htmlFor="universityId">Учебное заведение</label>
+                           <select
+                              id="universityId"
+                              name="universityId"
+                              value={formData.universityId}
+                              onChange={handleChange}
+                              required
+                              className={styles.input}
+                           >
+                              <option value="" disabled>Выберите университет</option>
+                              {universities.map((uni) => (
+                                 <option key={uni.id} value={uni.id}>
+                                    {uni.name || uni.title} 
+                                 </option>
+                              ))}
+                           </select>
                         </div>
                      )}
 

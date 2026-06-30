@@ -68,12 +68,17 @@ export async function login(email, password) {
   })))
 }
 
-export async function register(email, password, name) {
+export async function register(email, password, name, universityId) {
   return handleResponse(
     await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        name, 
+        university_id: Number(universityId)
+      }),
     })
   )
 }
@@ -178,6 +183,9 @@ export async function deleteProject(projectId) {
   )
 }
 
+export async function fetchUniversities() {
+  return handleResponse(await fetch(`${API_URL}/university/`, fetchOptions()))
+}
 
 export async function createLike(projectId) {
   return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {

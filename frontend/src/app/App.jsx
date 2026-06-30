@@ -13,36 +13,41 @@ import { fetchCategories, fetchProjects, fetchProjectsByCategory,
          fetchCurrentUser, logout, fetchMyProjects, createProject,
          updateProject, fetchProjectById } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
+
 function App() {
-  const [isShrunk, setIsShrunk] = useState(false)
-  const [page, setPage] = useState('home')
-  const [logType, setLogType] = useState(null)
+  // Шапка ======================================================================================================
+  const [isShrunk, setIsShrunk] = useState(false) // Уменьшение шапки при скролле
+  const [page, setPage] = useState('home') // Имя текущей активной страницы
+  const [logType, setLogType] = useState(null) // Тип окна авторизации (ыход или регистрация)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
-  const [user, setUser] = useState(null)
-  const [myProjects, setMyProjects] = useState([])
+  // Текущий пользователь =======================================================================================
+  const [user, setUser] = useState(null) // Данные авторизованного юзера
+  const [myProjects, setMyProjects] = useState([]) // Личные проекты текущего юзера
   const [myProjectsLoading, setMyProjectsLoading] = useState(true)
-  const [currentProject, setCurrentProject] = useState(null)
+  const [currentProject, setCurrentProject] = useState(null) // Свежие данные открытого проекта
   const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
 
-  // 1. Стейт для ВСЕХ категорий (нужен для профиля и поиска по ID)
-  const [categories, setCategories] = useState([])
+  // Категории ==================================================================================================
+  const [categories, setCategories] = useState([]) //все (в частности драфты) 
   const [categoriesLoading, setCategoriesLoading] = useState(true)
 
-  // Новые стейты: категории ТОЛЬКО С ПРОЕКТАМИ для Главной страницы
-  const [homeCategories, setHomeCategories] = useState([])
+  const [homeCategories, setHomeCategories] = useState([]) //только интересные (с проектами)
   const [homeCategoriesLoading, setHomeCategoriesLoading] = useState(true)
 
+  // Состояния для глобальной ленты всех проектов и страниц категорий ===========================================
   const [projects, setProjects] = useState([])
   const [projectsLoading, setProjectsLoading] = useState(true)
-  const [categoryProjects, setCategoryProjects] = useState([])
+  const [categoryProjects, setCategoryProjects] = useState([]) // Проекты конкретной категории для CatPage
   const [categoryLoading, setCategoryLoading] = useState(false)
 
-  const [isEditMode, setIsEditMode] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false) // Флаг перехода в режим редактирования проекта
 
-  const [selectedAuthorId, setSelectedAuthorId] = useState(null);
+  const [selectedAuthorId, setSelectedAuthorId] = useState(null); // ID автора для просмотра его страницы
 
+  //=============================================================================================================
+  
   // Проверка сессии при запуске
   useEffect(() => {
     fetchCurrentUser()
@@ -55,10 +60,8 @@ function App() {
   // Обработка загрузки проектов юзера
   useEffect(() => {
     if (page !== 'user' || !user) return
-
     let mounted = true
     setMyProjectsLoading(true)
-
     fetchMyProjects()
       .then((items) => {
         if (mounted) setMyProjects(items)
@@ -67,7 +70,6 @@ function App() {
       .finally(() => {
         if (mounted) setMyProjectsLoading(false)
       })
-
     return () => { mounted = false }
   }, [page, user])
 
@@ -76,7 +78,6 @@ function App() {
     let ticking = false
     const threshold = 40
     const hysteresis = 10
-
     const handleScroll = () => {
       if (ticking) return
       ticking = true
@@ -123,7 +124,7 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // Эффект А: Загрузка вообще ВСЕХ категорий без фильтрации (для UserPage)
+  // Загрузка всех категорий без фильтрации (для профиля)
   useEffect(() => {
     let mounted = true
     fetchCategories()
@@ -133,10 +134,9 @@ function App() {
     return () => { mounted = false }
   }, [])
 
-  // Эффект Б: Загрузка категорий только с проектами (для HomePage)
+  // Загрузка категорий только с проектами (для главной)
   useEffect(() => {
     let mounted = true
-    // Передаем true, как ты и настроил на бэкенде
     fetchCategories(true)
       .then((items) => { if (mounted) setHomeCategories(items) })
       .catch((error) => console.error('Не удалось загрузить категории для главной:', error))
@@ -144,6 +144,7 @@ function App() {
     return () => { mounted = false }
   }, [])
 
+  // Загрузка всех проектов при инициализации страницы
   useEffect(() => {
     let mounted = true
     fetchProjects()
@@ -153,12 +154,14 @@ function App() {
     return () => { mounted = false }
   }, [])
 
+  // Успешный вход или регистрация
   const handleAuthSuccess = (userData) => {
     setUser(userData)
     setPage('home')
     setLogType(null)
   }
 
+  // Переход в личный кабинет пользователя
   const handleAccountClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
@@ -166,6 +169,7 @@ function App() {
     window.history.pushState({ page: 'user' }, '')
   }
 
+  // Полный логаут с очисткой сессии и стейтов
   const handleLogout = async () => {
     try {
       await logout()
@@ -181,6 +185,7 @@ function App() {
     }
   }
 
+  // Клик по категории с записью в историю браузера
   const handleCategoryClick = (categoryId) => {
     setSelectedCategoryId(categoryId)
     setSelectedProjectId(null)
@@ -188,6 +193,7 @@ function App() {
     window.history.pushState({ page: 'category', categoryId }, '')
   }
 
+  // Просмотр отдельного проекта с плавным скроллом наверх
   const handleProjectClick = (projectId) => {
     setSelectedProjectId(projectId)
     setIsEditMode(false)
@@ -196,6 +202,7 @@ function App() {
     window.history.pushState({ page: 'project', projectId }, '')
   }
 
+  // Открытие проекта сразу в режиме редактирования (из личного кабинета)
   const handleEditProjectClick = (project) => {
     const projectId = project.id || project._id
     setSelectedProjectId(projectId)
@@ -205,6 +212,7 @@ function App() {
     window.history.pushState({ page: 'project', projectId }, '')
   }
 
+  // Кнопка «Назад» с умным возвратом: если проект ТВОЙ, кидает в профиль, иначе — на Главную
   const handleBackToHome = () => {
     if (page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)) {
       setPage('user')
@@ -215,21 +223,25 @@ function App() {
     setIsEditMode(false)
   }
 
+  // Открытие формы входа
   const handleLoginClick = () => {
     setPage('log')
     setLogType('login')
   }
 
+  // Открытие формы регистрации
   const handleSignUpClick = () => {
     setPage('log')
     setLogType('signup')
   }
 
+  // Закрытие окон авторизации
   const handleLogClose = () => {
     setPage('home')
     setLogType(null)
   }
 
+  // Дополнительный слушатель для корректного отслеживания возврата в профиль
   useEffect(() => {
     const handleUserOpen = (state) => {
       if (state?.page === 'user') {
@@ -241,6 +253,7 @@ function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  // Клик на логотип для сброса на Главную страницу
   const handleLogoClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
@@ -248,6 +261,7 @@ function App() {
     window.history.pushState({ page: 'home' }, '')
   }
 
+  // Переход на страницу другого автора
   const handleAuthorClick = (authorId) => {
     setSelectedAuthorId(authorId);
     setPage('author');
@@ -257,7 +271,7 @@ function App() {
   const handlePublishSuccess = (savedProject) => {
   const projectId = savedProject.id || savedProject._id
 
-  // 1. Обновляем общий список проектов
+  // Обновить общий список проектов
   setProjects((prev) => {
     const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
     if (isExisting) {
@@ -267,7 +281,7 @@ function App() {
     }
   })
 
-  // 2. Обновляем список личных проектов пользователя
+  // Обновить список личных проектов пользователя
   setMyProjects((prev) => {
     const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
     if (isExisting) {
@@ -278,6 +292,7 @@ function App() {
   })
   console.log('Стейт проектов успешно синхронизирован с сервером')}
 
+  // Получить информацию о проекте по его ID при открытии страницы проекта
   useEffect(() => {
   if (!selectedProjectId || page !== 'project') {
     setCurrentProject(null)
@@ -305,12 +320,14 @@ function App() {
   // чтобы страница категории CatPage открывалась корректно в любом случае
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
 
+  // Проекты выбранной категории для вывода на CatPage (проверка на кэш или ручной фильтр)
   const displayedCategoryProjects = categoryLoading
     ? []
     : categoryProjects.length > 0
     ? categoryProjects
     : projects.filter((project) => project.category_id === selectedCategoryId)
 
+  // Запрос к API для получения проектов внутри выбранной категории
   useEffect(() => {
     if (!selectedCategoryId) return
 
@@ -356,7 +373,6 @@ function App() {
       <main className="appContent">
         {page === 'home' && (
           <HomePage
-            // Передаем отфильтрованные категории на главную страницу
             categories={homeCategories}
             loading={homeCategoriesLoading}
             projects={projects}
@@ -379,7 +395,6 @@ function App() {
             user={user}
             projects={myProjects}
             loading={myProjectsLoading}
-            // Передаем полный список категорий, чтобы можно было выбрать любую при создании/редактировании
             categories={categories}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
