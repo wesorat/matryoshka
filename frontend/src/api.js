@@ -32,8 +32,6 @@ const authFetchOptions = (options = {}) => ({
 })
 
 export async function fetchCategories(have_project = false) {
-  // Если передан true, добавляем к URL параметр фильтрации (например, ?has_projects=true)
-  // Убедись, что имя параметра (has_projects) совпадает с тем, как ты назвал его на бэкенде!
   const url = have_project
     ? `${API_URL}/category/?has_projects=true`
     : `${API_URL}/category/`
