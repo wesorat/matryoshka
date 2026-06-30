@@ -24,7 +24,8 @@ class UserService:
         if user.image_url == "":
             user.image_url = await self.storage_service.create(file)
         else:
-            self.storage_service.update(user.image_url, file)
+            # ДОБАВИЛИ await И присвоение результата в user.image_url!
+            user.image_url = await self.storage_service.update(user.image_url, file)
 
         await self.user_manager.update(
             user_update=UserUpdate(image_url=user.image_url),

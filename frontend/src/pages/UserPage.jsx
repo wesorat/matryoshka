@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
-import LogPage from './LogPage.jsx'; // Импортируем LogPage для переиспользования формы
-import { updateCurrentUser } from '../api.js'; 
+import LogPage from './LogPage.jsx'; 
+import { updateCurrentUser, uploadUserAvatar } from '../api.js'; 
 import styles from './UserPage.module.scss';
+
+// Вычисление базового пути до медиа-файлов, как в ProjectCards.jsx
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const mediaBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 
 function UserPage({ 
   user = {}, 
@@ -17,13 +21,19 @@ function UserPage({
   onPublishSuccess = () => {},
   onUserUpdate = () => {} 
 }) {
-  const { name = 'Имя Пользователя', avatar } = user;
+  const { name = 'Имя Пользователя', avatar, image_url } = user;
   const [isPublishOpen, setIsPublishOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false); // Состояние для открытия модалки редактирования
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false); 
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [bio, setBio] = useState(user.bio || '');
   const [isEditingBio, setIsEditingBio] = useState(false);
+
+  // 1. Добавляем стейт для обхода кэша браузера
+  const [avatarTicket, setAvatarTicket] = useState(Date.now());
+
+  // Ссылка на скрытый тег выбора файлов
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     setBio(user.bio || '');
@@ -36,13 +46,12 @@ function UserPage({
 
   const handleSaveBio = async () => {
     setIsEditingBio(false);
-    
     if (bio === (user.bio || '')) return;
 
     try {
       const updatedUser = await updateCurrentUser({ bio: bio });
       if (onUserUpdate) {
-        onUserUpdate(updatedUser);
+        onUserUpdate({ ...user, ...updatedUser });
       }
     } catch (err) {
       console.error("Ошибка при сохранении биографии:", err);
@@ -58,16 +67,71 @@ function UserPage({
     }
   };
 
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, выберите корректное изображение.');
+      e.target.value = ''; // Сброс инпута
+      return;
+    }
+
+    try {
+      const updatedData = await uploadUserAvatar(file);
+      
+      if (onUserUpdate) {
+        // Слияние старых данных пользователя и ответа от бэкенда
+        onUserUpdate({ ...user, ...updatedData });
+      }
+      
+      // 2. Обновляем тикет времени, чтобы заставить браузер сделать новый GET-запрос картинки
+      setAvatarTicket(Date.now());
+
+    } catch (err) {
+      console.error("Ошибка при загрузке аватарки:", err);
+      alert("Не удалось обновить аватарку. Попробуйте позже.");
+    } finally {
+      // 3. Обязательно очищаем инпут, чтобы событие onChange срабатывало при повторном выборе того же файла
+      e.target.value = '';
+    }
+  };
+
+  // 4. Дописываем ?t=таймстамп к URL картинки для обхода кэша
+  const currentAvatarName = image_url || avatar;
+  const avatarSrc = currentAvatarName
+    ? `${mediaBaseUrl}/media/uploads/${currentAvatarName}?t=${avatarTicket}`
+    : 'https://placehold.co/160x160?text=Avatar';
+
   return (
     <section className={styles.page}>
       <div className={styles.container}>
         
         <header className={styles.profileHeader}>
-          <div className={styles.avatarWrapper}>
+          {/* Интерактивный аватар */}
+          <div 
+            className={styles.avatarWrapper}
+            onClick={handleAvatarClick}
+            style={{ cursor: 'pointer' }}
+            title="Нажмите, чтобы изменить аватарку"
+          >
             <img
-              src={avatar || 'https://placehold.co/160x160?text=Avatar'}
+              src={avatarSrc}
               alt={name}
               className={styles.avatar}
+            />
+            <input 
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+              accept="image/*"
+              style={{ display: 'none' }}
             />
           </div>
 
@@ -86,7 +150,7 @@ function UserPage({
                   onKeyDown={handleBioKeyDown}
                   onBlur={handleSaveBio} 
                   autoFocus
-                  className={styles.bioInput} // <-- ИСПРАВЛЕНО: применили правильный класс из SCSS
+                  className={styles.bioInput} 
                   maxLength={300} 
                   rows={3} 
                 />
@@ -106,7 +170,6 @@ function UserPage({
             <Button type="button" variant="outline" onClick={handleCreateClick}>
               Создать проект
             </Button>
-            {/* ЗАМЕНЕНО: вместо Статистики теперь Редактировать профиль */}
             <Button type="button" variant="outline" onClick={() => setIsEditProfileOpen(true)}>
               Редактировать профиль
             </Button>
@@ -131,14 +194,13 @@ function UserPage({
         </main>
       </div>
 
-      {/* Модальное окно редактирования профиля на базе формы регистрации */}
       {isEditProfileOpen && (
         <LogPage 
           type="edit" 
           user={user} 
           onBack={() => setIsEditProfileOpen(false)} 
           onSuccess={(freshUserData) => {
-            onUserUpdate(freshUserData);
+            onUserUpdate({ ...user, ...freshUserData });
             setIsEditProfileOpen(false); 
           }} 
         />

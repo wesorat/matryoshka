@@ -227,3 +227,16 @@ export async function updateCurrentUser(userData) {
     })
   )
 }
+
+export async function uploadUserAvatar(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return handleResponse(
+    await fetch(`${API_URL}/users/me/avatar`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  );
+}

@@ -11,7 +11,7 @@ import LogPage from '../pages/LogPage.jsx'
 import { defaultProjects } from '../data/slides'
 import { fetchCategories, fetchProjects, fetchProjectsByCategory,
          fetchCurrentUser, logout, fetchMyProjects, createProject,
-         updateProject, fetchProjectById } from '../api.js'
+         updateProject, fetchProjectById, uploadUserAvatar } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
 
 function App() {
