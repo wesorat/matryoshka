@@ -181,20 +181,37 @@ class ProjectsRepository:
         await self.session.execute(
             delete(Likes).where(Likes.project_id == project_id)
         )
+        await self.session.execute(
+            delete(Comments).where(Comments.project_id == project_id)
+        )
 
         await self.session.delete(project)
         await self.session.commit()
 
         return project.image_url
 
-    async def delete_by_slug(self, user_id: int, slug: str) -> int:
+    async def delete_by_slug(self, owner_id: int, slug: str) -> int:
+
+        project = await self.session.execute(select(Projects).where(Projects.slug == slug))
+        if not project:
+            raise ProjectNotFound(project.id)
+        if project.owner_id != owner_id:
+            raise NotOwnProject(owner_id)
+
         res = await self.session.execute(
             delete(Projects)
             .where(
                 Projects.slug == slug,
-                Projects.owner_id == user_id,
+                Projects.owner_id == owner_id,
             )
             .returning(Projects.image_url)
+        )
+
+        await self.session.execute(
+            delete(Likes).where(Likes.project_id == project.id)
+        )
+        await self.session.execute(
+            delete(Comments).where(Comments.project_id == project.id)
         )
 
         return res.scalar_one_or_none()

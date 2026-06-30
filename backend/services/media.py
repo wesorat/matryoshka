@@ -77,9 +77,6 @@ class MediaStorageService:
         ext = Path(file.filename).suffix.lower()
         filename = ''.join(filename.split(".")[:-1]) + ext
         content = await file.read()
-        print(filename)
-        print('*' * 100)
-
         await self.save(filename, content)
         return filename
 

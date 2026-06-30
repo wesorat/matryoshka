@@ -245,3 +245,53 @@
     color: vars.$basic-accent;
   }
 }
+
+.comboboxWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 220px; // Ограничиваем по высоте, чтобы не вылезало за экран модалки
+  overflow-y: auto;  // Скролл внутри списка, если вузов много
+  background-color: #ffffff;
+  border: 1px solid vars.$border-color;
+  border-radius: 0.375rem;
+  margin-top: 0.25rem;
+  padding: 0;
+  list-style: none;
+  z-index: 1050; // Гарантирует отображение поверх элементов формы
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdownItem {
+  padding: 0.625rem 0.75rem;
+  @include mixins.text-ordinary;
+  font-size: 14px;
+  color: vars.$text-main;
+  cursor: pointer;
+  
+  white-space: normal; 
+  word-break: break-word;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &.selected {
+    background-color: rgba(0, 0, 0, 0.06);
+    font-weight: 500;
+  }
+}
+
+.dropdownNoResults {
+  @include mixins.text-ordinary;
+  padding: 0.625rem 0.75rem;
+  font-size: 14px;
+  color: vars.$text-muted;
+}

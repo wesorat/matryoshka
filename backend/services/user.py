@@ -27,6 +27,7 @@ class UserService:
         else:
             user.image_url = await self.storage_service.update(user.image_url, file, MediaView.IMAGE)
 
+
         await self.user_manager.update(
             user_update=UserUpdate(image_url=user.image_url),
             user=user,

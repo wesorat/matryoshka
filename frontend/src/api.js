@@ -32,8 +32,6 @@ const authFetchOptions = (options = {}) => ({
 })
 
 export async function fetchCategories(have_project = false) {
-  // Если передан true, добавляем к URL параметр фильтрации (например, ?has_projects=true)
-  // Убедись, что имя параметра (has_projects) совпадает с тем, как ты назвал его на бэкенде!
   const url = have_project
     ? `${API_URL}/category/?has_projects=true`
     : `${API_URL}/category/`
@@ -68,12 +66,17 @@ export async function login(email, password) {
   })))
 }
 
-export async function register(email, password, name) {
+export async function register(email, password, name, universityId) {
   return handleResponse(
     await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        name, 
+        university_id: Number(universityId)
+      }),
     })
   )
 }
@@ -178,6 +181,9 @@ export async function deleteProject(projectId) {
   )
 }
 
+export async function fetchUniversities() {
+  return handleResponse(await fetch(`${API_URL}/university/`, fetchOptions()))
+}
 
 export async function createLike(projectId) {
   return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
@@ -207,4 +213,30 @@ export async function deleteComment(commentId) {
     method: 'DELETE',
     credentials: 'include',
   }))
+}
+
+export async function updateCurrentUser(userData) {
+  return handleResponse(
+    await fetch(`${API_URL}/users/me`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify(userData),
+    })
+  )
+}
+
+export async function uploadUserAvatar(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return handleResponse(
+    await fetch(`${API_URL}/users/me/avatar`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  );
 }

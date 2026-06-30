@@ -94,7 +94,7 @@ class ProjectService:
             if updated_project.image_url == "":
                 updated_project.image_url = await media_service.create(file, MediaView.IMAGE)
             else:
-                await media_service.update(updated_project.image_url, file)
+                updated_project.image_url = await media_service.update(updated_project.image_url, file, MediaView.IMAGE)
         await self.session.refresh(updated_project, attribute_names=["university"])
         await self.session.commit()
         return updated_project
