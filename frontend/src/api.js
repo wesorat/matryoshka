@@ -214,3 +214,16 @@ export async function deleteComment(commentId) {
     credentials: 'include',
   }))
 }
+
+export async function updateCurrentUser(userData) {
+  return handleResponse(
+    await fetch(`${API_URL}/users/me`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify(userData),
+    })
+  )
+}

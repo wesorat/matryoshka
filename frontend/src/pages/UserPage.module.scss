@@ -8,58 +8,136 @@
 
 .container {
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  flex-direction: column; 
+  gap: 32px;
   width: 100%;
+}
+
+.profileHeader {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  background-color: vars.$bg-main; 
+  border: 1px solid vars.$border-color; 
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  align-items: flex-start;
+
   @media (max-width: 768px) {
     flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 }
 
-.sidebar {
-  width: 20%;
-  min-width: 180px;
-  @media (max-width: 768px) {
-    width: 100%; // На мобилках сайдбар займет всю ширину
-  }
-}
-
-.profile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+.avatarWrapper {
+  flex-shrink: 0;
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 8px; 
+  border: 1px solid vars.$border-color;
+}
+
+.profileInfo {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; 
+  min-width: 0; 
+  width: 100%; // Текстовый блок занимает всё свободное место до кнопок
 }
 
 .name {
-  @include mixins.text-ordinary;
+  font-family: vars.$font-secondary;
+  font-size: 2rem;
+  color: vars.$text-main; 
   margin: 0;
-  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.universityText {
+  @include mixins.text-ordinary;
+  font-size: 15px;
+  color: vars.$text-main;
+  font-weight: 500;
+  margin: 0;
+  width: 100%;
+}
+
+.bioBlock {
+  width: 100%; // Убрали max-width: 500px, теперь блок растягивается вровень с вузом
+  margin-top: 4px; 
+}
+
+.bioText {
+  @include mixins.text-ordinary;
+  font-size: 14px;
+  color: vars.$text-muted; 
+  margin: 0;
+  padding: 6px 8px 6px 0; // Левое выравнивание без смещения текста
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+  
+  width: 100%;
+  box-sizing: border-box;
+  white-space: pre-wrap; // КРИТИЧНО: позволяет тексту переноситься на новые строки и сохранятьEnter
+  word-wrap: break-word;
+
+  &:hover {
+    padding-left: 8px;
+    margin-left: -8px;
+    background-color: rgba(0, 0, 0, 0.03); 
+    color: vars.$text-main;
+  }
+}
+
+// Изменено под Textarea
+.bioInput {
+  font-family: vars.$font-secondary;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  background-color: #ffffff;
+  border: 1px solid vars.$border-color;
+  color: vars.$text-main;
+  border-radius: 4px;
+  outline: none;
+  box-sizing: border-box;
+  margin-left: -4px; 
+  
+  resize: vertical; // Разрешаем пользователю менять высоту инпута по вертикали при желании
+  min-height: 64px;
+  display: block;
+  
+  &:focus {
+    border-color: vars.$basic-accent; 
+    box-shadow: 0 0 0 2px rgba(vars.$basic-accent, 0.2);
+  }
 }
 
 .actions {
-  margin-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
+  min-width: 160px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 .content {
-  width: 80%;
-  @media (max-width: 768px) {
-    width: 100%;
-  }
+  width: 100%;
 }
 
 .headerRow {
@@ -67,5 +145,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    color: vars.$text-main;
+  }
 }
