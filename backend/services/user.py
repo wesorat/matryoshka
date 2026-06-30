@@ -5,6 +5,7 @@ from fastapi_users import BaseUserManager
 
 from core.dependencies import SessionDep
 from models.category import Category
+from models.media import MediaView
 from models.user import User
 
 from slugify import slugify
@@ -22,10 +23,10 @@ class UserService:
 
     async def save_image(self, user: User, file: UploadFile) -> str:
         if user.image_url == "":
-            user.image_url = await self.storage_service.create(file)
+            user.image_url = await self.storage_service.create(file, MediaView.IMAGE)
         else:
-            # ДОБАВИЛИ await И присвоение результата в user.image_url!
-            user.image_url = await self.storage_service.update(user.image_url, file)
+            user.image_url = await self.storage_service.update(user.image_url, file, MediaView.IMAGE)
+
 
         await self.user_manager.update(
             user_update=UserUpdate(image_url=user.image_url),
