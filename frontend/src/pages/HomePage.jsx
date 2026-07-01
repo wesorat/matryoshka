@@ -3,11 +3,28 @@ import CategorySection from '../components/CategorySection/CategorySection.jsx'
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
 import styles from './HomePage.module.scss'
 
-function HomePage({ categories = [], loading = false, projects = [], projectsLoading = false, onCategoryClick, onProjectClick }) {
-  const buildCategoryProjects = (categoryId) => projects.filter((project) => project.category?.id === categoryId)
+// ИСПРАВЛЕНО: принимаем selectedCategoryId из пропсов
+function HomePage({ 
+  categories = [], 
+  loading = false, 
+  projects = [], 
+  projectsLoading = false, 
+  onCategoryClick, 
+  onProjectClick,
+  searchQuery = '',
+  selectedCategoryId = null // ДОБАВЛЕНО
+}) {
+  
+  // Функция фильтрации проектов внутри категории
+  const buildCategoryProjects = (categoryId) => 
+    projects.filter((project) => {
+      const projCatId = project.category?.id || project.category?._id || project.category_id
+      return String(projCatId) === String(categoryId)
+    })
+
   const topProjects = [...projects]
-  .sort((a, b) => b.like_count - a.like_count)
-  .slice(0, 5);
+    .sort((a, b) => b.like_count - a.like_count)
+    .slice(0, 5);
 
   const heroSlides = topProjects.map((project) => ({
     id: project.id,
@@ -16,10 +33,12 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
     image: project.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/media/uploads/${project.image_url}` : 'https://placehold.co/1920x1080?text=No+Image',
   }));
 
-
   return (
     <>
-      {heroSlides.length > 0 && <HeroGallery slides={heroSlides} onSlideClick={onProjectClick} />}
+      {/* ИСПРАВЛЕНО: Галерея скрывается, если есть поисковый запрос ИЛИ выбрана категория */}
+      {!searchQuery && !selectedCategoryId && heroSlides.length > 0 && (
+        <HeroGallery slides={heroSlides} onSlideClick={onProjectClick} />
+      )}
 
       {loading ? (
         <section>
@@ -31,14 +50,15 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
         </section>
       ) : (
         categories.map((category) => {
-          const categoryProjects = buildCategoryProjects(category.id)
+          const catId = category.id || category._id // Подстраховка для разных видов ID
+          const categoryProjects = buildCategoryProjects(catId)
 
           return (
-            <section key={category.id} className={styles.categoryBlock}>
+            <section key={catId} className={styles.categoryBlock}>
               <CategorySection
                 title={category.name}
                 actionText="Открыть"
-                onAction={() => onCategoryClick(category.id)}
+                onAction={() => onCategoryClick(catId)}
                 ShowAction={true}
               />
               {projectsLoading ? (
@@ -62,17 +82,6 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
           )
         })
       )}
-
-      {/* <section>
-        <CategorySection title="Все проекты" showAction={false} />
-        {projectsLoading ? (
-          <p>Загрузка проектов...</p>
-        ) : projects.length === 0 ? (
-          <p className={styles.emptyText}>Проекты не найдены.</p>
-        ) : (
-          <ProjectCards projects={projects} onProjectClick={onProjectClick} />
-        )}
-      </section> */}
     </>
   )
 }

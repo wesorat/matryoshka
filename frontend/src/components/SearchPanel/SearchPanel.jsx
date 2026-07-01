@@ -75,7 +75,7 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
                 onChange={handleDropdownChange}
                 onClick={(e) => e.stopPropagation()}
               >
-                <option value="">Все категории</option>
+                <option value="">Все разделы</option>
                 {categories.map((category) => {
                   const catId = category.id || category._id;
                   return (
@@ -101,7 +101,7 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
           </>
         ) : (
           <>
-            <span className={styles.searchPanel__placeholder}>Поиск</span>
+            <span className={styles.searchPanel__placeholder}>ПОИСК</span>
             <div className={styles.searchPanel__iconWrapper}>
               <CustomIcon className={styles.searchPanel__matrIcon} />
             </div>

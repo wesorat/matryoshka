@@ -319,13 +319,16 @@ function App() {
     return () => { mounted = false }
   }, [selectedProjectId, page])
 
-  const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
+  const selectedCategory = categories.find((category) => (category.id || category._id) === selectedCategoryId)
 
   const displayedCategoryProjects = categoryLoading
     ? []
     : categoryProjects.length > 0
     ? categoryProjects
-    : projects.filter((project) => project.category_id === selectedCategoryId)
+    : projects.filter((project) => {
+        const projCatId = project.category?.id || project.category?._id || project.category_id
+        return projCatId === selectedCategoryId
+      })
 
   // Запрос к API для получения проектов внутри выбранной категории
   useEffect(() => {
@@ -347,10 +350,32 @@ function App() {
 
   // Вспомогательная функция для фильтрации массива проектов по введённому в SearchPanel тексту
   const getFilteredBySearch = (itemsList) => {
-    if (!searchQuery) return itemsList
-    return itemsList.filter(project => 
-      project.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  if (!searchQuery) return itemsList
+  return itemsList.filter(project => 
+    project.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+}
+
+  const getFilteredCategories = () => {
+    // Вместо homeCategories берем полный список categories, если выбран фильтр,
+    // и обязательно приводим ID к строке String(), чтобы избежать конфликта типов (число vs строка)
+    let filtered = selectedCategoryId 
+      ? categories.filter(category => String(category.id || category._id) === String(selectedCategoryId))
+      : homeCategories
+
+    // 2. Если текстового поиска нет, возвращаем результат текущей фильтрации
+    if (!searchQuery) return filtered
+
+    // 3. Если есть текст, дополнительно проверяем наличие подходящих по названию проектов
+    const filteredProjects = getFilteredBySearch(projects)
+    return filtered.filter(category => {
+      const catId = category.id || category._id
+      return filteredProjects.some(project => {
+        const projCatId = project.category?.id || project.category?._id || project.category_id
+        // ИСПРАВЛЕНО: здесь тоже сравниваем строки
+        return String(projCatId) === String(catId)
+      })
+    })
   }
 
   return (
@@ -384,33 +409,33 @@ function App() {
           categories={categories}
           onSearch={(query) => {
             setSearchQuery(query)
-            // Умное поведение: если пользователь находится внутри страницы просмотра отдельного проекта,
-            // личного кабинета или окна авторизации и начинает что-то писать в глобальный поиск — 
-            // автоматически перенаправляем его на главную страницу каталога для отображения результатов.
             if (query && page !== 'home' && page !== 'category') {
               setPage('home')
             }
           }}
           onFilterSelect={(catId) => {
-            if (catId) {
-              handleCategoryClick(catId) // Переключаемся на страницу выбранной категории
-            } else {
-              handleLogoClick() // Если фильтр сброшен, возвращаем на главную
+            // ИСПРАВЛЕНО: Вместо ухода на другую страницу, просто сохраняем ID категории
+            // и возвращаем пользователя на Главную страницу, где применится фильтр
+            setSelectedCategoryId(catId)
+            if (page !== 'home') {
+              setPage('home')
             }
           }}
         />
 
-        {page === 'home' && (
-          <HomePage
-            categories={homeCategories}
-            loading={homeCategoriesLoading}
-            // Передаем отфильтрованные поиском проекты
-            projects={getFilteredBySearch(projects)}
-            projectsLoading={projectsLoading}
-            onCategoryClick={handleCategoryClick}
-            onProjectClick={handleProjectClick}
-          />
-        )}
+       {page === 'home' && (
+        <HomePage
+          categories={getFilteredCategories()}
+          loading={homeCategoriesLoading}
+          projects={getFilteredBySearch(projects)}
+          projectsLoading={projectsLoading}
+          // ИСПРАВЛЕНО: теперь клик по кнопке "Открыть" у категории просто активирует фильтр на главной
+          onCategoryClick={(catId) => setSelectedCategoryId(catId)} 
+          onProjectClick={handleProjectClick}
+          searchQuery={searchQuery}
+          selectedCategoryId={selectedCategoryId}
+        />
+      )}
         {page === 'category' && (
           <CatPage
             category={selectedCategory}
