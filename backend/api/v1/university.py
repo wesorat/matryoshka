@@ -15,7 +15,7 @@ university_router = APIRouter(
 @university_router.get("/", summary="Get all universities", response_model=list[UniversityRead])
 async def get_all(
     service: UniversityServiceDep,
-    count: Optional[int] = 100
+    count: Optional[int] = 500
 ):
     universities = await service.get_all(count)
     return universities
