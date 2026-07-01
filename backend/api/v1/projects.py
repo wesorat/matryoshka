@@ -1,5 +1,6 @@
 from typing import Optional
 
+from anyio import current_effective_deadline
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
 
@@ -175,7 +176,8 @@ async def delete_project(
     project_id: int, service: ProjectServiceDep, current_user: CurrentUserDep
 ):
     try:
-        filename = await service.delete(current_user.id, project_id)
+        user_id = None if current_user.is_superuser else current_user.id
+        filename = await service.delete(user_id, project_id)
         if filename is not None:
             return {"status": "deleted"}
         raise NotOwnProject(current_user.id)
@@ -190,7 +192,8 @@ async def delete_project(
     project_slug: str, current_user: CurrentUserDep, service: ProjectServiceDep
 ):
     try:
-        await service.delete_by_slug(current_user.id, project_slug)
+        user_id = None if current_user.is_superuser else current_user.id
+        await service.delete_by_slug(user_id, project_slug)
         return {"status": "deleted"}
     except ProjectNotFound:
         raise HTTPException(status_code=404, detail=f"Project {project_slug} not found")

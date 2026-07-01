@@ -18,8 +18,8 @@ class UserRead(schemas.BaseUser[ID]):
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    is_active: bool = Field(default=True, exclude=True)
-    is_superuser: bool = Field(default=False, exclude=True)
+    # is_active: bool = Field(default=True, exclude=True)
+    # is_superuser: bool = Field(default=False, exclude=True)
     is_verified: bool = Field(default=False, exclude=True)
 
     model_config = ConfigDict(from_attributes=True)

@@ -15,8 +15,8 @@ class Comments(Base):
         String(length=500),
         nullable=False,
     )
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=get_datetime_utc_now
     )

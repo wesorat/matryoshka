@@ -33,27 +33,36 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         onupdate=get_datetime_utc_now,
     )
 
-    roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="user")
+    roles: Mapped[list["MemberRoles"]] = relationship("MemberRoles", back_populates="user",cascade="all, delete-orphan",
+        passive_deletes=True,)
 
     own_projects: Mapped[list["Projects"]] = relationship(
         "Projects",
         back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     comments: Mapped["Comments"] = relationship(
-        "Comments", back_populates="user"
+        "Comments", back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     sent_invites: Mapped[list["ProjectInvite"]] = relationship(
         "ProjectInvite",
         foreign_keys="ProjectInvite.inviter_id",
         back_populates="inviter",
-        lazy="selectin"
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
     received_invites: Mapped[list["ProjectInvite"]] = relationship(
         "ProjectInvite",
         foreign_keys="ProjectInvite.invitee_id",
         back_populates="invitee",
-        lazy="selectin"
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     university: Mapped[Optional["University"]] = relationship(
