@@ -17,12 +17,41 @@ import { fetchCategories, fetchProjects, fetchProjectsByCategory,
 import AuthorPage from '../pages/AuthorPage.jsx'
 import AdminPage from '../pages/AdminPage.jsx'
 
+const getRouteFromPathname = (pathname = window.location.pathname) => {
+  const projectMatch = pathname.match(/^\/projects\/([^/]+)\/?$/)
+
+  if (projectMatch) {
+    return {
+      page: 'project',
+      projectId: decodeURIComponent(projectMatch[1]),
+    }
+  }
+
+  return {
+    page: 'home',
+    projectId: null,
+  }
+}
+
+const isPlainLeftClick = (event) => (
+  !event ||
+  (
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  )
+)
+
 function App() {
+  const initialRoute = getRouteFromPathname()
+
   // Шапка ======================================================================================================
   const [isShrunk, setIsShrunk] = useState(false) // Уменьшение шапки при скролле
-  const [page, setPage] = useState('home') // Имя текущей активной страницы
+  const [page, setPage] = useState(initialRoute.page) // Имя текущей активной страницы
   const [logType, setLogType] = useState(null) // Тип окна авторизации (вход или регистрация)
-  const [selectedProjectId, setSelectedProjectId] = useState(null)
+  const [selectedProjectId, setSelectedProjectId] = useState(initialRoute.projectId)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
 
   // ИЗМЕНЕНИЕ: Глобальное состояние для текстового поиска по названию проектов
@@ -53,6 +82,17 @@ function App() {
   const [selectedAuthorId, setSelectedAuthorId] = useState(null); // ID автора для просмотра его страницы
 
   //=============================================================================================================
+
+  useEffect(() => {
+    const route = getRouteFromPathname()
+    window.history.replaceState(
+      route.page === 'project'
+        ? { page: 'project', projectId: route.projectId }
+        : { page: 'home' },
+      '',
+      window.location.pathname
+    )
+  }, [])
 
   // Проверка сессии при запуске
   useEffect(() => {
@@ -107,20 +147,22 @@ function App() {
   // История браузера
   useEffect(() => {
     const handlePopState = (event) => {
-      if (event.state?.page === 'project') {
+      const route = event.state?.page ? event.state : getRouteFromPathname()
+
+      if (route.page === 'project') {
         setSelectedCategoryId(null)
-        setSelectedProjectId(event.state.projectId)
+        setSelectedProjectId(route.projectId)
         setPage('project')
-      } else if (event.state?.page === 'category') {
+      } else if (route.page === 'category') {
         setSelectedProjectId(null)
-        setSelectedCategoryId(event.state.categoryId)
+        setSelectedCategoryId(route.categoryId)
         setPage('category')
-      } else if (event.state?.page === 'user') {
+      } else if (route.page === 'user') {
         setPage('user')
-      } else if (event.state?.page === 'author') {
-        setSelectedAuthorId(event.state.authorId);
+      } else if (route.page === 'author') {
+        setSelectedAuthorId(route.authorId);
         setPage('author');
-      } else if (event.state?.page === 'admin') {
+      } else if (route.page === 'admin') {
         setPage('admin')
       } else {
         setSelectedProjectId(null)
@@ -178,14 +220,14 @@ function App() {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
     setPage('user')
-    window.history.pushState({ page: 'user' }, '')
+    window.history.pushState({ page: 'user' }, '', '/')
   }
 
   const handleAdminClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
     setPage('admin')
-    window.history.pushState({ page: 'admin' }, '')
+    window.history.pushState({ page: 'admin' }, '', '/')
   }
 
   // Полный логаут с очисткой сессии и стейтов
@@ -200,7 +242,7 @@ function App() {
       setSelectedProjectId(null)
       setSelectedCategoryId(null)
       setPage('home')
-      window.history.pushState({ page: 'home' }, '')
+      window.history.pushState({ page: 'home' }, '', '/')
     }
   }
 
@@ -209,16 +251,19 @@ function App() {
     setSelectedCategoryId(categoryId)
     setSelectedProjectId(null)
     setPage('category')
-    window.history.pushState({ page: 'category', categoryId }, '')
+    window.history.pushState({ page: 'category', categoryId }, '', '/')
   }
 
   // Просмотр отдельного проекта с плавным скроллом наверх
-  const handleProjectClick = (projectId) => {
+  const handleProjectClick = (projectId, event) => {
+    if (!projectId || !isPlainLeftClick(event)) return
+
+    event?.preventDefault()
     setSelectedProjectId(projectId)
     setIsEditMode(false)
     setPage('project')
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    window.history.pushState({ page: 'project', projectId }, '')
+    window.history.pushState({ page: 'project', projectId }, '', `/projects/${projectId}`)
   }
 
   // Открытие проекта сразу в режиме редактирования (из личного кабинета)
@@ -228,11 +273,15 @@ function App() {
     setIsEditMode(true)
     setPage('project')
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    window.history.pushState({ page: 'project', projectId }, '')
+    window.history.pushState({ page: 'project', projectId }, '', `/projects/${projectId}`)
   }
 
   // Кнопка «Назад» с умным возвратом
   const handleBackToHome = () => {
+    const nextPage = page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)
+      ? 'user'
+      : 'home'
+
     if (page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)) {
       setPage('user')
     } else {
@@ -240,6 +289,7 @@ function App() {
     }
     setSelectedProjectId(null)
     setIsEditMode(false)
+    window.history.pushState({ page: nextPage }, '', '/')
   }
 
   // Открытие формы входа
@@ -258,6 +308,7 @@ function App() {
   const handleLogClose = () => {
     setPage(logType === 'edit' ? 'user' : 'home')
     setLogType(null)
+    window.history.pushState({ page: logType === 'edit' ? 'user' : 'home' }, '', '/')
   }
 
   // Дополнительный слушатель для корректного отслеживания возврата в профиль
@@ -278,14 +329,14 @@ function App() {
     setSelectedCategoryId(null)
     setSearchQuery('') // ИЗМЕНЕНИЕ: Сбрасываем текст поиска при клике на лого
     setPage('home')
-    window.history.pushState({ page: 'home' }, '')
+    window.history.pushState({ page: 'home' }, '', '/')
   }
 
   // Переход на страницу другого автора
   const handleAuthorClick = (authorId) => {
     setSelectedAuthorId(authorId);
     setPage('author');
-    window.history.pushState({ page: 'author', authorId }, '');
+    window.history.pushState({ page: 'author', authorId }, '', '/');
   };
 
   const handlePublishSuccess = (savedProject) => {
@@ -315,6 +366,7 @@ function App() {
       return
     }
     let mounted = true
+    setCurrentProject(null)
     setCurrentProjectLoading(true)
     fetchProjectById(selectedProjectId)
       .then((data) => {
@@ -322,6 +374,7 @@ function App() {
       })
       .catch((err) => {
         console.error('Не удалось загрузить данные проекта:', err)
+        if (mounted) setCurrentProject(null)
       })
       .finally(() => {
         if (mounted) setCurrentProjectLoading(false)
@@ -428,6 +481,7 @@ function App() {
             setSearchQuery(query)
             if (query && page !== 'home' && page !== 'category') {
               setPage('home')
+              window.history.replaceState({ page: 'home' }, '', '/')
             }
           }}
           onFilterSelect={(catId) => {
@@ -436,6 +490,7 @@ function App() {
             setSelectedCategoryId(catId)
             if (page !== 'home') {
               setPage('home')
+              window.history.pushState({ page: 'home' }, '', '/')
             }
           }}
         />
