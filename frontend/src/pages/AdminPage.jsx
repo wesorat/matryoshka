@@ -63,19 +63,22 @@ function AdminPage({ onBack }) {
   };
 
   const handleDelete = async (item) => {
-    const id = item.id || item._id;
-    const label = tab === 'users' ? 'пользователя' : tab === 'projects' ? 'проект' : 'комментарий';
-    if (!confirm(`Удалить ${label}? Действие необратимо.`)) return;
+  const id = item.id || item._id;
+  const label = tab === 'users' ? 'пользователя' : tab === 'projects' ? 'проект' : 'комментарий';
+  if (!confirm(`Удалить ${label}? Действие необратимо.`)) return;
 
-    try {
-      if (tab === 'users') await deleteUserAdmin(id);
-      else if (tab === 'projects') await deleteProject(id);
-      else await deleteComment(id);
-      setItems((prev) => prev.filter((i) => (i.id || i._id) !== id));
-    } catch (err) {
-      alert(err.message || 'Не удалось удалить');
-    }
-  };
+  try {
+    if (tab === 'users') await deleteUserAdmin(id);
+    else if (tab === 'projects') await deleteProject(id);
+    else await deleteComment(id);
+
+    // Обновляем текущий список
+    setItems((prev) => prev.filter((i) => (i.id || i._id) !== id));
+  } catch (err) {
+    console.error('Ошибка при удалении:', err);
+    alert(`Не удалось удалить ${label}: ${err.message || 'Неизвестная ошибка'}`);
+  }
+};
 
   const placeholder = {
     users: 'Поиск по имени пользователя...',
