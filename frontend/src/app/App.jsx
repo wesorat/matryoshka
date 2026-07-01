@@ -13,6 +13,7 @@ import { fetchCategories, fetchProjects, fetchProjectsByCategory,
          fetchCurrentUser, logout, fetchMyProjects, createProject,
          updateProject, fetchProjectById, uploadUserAvatar } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
+import AdminPage from '../pages/AdminPage.jsx'
 
 function App() {
   // Шапка ======================================================================================================
@@ -30,7 +31,7 @@ function App() {
   const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
 
   // Категории ==================================================================================================
-  const [categories, setCategories] = useState([]) //все (в частности драфты) 
+  const [categories, setCategories] = useState([]) //все (в частности драфты)
   const [categoriesLoading, setCategoriesLoading] = useState(true)
 
   const [homeCategories, setHomeCategories] = useState([]) //только интересные (с проектами)
@@ -47,7 +48,7 @@ function App() {
   const [selectedAuthorId, setSelectedAuthorId] = useState(null); // ID автора для просмотра его страницы
 
   //=============================================================================================================
-  
+
   // Проверка сессии при запуске
   useEffect(() => {
     fetchCurrentUser()
@@ -114,6 +115,8 @@ function App() {
       } else if (event.state?.page === 'author') {
         setSelectedAuthorId(event.state.authorId);
         setPage('author');
+      } else if (event.state?.page === 'admin') {
+        setPage('admin')
       } else {
         setSelectedProjectId(null)
         setSelectedCategoryId(null)
@@ -172,6 +175,13 @@ function App() {
     setSelectedCategoryId(null)
     setPage('user')
     window.history.pushState({ page: 'user' }, '')
+  }
+
+  const handleAdminClick = () => {
+    setSelectedProjectId(null)
+    setSelectedCategoryId(null)
+    setPage('admin')
+    window.history.pushState({ page: 'admin' }, '')
   }
 
   // Полный логаут с очисткой сессии и стейтов
@@ -364,9 +374,16 @@ function App() {
           </div>
           <nav className="appHeader__nav">
             {user ? (
-              <Button type="button" variant="link" onClick={handleAccountClick}>
-                {user.name}
-              </Button>
+              <>
+                <Button type="button" variant="link" onClick={handleAccountClick}>
+                  {user.name}
+                </Button>
+                {user.is_superuser && (
+                  <Button type="button" variant="link" onClick={handleAdminClick}>
+                    Админ
+                  </Button>
+                )}
+              </>
             ) : (
               <>
                 <Button type="button" variant="link" onClick={handleSignUpClick}>Регистрация</Button>
@@ -433,6 +450,10 @@ function App() {
             categories={categories}
           />
         )}
+          {page === 'admin' && user?.is_superuser && (
+            <AdminPage onBack={handleBackToHome} />
+          )}
+
       </main>
 
       <Footer />
