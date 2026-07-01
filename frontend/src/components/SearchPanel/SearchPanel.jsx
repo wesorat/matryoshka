@@ -6,14 +6,22 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
+  
   const panelRef = useRef(null);
+  const dropdownRef = useRef(null); // ИСПРАВЛЕНО: Реф для кнопки селекта
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Закрытие всей панели
       if (panelRef.current && !panelRef.current.contains(event.target)) {
         if (!searchQuery) {
           setIsExpanded(false);
         }
+      }
+      // ИСПРАВЛЕНО: Закрытие списка, если кликнули в любое другое место (включая инпут поиска)
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -31,9 +39,9 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
     if (onSearch) onSearch(e.target.value);
   };
 
-  const handleDropdownChange = (e) => {
-    const val = e.target.value || null;
+  const handleCustomSelect = (val) => {
     setActiveFilter(val);
+    setIsDropdownOpen(false);
     if (onFilterSelect) onFilterSelect(val);
   };
 
@@ -42,9 +50,14 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
     setSearchQuery('');
     setActiveFilter(null);
     setIsExpanded(false);
+    setIsDropdownOpen(false);
     if (onSearch) onSearch('');
     if (onFilterSelect) onFilterSelect(null);
   };
+
+  const selectedCategoryName = categories.find(
+    (cat) => String(cat.id || cat._id) === String(activeFilter)
+  )?.name || 'Все разделы';
 
   return (
     <div 
@@ -55,7 +68,7 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
       <div className={styles.searchPanel__mainRow}>
         {isExpanded ? (
           <>
-            {/* БЛОК 1: Строка поиска (Занимает остаток — 75% ширины) */}
+            {/* БЛОК 1: Строка поиска */}
             <div className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--input']}`}>
               <input
                 type="text"
@@ -67,27 +80,45 @@ const SearchPanel = ({ categories = [], onSearch, onFilterSelect }) => {
               />
             </div>
 
-            {/* БЛОК 2: Категории (Занимает 20% ширины) */}
-            <div className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']}`}>
-              <select
-                className={styles.searchPanel__select}
-                value={activeFilter || ''}
-                onChange={handleDropdownChange}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <option value="">Все разделы</option>
-                {categories.map((category) => {
-                  const catId = category.id || category._id;
-                  return (
-                    <option key={catId} value={catId}>
-                      {category.name}
-                    </option>
-                  );
-                })}
-              </select>
+            {/* БЛОК 2: Категории (Кастомный дропдаун) */}
+            <div 
+              ref={dropdownRef} // ИСПРАВЛЕНО: Вешаем реф
+              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
+            >
+              <div className={styles.searchPanel__selectedText}>
+                {selectedCategoryName}
+              </div>
+
+              {isDropdownOpen && (
+                <div className={styles.searchPanel__dropdownMenu}>
+                  <div 
+                    className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                    onClick={() => handleCustomSelect(null)}
+                  >
+                    Все разделы
+                  </div>
+                  {categories.map((category) => {
+                    const catId = category.id || category._id;
+                    const isActive = String(activeFilter) === String(catId);
+                    return (
+                      <div 
+                        key={catId} 
+                        className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                        onClick={() => handleCustomSelect(catId)}
+                      >
+                        {category.name}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* БЛОК 3: Матрёшка / Закрытие (Квадрат, занимает 5% ширины) */}
+            {/* БЛОК 3: Матрёшка / Закрытие */}
             <div 
               className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--icon']}`}
               onClick={handleClear}

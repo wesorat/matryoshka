@@ -115,6 +115,9 @@
       flex: 20 0 0%;
       position: relative;
       padding-right: 32px; 
+      cursor: pointer; 
+      user-select: none;
+      overflow: visible !important; // ИСПРАВЛЕНО: перебиваем hidden из glass-container
 
       &::after {
         content: '▼';
@@ -165,19 +168,67 @@
     }
   }
 
-  &__select {
+  // Текст текущего выбора на кнопке
+  &__selectedText {
     width: 100%;
-    border: none;
-    background: transparent;
     color: vars.$text-main;
     font-size: 0.9rem;
     font-weight: 600;
-    outline: none;
-    cursor: pointer;
-    appearance: none; 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  // Контейнер выпадающего списка (ВСПЛЫВАЕТ НАВЕРХ)
+  &__dropdownMenu {
+    position: absolute;
+    bottom: calc(100% + 8px); // Садится НАД инпутом панели с зазором
+    left: 0;
+    width: 100%; // Ширина один-в-один как у кнопки-родителя
+    max-height: 260px; 
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.98); // Контрастный белый фон
+    border: 1px solid rgba(vars.$basic-accent, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(26, 17, 8, 0.12);
+    z-index: 10001; 
+    
+    // ИСПРАВЛЕНО: Удален флексбокс, чтобы элементы не сжимались
+    padding: 6px 0;
+
+    &::-webkit-scrollbar {
+      width: 5px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(vars.$basic-accent, 0.2);
+      border-radius: 4px;
+    }
+  }
+
+  // Элемент списка (категория)
+  &__dropdownItem {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 500; 
+    line-height: 1.4; // ИСПРАВЛЕНО: Явно задаем высоту строки для красивого отображения текста
+    color: vars.$text-main;
+    text-align: left;
+    transition: background-color 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer; // Добавлено для лучшего UX
+
+    &:hover {
+      background: rgba(vars.$basic-accent, 0.06);
+      color: vars.$basic-accent;
+    }
+
+    &--active {
+      background: rgba(vars.$basic-accent, 0.08);
+      color: vars.$basic-accent;
+      font-weight: 600;
+    }
   }
 
   &__iconWrapper {
