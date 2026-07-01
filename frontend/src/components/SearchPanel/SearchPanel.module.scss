@@ -26,14 +26,14 @@
   // СОСТОЯНИЕ: Свёрнуто
   &--collapsed {
     @include mixins.glass-container; 
-    position: fixed; // Возвращаем fixed после миксина
+    position: fixed; 
     
-    width: fit-content;
+    width: 160px;           // ИСПРАВЛЕНО: Фиксированная ширина вместо fit-content для плавной анимации
     max-width: none;
     cursor: pointer;
     
     height: 56px;           
-    padding: 0 0 0 24px;    
+    padding: 0 24px;        // ИСПРАВЛЕНО: Делаем правый (и левый) отступ ровно 24px, как в развернутом виде
     border-radius: 14px;    
     display: flex;
     align-items: center;
@@ -51,12 +51,11 @@
     }
   }
 
-  // СОСТОЯНИЕ: Развёрнуто (Остается в рамках сетки, создавая блюр-рамку вокруг инпутов)
+  // СОСТОЯНИЕ: Развёрнуто
   &--expanded {
     @include mixins.glass-container;
-    position: fixed; // Возвращаем fixed после миксина
+    position: fixed; 
     
-    // Переопределяем фон и размытие для родительской рамки
     background: rgba(vars.$basic-light, 0.4); 
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
@@ -64,20 +63,18 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
 
-    // СВЕРХУ И СНИЗУ: Задаем отступы для вертикальной зоны блюра
-    padding: 14px 0; 
+    padding: 14px 24px;     // ИСПРАВЛЕНО: Задаем фиксированный боковой отступ 24px вместо 0
     overflow: visible;
 
-    // ПО БОКАМ: Сжимаем контентную строку до 95% и центрируем
+    // Контентная строка теперь занимает всю внутреннюю ширину за вычетом padding
     .searchPanel__mainRow {
-      width: 95%;
-      margin: 0 auto; // Дает ровно по 2.5% размытых полей слева и справа
+      width: 100%;          // ИСПРАВЛЕНО: 100% вместо 95%
+      margin: 0;            // ИСПРАВЛЕНО: убираем auto-центрирование, теперь выравнивание по краям идеальное
       gap: 12px;
       min-height: auto;
       height: 56px; 
     }
 
-    // Изолируем инпуты от двойного размытия, делая их контрастными и читаемыми
     .searchPanel__glassItem {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
