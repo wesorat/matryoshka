@@ -25,3 +25,8 @@ class CommentsService:
 
     async def get_all(self, count: int = 1000) -> list[Comments]:
         return await self.repo.get_all(count)
+
+    async def search_by_text(self, text: str) -> list[Comments]:
+        if len(text) < 2:
+            return []
+        return await self.repo.search_by_text(text)
