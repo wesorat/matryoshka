@@ -3,7 +3,7 @@ from asyncpg import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
 
-from api.v1.dependencies import CategoryServiceDep
+from api.v1.dependencies import CategoryServiceDep, CurrentAdminDep
 from schemas.category import CategoryCreate, CategoryRead, CategoryReadWithLikes
 
 category_router = APIRouter(
@@ -15,6 +15,7 @@ category_router = APIRouter(
 @category_router.post("/", summary="Create category", response_model=CategoryRead)
 async def create(
     category_service: CategoryServiceDep,
+    _admin: CurrentAdminDep,
     category: CategoryCreate,
 ):
     try:
@@ -54,6 +55,7 @@ async def get_all(
 @category_router.delete("/{id}", summary="Delete category")
 async def delete(
     category_service: CategoryServiceDep,
+    _admin: CurrentAdminDep,
     id: int,
 ):
     try:
