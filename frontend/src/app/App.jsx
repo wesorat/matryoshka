@@ -10,10 +10,8 @@ import ProjectPage from '../pages/ProjectPage.jsx'
 import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
-import { defaultProjects } from '../data/slides'
 import { fetchCategories, fetchCategoryById, fetchProjects, fetchProjectsByCategory,
-         fetchCurrentUser, logout, fetchMyProjects, createProject,
-         updateProject, fetchProjectById, uploadUserAvatar } from '../api.js'
+         fetchCurrentUser, logout, fetchMyProjects, fetchProjectById } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
 import AdminPage from '../pages/AdminPage.jsx'
 
@@ -114,7 +112,6 @@ function App() {
   const [myProjects, setMyProjects] = useState([]) // Личные проекты текущего юзера
   const [myProjectsLoading, setMyProjectsLoading] = useState(true)
   const [currentProject, setCurrentProject] = useState(null) // Свежие данные открытого проекта
-  const [currentProjectLoading, setCurrentProjectLoading] = useState(false)
 
   // Категории ==================================================================================================
   const [categories, setCategories] = useState([]) //все (в частности драфты)
@@ -215,7 +212,9 @@ function App() {
   useEffect(() => {
     if ((page !== 'user' && page !== 'projectNew') || !user) return
     let mounted = true
-    setMyProjectsLoading(true)
+    const timeoutId = setTimeout(() => {
+      if (mounted) setMyProjectsLoading(true)
+    }, 0)
     fetchMyProjects()
       .then((items) => {
         if (mounted) setMyProjects(items)
@@ -224,7 +223,10 @@ function App() {
       .finally(() => {
         if (mounted) setMyProjectsLoading(false)
       })
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+    }
   }, [page, user])
 
   // Обработка скролла шапки
@@ -353,16 +355,6 @@ function App() {
     navigateToRoute(`/projects/${projectId}`, { scrollTop: true })
   }
 
-  // Открытие проекта сразу в режиме редактирования (из личного кабинета)
-  const handleEditProjectClick = (project) => {
-    const projectId = project.id || project._id
-    setSelectedProjectId(projectId)
-    setIsEditMode(true)
-    setPage('project')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    window.history.pushState({ page: 'project', projectId }, '', `/projects/${projectId}`)
-  }
-
   // Кнопка «Назад» с умным возвратом
   const handleBackToHome = () => {
     const nextPage = page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)
@@ -444,12 +436,15 @@ function App() {
   // Получить информацию о проекте по его ID
   useEffect(() => {
     if (!selectedProjectId || page !== 'project') {
-      setCurrentProject(null)
-      return
+      const timeoutId = setTimeout(() => {
+        setCurrentProject(null)
+      }, 0)
+      return () => clearTimeout(timeoutId)
     }
     let mounted = true
-    setCurrentProject(null)
-    setCurrentProjectLoading(true)
+    const timeoutId = setTimeout(() => {
+      if (mounted) setCurrentProject(null)
+    }, 0)
     fetchProjectById(selectedProjectId)
       .then((data) => {
         if (mounted) setCurrentProject(data)
@@ -458,10 +453,10 @@ function App() {
         console.error('Не удалось загрузить данные проекта:', err)
         if (mounted) setCurrentProject(null)
       })
-      .finally(() => {
-        if (mounted) setCurrentProjectLoading(false)
-      })
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+    }
   }, [selectedProjectId, page])
 
   const selectedCategoryFromList = categories.find((category) => String(category.id || category._id) === String(selectedCategoryId))

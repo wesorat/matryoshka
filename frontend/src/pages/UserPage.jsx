@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
@@ -34,13 +34,16 @@ function UserPage({
   const [isEditingBio, setIsEditingBio] = useState(false);
 
   // 1. Добавляем стейт для обхода кэша браузера
-  const [avatarTicket, setAvatarTicket] = useState(Date.now());
+  const [avatarTicket, setAvatarTicket] = useState(0);
 
   // Ссылка на скрытый тег выбора файлов
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    setBio(user.bio || '');
+    const timeoutId = setTimeout(() => {
+      setBio(user.bio || '');
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [user.bio]);
 
   const isPublishFormOpen = isPublishOpen || createProjectOpen;

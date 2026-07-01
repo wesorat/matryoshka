@@ -7,7 +7,6 @@ const mediaBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 function ProjectCards({ 
   projects = defaultProjects, 
   onProjectClick = () => {}, 
-  onUserClick = () => {}, 
   onEditClick = null, // Новый проп для обработки редактирования
   limit = null 
 

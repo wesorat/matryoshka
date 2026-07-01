@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../Buttons/Button.jsx';
 import { createProject, updateProject, createMedia, deleteMedia, fetchUniversities } from '../../api.js';
 import styles from './ProjectForm.module.scss';
@@ -34,30 +34,33 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
 
   // Синхронизация данных при открытии формы
   useEffect(() => {
-    if (project) {
-      setTitle(project.title || '');
-      setDescription(project.description || ''); // <-- ИСПРАВЛЕНО: теперь описание не потеряется при редактировании
-      setCategoryId(project.category_id || project.categoryId || '');
-      setStatus(project.status || 'draft');
-      setPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
-      setImplementationDetails(project.implementation_details || project.implementationDetails || '');
-      setResults(project.results || project.results || '');
-      setMediaList(project.medias || []);
-      setUniversityId(project.university?.id || project.university_id || project.universityId || '');
-    } else {
-      // Сброс полей при создании нового проекта
-      setTitle('');
-      setDescription('');
-      setCategoryId('');
-      setStatus('draft');
-      setMedia(null);
-      setPracticalBenefit('');
-      setImplementationDetails('');
-      setResults('');
-      setMediaList([]);
-      setUniversityId('');
-    }
-    setError('');
+    const timeoutId = setTimeout(() => {
+      if (project) {
+        setTitle(project.title || '');
+        setDescription(project.description || ''); // <-- ИСПРАВЛЕНО: теперь описание не потеряется при редактировании
+        setCategoryId(project.category_id || project.categoryId || '');
+        setStatus(project.status || 'draft');
+        setPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
+        setImplementationDetails(project.implementation_details || project.implementationDetails || '');
+        setResults(project.results || '');
+        setMediaList(project.medias || []);
+        setUniversityId(project.university?.id || project.university_id || project.universityId || '');
+      } else {
+        // Сброс полей при создании нового проекта
+        setTitle('');
+        setDescription('');
+        setCategoryId('');
+        setStatus('draft');
+        setMedia(null);
+        setPracticalBenefit('');
+        setImplementationDetails('');
+        setResults('');
+        setMediaList([]);
+        setUniversityId('');
+      }
+      setError('');
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [project]);
 
   useEffect(() => {

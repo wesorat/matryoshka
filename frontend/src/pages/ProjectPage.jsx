@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
@@ -88,43 +88,53 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
     if (id && (!initialProject || (!initialProject.practical_benefit && !initialProject.practicalBenefit))) {
-      setLoading(true);
-      setError('');
+      let mounted = true;
+      const timeoutId = setTimeout(() => {
+        if (!mounted) return;
+        setLoading(true);
+        setError('');
+      }, 0);
       fetchProjectById(id)
         .then((data) => {
-          setProject(data);
+          if (mounted) setProject(data);
         })
         .catch((err) => {
           console.error(err);
-          setError('Не удалось загрузить подробную информацию о проекте.');
+          if (mounted) setError('Не удалось загрузить подробную информацию о проекте.');
         })
         .finally(() => {
-          setLoading(false);
+          if (mounted) setLoading(false);
         });
+      return () => {
+        mounted = false;
+        clearTimeout(timeoutId);
+      };
     } else {
-      setProject(initialProject);
+      const timeoutId = setTimeout(() => {
+        setProject(initialProject);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [projectId, initialProject]);
 
   // Заполняем поля формы при получении данных проекта
   useEffect(() => {
-    if (project) {
-      setEditTitle(project.title || '');
-      setEditStatus(project.status || 'draft');
-      setEditCategoryId(project.category?.id || '');
-      setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
-      setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
-      setEditResults(project.results || '');
-      setLikeCount(project.like_count || 0);
-      setComments(project.comments || []);
-      setEditMediaList(project.medias || []);
-      setEditUniversityId(project.university?.id || '');
-      // проверяем лайкнул ли текущий пользователь
-      if (user && project.comments) {
-        // лайки не приходят в ответе напрямую, оставим false по умолчанию
+    const timeoutId = setTimeout(() => {
+      if (project) {
+        setEditTitle(project.title || '');
+        setEditStatus(project.status || 'draft');
+        setEditCategoryId(project.category?.id || '');
+        setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
+        setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
+        setEditResults(project.results || '');
+        setLikeCount(project.like_count || 0);
+        setComments(project.comments || []);
+        setEditMediaList(project.medias || []);
+        setEditUniversityId(project.university?.id || '');
         setLiked(false);
       }
-    }
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [project]);
 
   if (loading) {

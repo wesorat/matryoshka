@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CustomIcon = ({ size, color = 'currentColor', width, height, ...props }) => {
   const widthAttr = width || (size ? size : '100%');
   const heightAttr = height || (size ? size : '100%');

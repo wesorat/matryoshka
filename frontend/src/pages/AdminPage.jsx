@@ -38,8 +38,11 @@ function AdminPage({ onBack }) {
   }, [tab]);
 
   useEffect(() => {
-    setSearch('');
-    loadAll();
+    const timeoutId = setTimeout(() => {
+      setSearch('');
+      loadAll();
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [tab, loadAll]);
 
   const handleSearch = async (e) => {
