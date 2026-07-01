@@ -1,0 +1,204 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+
+.searchPanel {
+  @include mixins.text-ordinary;
+  box-sizing: border-box;
+  
+  transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              padding 0.3s ease, 
+              background-color 0.3s ease;
+
+  // Фиксированное позиционирование по умолчанию (для развернутого состояния)
+  position: fixed;
+  bottom: 30px;
+  right: 20px;
+  left: auto;
+  z-index: 9999;
+
+  width: min(100vw - 40px, 1140px);
+  max-width: calc(100vw - 40px);
+
+  @media (min-width: 1220px) {
+    right: calc((100vw - 1180px) / 2 + 20px);
+    width: min(1140px, calc(100vw - 40px));
+    max-width: 1140px;
+  }
+
+  // СОСТОЯНИЕ: Свёрнуто
+  &--collapsed {
+    @include mixins.glass-container; // Подключаем размытие, фоны и тени
+    
+    // КРИТИЧЕСКИЙ ФИКС: Принудительно возвращаем fixed, 
+    // так как миксин glass-container внутри себя ставит position: relative!
+    position: fixed; 
+    
+    width: fit-content;
+    max-width: none;
+    cursor: pointer;
+    
+    height: 56px;           
+    padding: 0 0 0 24px;    
+    border-radius: 14px;    
+    display: flex;
+    align-items: center;
+
+    .searchPanel__mainRow {
+      height: 100%;
+      min-height: auto;
+      gap: 12px;
+    }
+
+    &:hover {
+      background: rgba(vars.$basic-light, 0.95);
+      box-shadow: 0 8px 32px rgba(26, 17, 8, 0.18);
+    }
+  }
+
+  // СОСТОЯНИЕ: Развёрнуто
+  &--expanded {
+    width: min(1140px, calc(100vw - 40px));
+    max-width: min(1140px, calc(100vw - 40px));
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+
+    .searchPanel__mainRow {
+      gap: 12px; 
+      min-height: auto;
+      height: 56px; 
+    }
+  }
+
+  &__mainRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  // Элементы развернутого состояния
+  &__glassItem {
+    @include mixins.glass-container;
+    width: auto;
+    max-width: none;
+    box-shadow: 0 8px 24px rgba(vars.$basic-extra-dark, 0.08);
+    
+    height: 56px; 
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-radius: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s;
+
+    &--input {
+      flex: 75 0 0%;
+    }
+
+    &--dropdown {
+      flex: 20 0 0%;
+      position: relative;
+      padding-right: 32px; 
+
+      &::after {
+        content: '▼';
+        font-size: 0.65rem;
+        color: vars.$basic-accent;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+    }
+
+    &--icon {
+      flex: 5 0 0%;
+      min-width: 56px; 
+      padding: 0;
+      justify-content: center;
+      aspect-ratio: 1;
+      height: 100%; 
+      cursor: pointer;
+
+      &:hover {
+        border-color: rgba(vars.$basic-accent, 0.4);
+      }
+    }
+  }
+
+  &__placeholder {
+    font-weight: 600;
+    color: vars.$basic-accent;
+    font-size: 1rem;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  &__input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: vars.$text-main;
+    outline: none;
+
+    &::placeholder {
+      color: rgba(vars.$text-main, 0.4);
+    }
+  }
+
+  &__select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: vars.$text-main;
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    appearance: none; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Контейнер матрёшки в свернутом состоянии
+  &__iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
+
+  &__matrIcon {
+    display: block;
+    width: 60%;  
+    height: 60%;
+    object-fit: contain;
+    color: vars.$basic-accent;
+    transition: transform 0.2s ease;
+  }
+
+  &--collapsed:hover &__matrIcon,
+  &__glassItem--icon:hover &__matrIcon {
+    transform: scale(1.1);
+  }
+
+  &__closeBtn {
+    font-size: 1.6rem;
+    color: rgba(vars.$text-main, 0.5);
+    line-height: 1;
+    transition: color 0.2s;
+
+    &:hover {
+      color: vars.$basic-accent;
+    }
+  }
+}
