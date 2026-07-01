@@ -43,12 +43,7 @@ function UserPage({
     setBio(user.bio || '');
   }, [user.bio]);
 
-  useEffect(() => {
-    if (createProjectOpen) {
-      setSelectedProject(null);
-      setIsPublishOpen(true);
-    }
-  }, [createProjectOpen]);
+  const isPublishFormOpen = isPublishOpen || createProjectOpen;
 
   const closePublishForm = () => {
     setIsPublishOpen(false);
@@ -230,10 +225,10 @@ function UserPage({
         />
       )}
 
-      {isPublishOpen && (
+      {isPublishFormOpen && (
         <ProjectForm
           categories={categories}
-          project={selectedProject}
+          project={createProjectOpen ? null : selectedProject}
           onSuccess={(data) => {
             onPublishSuccess(data);
             closePublishForm();

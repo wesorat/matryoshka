@@ -465,7 +465,7 @@ function App() {
   }, [selectedProjectId, page])
 
   const selectedCategoryFromList = categories.find((category) => String(category.id || category._id) === String(selectedCategoryId))
-  const selectedCategory = selectedCategoryFromList || currentCategory
+  const selectedCategory = selectedCategoryFromList || (selectedCategoryId ? currentCategory : null)
 
   const displayedCategoryProjects = categoryLoading
     ? []
@@ -479,13 +479,18 @@ function App() {
   // Запрос к API для получения проектов внутри выбранной категории
   useEffect(() => {
     if (!selectedCategoryId) {
-      setCategoryProjects([])
-      setCurrentCategory(null)
-      return
+      const timeoutId = setTimeout(() => {
+        setCategoryProjects([])
+        setCategoryLoading(false)
+      }, 0)
+      return () => clearTimeout(timeoutId)
     }
     let mounted = true
-    setTimeout(() => {
-      if (mounted) setCategoryLoading(true)
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        setCategoryProjects([])
+        setCategoryLoading(true)
+      }
     }, 0)
     fetchProjectsByCategory(selectedCategoryId)
       .then((items) => {
@@ -495,24 +500,25 @@ function App() {
       .finally(() => {
         if (mounted) setCategoryLoading(false)
       })
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+    }
   }, [selectedCategoryId])
 
   useEffect(() => {
-    if (!selectedCategoryId) {
-      setCurrentCategory(null)
-      setCategoryMetaLoading(false)
-      return
-    }
-
-    if (selectedCategoryFromList) {
-      setCurrentCategory(null)
-      setCategoryMetaLoading(false)
-      return
+    if (!selectedCategoryId || selectedCategoryFromList) {
+      const timeoutId = setTimeout(() => {
+        setCurrentCategory(null)
+        setCategoryMetaLoading(false)
+      }, 0)
+      return () => clearTimeout(timeoutId)
     }
 
     let mounted = true
-    setCategoryMetaLoading(true)
+    const timeoutId = setTimeout(() => {
+      if (mounted) setCategoryMetaLoading(true)
+    }, 0)
     fetchCategoryById(selectedCategoryId)
       .then((item) => {
         if (mounted) setCurrentCategory(item)
@@ -525,7 +531,10 @@ function App() {
         if (mounted) setCategoryMetaLoading(false)
       })
 
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+    }
   }, [selectedCategoryId, selectedCategoryFromList])
 
   // Вспомогательная функция для фильтрации массива проектов по введённому в SearchPanel тексту
