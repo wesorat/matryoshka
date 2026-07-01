@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment, createMedia, deleteMedia } from '../api.js';
+import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment, createMedia, deleteMedia, fetchUniversities } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -34,6 +34,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [newMediaType, setNewMediaType] = useState('image');
   const [mediaBusy, setMediaBusy] = useState(false);
   const [mediaError, setMediaError] = useState('');
+
+  const [editUniversityId, setEditUniversityId] = useState('');
+  const [universities, setUniversities] = useState([]);
 
   const handleLike = async () => {
     if (!user) return;
@@ -75,6 +78,12 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
     }
   };
 
+  useEffect(() => {
+    fetchUniversities()
+      .then((items) => setUniversities(items))
+      .catch((err) => console.error('Не удалось загрузить список вузов:', err));
+  }, []);
+
 
   useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
@@ -109,6 +118,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       setLikeCount(project.like_count || 0);
       setComments(project.comments || []);
       setEditMediaList(project.medias || []);
+      setEditUniversityId(project.university?.id || '');
       // проверяем лайкнул ли текущий пользователь
       if (user && project.comments) {
         // лайки не приходят в ответе напрямую, оставим false по умолчанию
@@ -171,6 +181,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       const updatedData = {
         title: editTitle,
         categoryId: editCategoryId,
+        universityId: editUniversityId,
         practicalBenefit: editPracticalBenefit,
         status: editStatus,
         implementationDetails: editImplementationDetails,
@@ -221,15 +232,25 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
             </select>
           </div>
 
-            <div className={styles.formGroup}>
-              <label>Категория</label>
-              <select value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)}>
-                <option value="">Выберите категорию</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
+          <div className={styles.formGroup}>
+            <label>Категория</label>
+            <select value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)}>
+              <option value="">Выберите категорию</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+              <div className={styles.formGroup}>
+                <label>Учебное заведение</label>
+                <select value={editUniversityId} onChange={(e) => setEditUniversityId(e.target.value)}>
+                  <option value="">Выберите учебное заведение</option>
+                  {universities.map((uni) => (
+                    <option key={uni.id} value={uni.id}>{uni.name}</option>
+                  ))}
+                </select>
+              </div>
 
           <div className={styles.formGroup}>
             <label>Главное изображение (выберите файл для замены)</label>
@@ -398,6 +419,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
             ) : (
               <>
                 {project.category?.name && <span>{project.category.name}</span>}
+                {project.university?.name && (
+                  <span>{project.category?.name ? ' · ' : ''}{project.university.name}</span>
+                )}
                 {project.owner?.name && (
                   <span>
                     {' · Автор: '}

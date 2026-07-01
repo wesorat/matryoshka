@@ -120,6 +120,9 @@ export async function createProject(projectData) {
   if (projectData.categoryId) {
     formData.append('category_id', projectData.categoryId)
   }
+  if (projectData.universityId) {
+    formData.append('university_id', projectData.universityId)
+  }
 
   // Отправляем новые текстовые поля
   formData.append('practical_benefit', projectData.practicalBenefit || '')
@@ -149,6 +152,9 @@ export async function updateProject(projectId, projectData) {
   }
   if (projectData.categoryId) {
     formData.append('category_id', projectData.categoryId)
+  }
+  if (projectData.universityId) {
+    formData.append('university_id', projectData.universityId)
   }
 
   formData.append('practical_benefit', projectData.practicalBenefit || '')
