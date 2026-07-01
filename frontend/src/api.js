@@ -71,10 +71,10 @@ export async function register(email, password, name, universityId) {
     await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        email, 
-        password, 
-        name, 
+      body: JSON.stringify({
+        email,
+        password,
+        name,
         university_id: Number(universityId)
       }),
     })
@@ -120,6 +120,9 @@ export async function createProject(projectData) {
   if (projectData.categoryId) {
     formData.append('category_id', projectData.categoryId)
   }
+  if (projectData.universityId) {
+    formData.append('university_id', projectData.universityId)
+  }
 
   // Отправляем новые текстовые поля
   formData.append('practical_benefit', projectData.practicalBenefit || '')
@@ -149,6 +152,9 @@ export async function updateProject(projectId, projectData) {
   }
   if (projectData.categoryId) {
     formData.append('category_id', projectData.categoryId)
+  }
+  if (projectData.universityId) {
+    formData.append('university_id', projectData.universityId)
   }
 
   formData.append('practical_benefit', projectData.practicalBenefit || '')
@@ -220,8 +226,8 @@ export async function updateCurrentUser(userData) {
     await fetch(`${API_URL}/users/me`, {
       method: 'PATCH',
       credentials: 'include',
-      headers: { 
-        'Content-Type': 'application/json' 
+      headers: {
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(userData),
     })
@@ -239,4 +245,28 @@ export async function uploadUserAvatar(file) {
       body: formData,
     })
   );
+}
+
+export async function createMedia(projectId, file, view = 'image') {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('view', view) // 'image' | 'video'
+  formData.append('project_id', projectId)
+
+  return handleResponse(
+    await fetch(`${API_URL}/media/`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    })
+  )
+}
+
+export async function deleteMedia(projectId, mediaId) {
+  return handleResponse(
+    await fetch(`${API_URL}/media/?project_id=${projectId}&media_id=${mediaId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+  )
 }

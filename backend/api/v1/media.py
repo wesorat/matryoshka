@@ -41,6 +41,7 @@ async def get_file(
         return FileResponse(
             path=file_path,
             filename=filename,
+            content_disposition_type="inline",
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
