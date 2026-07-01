@@ -1,0 +1,100 @@
+@use '../styles/variables' as vars;
+@use '../styles/mixins' as mixins;
+
+.page {
+  width: min(1180px, 100%);
+  margin: 0 auto 40px;
+  padding: 20px 0;
+  box-sizing: border-box;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.title {
+  @include mixins.h1-heading;
+  margin: 0;
+  color: vars.$text-main;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.searchRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 240px;
+  padding: 10px 14px;
+  border: 1px solid vars.$border-color;
+  border-radius: 8px;
+  font-family: vars.$font-secondary;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border-color: vars.$basic-accent;
+  }
+}
+
+.errorMessage {
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid vars.$border-color;
+  border-radius: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: vars.$font-secondary;
+  font-size: 14px;
+
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid vars.$border-color;
+    // Убираем white-space: nowrap
+    // и добавляем перенос слов
+    word-wrap: break-word;
+    word-break: break-word;
+    max-width: 300px; // Опционально: ограничиваем ширину
+  }
+
+  th {
+    background: vars.$basic-light;
+    font-weight: 700;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.commentCell {
+  white-space: normal; // Разрешаем перенос строк
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 360px; // Оставляем максимальную ширину
+  min-width: 150px; // Добавляем минимальную ширину для читаемости
+}

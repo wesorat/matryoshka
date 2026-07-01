@@ -30,3 +30,13 @@ async def delete(
     count = await comment_service.delete(user_id, comment_id)
 
     return {"count_deleted": count}
+
+
+@comments_router.get(
+    "/search/{name}",
+    summary="Search user by title",
+    response_model=list[CommentsRead],
+)
+async def search_comments(text: str, service: CommentsServiceDep):
+    comments = await service.search_by_text(text)
+    return comments 

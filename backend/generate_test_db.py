@@ -3,7 +3,7 @@ import random
 import time
 from functools import lru_cache
 from faker import Faker
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
@@ -57,6 +57,35 @@ CYRILLIC_FONT_PATHS = [
 ]
 
 _FONT_WARNING_PRINTED = False
+
+# Список университетов
+UNIVERSITIES = [
+    "Московский государственный университет им. М.В. Ломоносова",
+    "Санкт-Петербургский государственный университет",
+    "Новосибирский государственный университет",
+    "Томский государственный университет",
+    "Казанский федеральный университет",
+    "Уральский федеральный университет",
+    "Сибирский федеральный университет",
+    "Дальневосточный федеральный университет",
+    "Южный федеральный университет",
+    "Самарский национальный исследовательский университет",
+    "Национальный исследовательский университет ИТМО",
+    "Московский физико-технический институт",
+    "Национальный исследовательский университет «Высшая школа экономики»",
+    "Московский государственный технический университет им. Н.Э. Баумана",
+    "Национальный исследовательский ядерный университет «МИФИ»",
+    "Российский университет дружбы народов",
+    "Саратовский национальный исследовательский государственный университет",
+    "Пермский государственный национальный исследовательский университет",
+    "Белгородский государственный университет",
+    "Воронежский государственный университет",
+    "Нижегородский государственный университет им. Н.И. Лобачевского",
+    "Ростовский государственный университет",
+    "Санкт-Петербургский политехнический университет Петра Великого",
+    "Московский авиационный институт",
+    "Московский государственный лингвистический университет",
+]
 
 
 @lru_cache(maxsize=8)
@@ -152,6 +181,7 @@ class TestDataGenerator:
         self.session = requests.Session()
         self.users = []
         self.categories = []  # Будут заполнены из БД
+        self.universities = []  # Университеты из БД
         self.projects = []
         self.comments = []
         self.likes = []
@@ -174,8 +204,36 @@ class TestDataGenerator:
             print(f"Ошибка при получении категорий: {e}")
             return []
 
-    def register_user(self, email: str, password: str, name: str) -> Dict[str, Any]:
-        """Регистрация пользователя"""
+    def get_existing_universities(self) -> List[Dict[str, Any]]:
+        """Получение существующих университетов из БД"""
+        url = f"{self.base_url}/university/?count=500"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            universities = response.json()
+            print(f"Найдено {len(universities)} существующих университетов")
+            return universities
+        except requests.exceptions.RequestException as e:
+            print(f"Ошибка при получении университетов: {e}")
+            return []
+
+    def create_university(self, name: str) -> Optional[Dict[str, Any]]:
+        """Создание университета"""
+        url = f"{self.base_url}/university/"
+        payload = {"name": name}
+        try:
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            if hasattr(e, "response") and e.response and e.response.status_code == 400:
+                # Университет уже существует
+                return None
+            print(f"Ошибка при создании университета {name}: {e}")
+            return None
+
+    def register_user(self, email: str, password: str, name: str, university_id: Optional[int] = None) -> Dict[str, Any]:
+        """Регистрация пользователя с указанием университета"""
         url = f"{self.base_url}/auth/register"
         payload = {
             "email": email,
@@ -185,6 +243,16 @@ class TestDataGenerator:
             "is_superuser": False,
             "is_verified": True,
         }
+
+        # Добавляем университет, если указан
+        if university_id is not None:
+            payload["university_id"] = university_id
+
+        # Добавляем дополнительные поля
+        payload["bio"] = fake.sentence(nb_words=10)
+        payload["skills"] = ", ".join([fake.job() for _ in range(random.randint(2, 5))])
+        payload["image_url"] = None
+
         try:
             response = requests.post(url, json=payload)
             response.raise_for_status()
@@ -246,8 +314,16 @@ class TestDataGenerator:
         email = f"{DEMO_SEED_USER_PREFIX}{user_number}@{DEMO_SEED_EMAIL_DOMAIN}"
         password = DEMO_SEED_PASSWORD
 
+        # Выбираем случайный университет
+        university = None
+        university_id = None
+        if self.universities:
+            university = random.choice(self.universities)
+            university_id = university["id"]
+            print(f"  Для пользователя {name} выбран университет: {university['name']}")
+
         # Регистрируем пользователя
-        user = self.register_user(email, password, name)
+        user = self.register_user(email, password, name, university_id)
         user_created = user is not None
 
         # Входим в систему
@@ -267,6 +343,8 @@ class TestDataGenerator:
             "name": name,
             "cookies": self.cookies.copy(),
             "created": user_created,
+            "university_id": university_id,
+            "university_name": university["name"] if university else None,
         }
         return user_info
 
@@ -637,6 +715,22 @@ class TestDataGenerator:
             # Небольшая задержка для избежания перегрузки API
             time.sleep(0.1)
 
+    def setup_universities(self):
+        """Настройка университетов"""
+        print("\nПолучение существующих университетов...")
+        self.universities = self.get_existing_universities()
+
+        if not self.universities:
+            print("Создание университетов...")
+            for uni_name in UNIVERSITIES:
+                uni = self.create_university(uni_name)
+                if uni:
+                    self.universities.append(uni)
+                    print(f"  Создан университет: {uni['name']}")
+                time.sleep(0.1)
+        else:
+            print(f"Используется {len(self.universities)} существующих университетов")
+
     def generate_all_data(self, num_users: int = 5, projects_per_user: int = 10):
         """Генерация всех тестовых данных"""
         print("=" * 50)
@@ -652,6 +746,9 @@ class TestDataGenerator:
         else:
             print(f"Используется {len(self.categories)} категорий из базы данных")
 
+        # Настраиваем университеты
+        self.setup_universities()
+
         # Создаем пользователей
         print("\nСоздание пользователей...")
         for i in range(num_users):
@@ -659,8 +756,9 @@ class TestDataGenerator:
             if user_info:
                 self.users.append(user_info)
                 action = "Создан" if user_info.get("created") else "Использован"
+                university_info = f" (университет: {user_info.get('university_name', 'Не указан')})"
                 print(
-                    f"  {action} пользователь: {user_info['name']} (email: {user_info['email']})"
+                    f"  {action} пользователь: {user_info['name']} (email: {user_info['email']}){university_info}"
                 )
             else:
                 print(f"  Не удалось создать пользователя {i+1}")
@@ -686,10 +784,15 @@ class TestDataGenerator:
         print("ГЕНЕРАЦИЯ ДАННЫХ ЗАВЕРШЕНА")
         print("=" * 50)
         print(f"Использовано категорий: {len(self.categories)}")
+        print(f"Университетов: {len(self.universities)}")
         print(f"Пользователей: {len(self.users)}")
         print(f"Проектов: {len(self.projects)}")
         print(f"Комментариев: {len(self.comments)}")
         print(f"Лайков: {len(self.likes)}")
+
+        # Статистика по университетам пользователей
+        users_with_university = sum(1 for u in self.users if u.get("university_id"))
+        print(f"Пользователей с университетами: {users_with_university} ({users_with_university/len(self.users)*100:.1f}%)")
 
         # Статистика по статусам проектов
         if self.projects:
@@ -725,6 +828,7 @@ class TestDataGenerator:
             ]
             print(f"\nПользователь: {user_info['name']} (ID: {user_info['id']})")
             print(f"  Email: {user_info['email']}")
+            print(f"  Университет: {user_info.get('university_name', 'Не указан')}")
             print(f"  Проектов: {len(user_projects)}")
 
             # Показываем комментарии и лайки для проектов

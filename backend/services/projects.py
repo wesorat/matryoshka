@@ -2,9 +2,10 @@ from typing import Optional
 
 from fastapi import UploadFile
 from slugify import slugify
+from sqlalchemy import delete
 
 from core.dependencies import SessionDep
-from models.media import MediaView
+from models.media import Media, MediaView
 from models.project import Projects
 from repositories.projects import ProjectsRepository
 from schemas.projects import ProjectFilterParams, ProjectsCreate, ProjectsReadOne, ProjectsUpdate
@@ -66,14 +67,21 @@ class ProjectService:
             return []
         return await self.repo.search_by_title(title.strip())
 
+    async def delete(self, user_id: int | None, id: int) -> str:
+        project = await self.repo.delete(user_id, id)
+        if project.image_url != "" and project.image_url is not None:
+            await MediaStorageService().delete(project.image_url)
+        if project.medias:
+            stor = MediaStorageService()
+            for f in project.medias:
+                await stor.delete(f.filename)
+            media_id = [m.id for m in project.medias]
+            await self.session.execute(delete(Media).where(Media.id.in_(media_id)))
 
-    async def delete(self, user_id: int | None, project_id: int) -> str:
-        filename = await self.repo.delete(user_id, project_id)
-        if filename != "" and filename is not None :
-            await MediaStorageService().delete(filename)
 
         await self.session.commit()
-        return filename
+        return project.image_url
+
 
     async def delete_by_slug(self, user_id: int | None, slug: str) -> str:
         filename = await self.repo.delete_by_slug(user_id, slug)
