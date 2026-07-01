@@ -390,6 +390,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
 
   return (
     <section className={styles.page}>
+      
+
+      <HeroGallery slides={slides} />
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>{project.title}</h1>
@@ -461,8 +464,6 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
           )}
         </div>
       </div>
-
-      <HeroGallery slides={slides} />
       <div className={styles.metaRow}></div>
 
       {/* Помещаем CategorySection внутрь textContent для эффекта единого контейнера */}
