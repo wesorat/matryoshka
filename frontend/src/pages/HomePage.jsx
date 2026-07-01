@@ -34,7 +34,7 @@ function HomePage({ categories = [], loading = false, projects = [], projectsLoa
           const categoryProjects = buildCategoryProjects(category.id)
 
           return (
-            <section key={category.id}>
+            <section key={category.id} className={styles.categoryBlock}>
               <CategorySection
                 title={category.name}
                 actionText="Открыть"

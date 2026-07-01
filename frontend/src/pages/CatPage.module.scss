@@ -57,3 +57,35 @@
   text-align: center;
 }
 
+.categoryBlock {
+  position: relative;
+  width: min(1180px, 100%);
+  margin: 40px auto; /* центрируем и делаем отступ сверху/снизу */
+  padding: 28px 24px 32px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  background: rgba(vars.$basic-light, 0.8);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+
+  box-shadow:
+    0 8px 32px rgba(26, 17, 8, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+// Адаптив для мобильных устройств
+@media (max-width: 720px) {
+  .categoryBlock {
+    padding: 20px 16px 24px;
+    border-radius: 20px;
+    margin: 20px auto;
+  }
+  
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
