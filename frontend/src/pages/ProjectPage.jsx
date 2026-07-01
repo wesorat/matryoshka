@@ -204,131 +204,133 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   if (isEditing) {
     return (
       <section className={styles.page}>
-        {/* Шапка в режиме редактирования теперь тоже в стеклянном прямоугольнике */}
         <div className={styles.headerRow}>
-          <div style={{ flex: 1, marginRight: '20px' }}>
+          <div>
+            <h1 className={styles.title}>Редактирование проекта</h1>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+            Отмена
+          </Button>
+        </div>
+
+        <form onSubmit={handleSave} className={styles.editForm}>
+          <div className={styles.formGroup}>
+            <label>Название проекта</label>
             <input
               type="text"
-              className={styles.titleInput || styles.input} // используйте ваш класс для инпутов
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="Название проекта"
-              style={{
-                width: '100%',
-                fontSize: '2rem',
-                fontWeight: '700',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid rgba(0,0,0,0.1)',
-                outline: 'none'
-              }}
+              required
             />
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <Button type="button" variant="primary" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Сохранение...' : 'Сохранить'}
+
+          <div className={styles.formGroup}>
+            <label>Статус</label>
+            <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+              <option value="draft">Черновик</option>
+              <option value="published">Опубликовано</option>
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Категория</label>
+            <select value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)}>
+              <option value="">Выберите категорию</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+              <div className={styles.formGroup}>
+                <label>Учебное заведение</label>
+                <select value={editUniversityId} onChange={(e) => setEditUniversityId(e.target.value)}>
+                  <option value="">Выберите учебное заведение</option>
+                  {universities.map((uni) => (
+                    <option key={uni.id} value={uni.id}>{uni.name}</option>
+                  ))}
+                </select>
+              </div>
+
+          <div className={styles.formGroup}>
+            <label>Главное изображение (выберите файл для замены)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setEditMedia(e.target.files[0])}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Практическая польза</label>
+            <textarea
+              value={editPracticalBenefit}
+              onChange={(e) => setEditPracticalBenefit(e.target.value)}
+              rows={5}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Специфика реализации</label>
+            <textarea
+              value={editImplementationDetails}
+              onChange={(e) => setEditImplementationDetails(e.target.value)}
+              rows={5}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Результативность</label>
+            <textarea
+              value={editResults}
+              onChange={(e) => setEditResults(e.target.value)}
+              rows={5}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Дополнительные медиафайлы</label>
+
+            {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
+
+            {editMediaList.length > 0 && (
+              <ul className={styles.mediaList}>
+                {editMediaList.map((media) => (
+                  <li key={media.id} className={styles.mediaItem}>
+                    <span className={styles.mediaType}>
+                      {media.view === 'video' ? 'Видео' : 'Изображение'}
+                    </span>
+                    <span className={styles.mediaName}>{media.filename}</span>
+                    <Button type="button" variant="outline" onClick={() => handleDeleteMedia(media.id)}>
+                      Удалить
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className={styles.mediaUploadRow}>
+              <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
+                <option value="image">Изображение</option>
+                <option value="video">Видео</option>
+              </select>
+              <input
+                type="file"
+                accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
+                onChange={(e) => setNewMediaFile(e.target.files[0])}
+              />
+              <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
+                {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
+              </Button>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-              Отмена
-            </Button>
           </div>
-        </div>
-
-        {/* Если у вас здесь есть блок выбора категории/университета или загрузки медиа, 
-            его тоже можно обернуть в styles.textContent при желании */}
-        <div className={styles.textContent}>
-          <CategorySection title="Настройки публикации" showAction={false} />
-          <div style={{ display: 'flex', gap: '20px', marginTop: '16px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '200px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600' }}>Категория</label>
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                <option value="">Выберите категорию</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '200px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600' }}>Университет</label>
-              <select value={selectedUniversity} onChange={(e) => setSelectedUniversity(e.target.value)}>
-                <option value="">Выберите университет</option>
-                {universities.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '200px' }}>
-              <label style={{ fontSize: '14px', fontWeight: '600' }}>Статус</label>
-              <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                <option value="draft">Черновик</option>
-                <option value="published">Опубликовано</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Каждое текстовое поле ввода заворачиваем в styles.textContent */}
-        <div className={styles.textContent}>
-          <CategorySection title="Практическая польза" showAction={false} />
-          <textarea
-            value={editPracticalBenefit}
-            onChange={(e) => setEditPracticalBenefit(e.target.value)}
-            placeholder="Опишите практическую пользу проекта..."
-            rows={6}
-            style={{
-              width: '100%',
-              marginTop: '16px',
-              padding: '12px',
-              borderRadius: '12px',
-              border: '1px solid rgba(0,0,0,0.15)',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        <div className={styles.textContent}>
-          <CategorySection title="Специфика реализации" showAction={false} />
-          <textarea
-            value={editImplementationDetails}
-            onChange={(e) => setEditImplementationDetails(e.target.value)}
-            placeholder="Опишите специфику реализации..."
-            rows={6}
-            style={{
-              width: '100%',
-              marginTop: '16px',
-              padding: '12px',
-              borderRadius: '12px',
-              border: '1px solid rgba(0,0,0,0.15)',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        <div className={styles.textContent}>
-          <CategorySection title="Результативность" showAction={false} />
-          <textarea
-            value={editResults}
-            onChange={(e) => setEditResults(e.target.value)}
-            placeholder="Опишите результаты работы..."
-            rows={6}
-            style={{
-              width: '100%',
-              marginTop: '16px',
-              padding: '12px',
-              borderRadius: '12px',
-              border: '1px solid rgba(0,0,0,0.15)',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        {/* Блок управления медиафайлами (если он есть в вашей разметке) */}
-        <div className={styles.textContent}>
-          <CategorySection title="Медиафайлы проекта" showAction={false} />
-          <div style={{ marginTop: '16px' }}>
-            <input type="file" multiple onChange={(e) => setEditMedia(e.target.files)} />
-            {/* Тут может быть ваш существующий список медиафайлов с кнопками удаления */}
-          </div>
-        </div>
+        </form>
       </section>
     );
   }
