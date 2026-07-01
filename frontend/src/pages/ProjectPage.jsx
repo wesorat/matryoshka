@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment } from '../api.js';
+import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment, createMedia, deleteMedia } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -28,6 +28,12 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+
+  const [editMediaList, setEditMediaList] = useState([]);
+  const [newMediaFile, setNewMediaFile] = useState(null);
+  const [newMediaType, setNewMediaType] = useState('image');
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [mediaError, setMediaError] = useState('');
 
   const handleLike = async () => {
     if (!user) return;
@@ -102,6 +108,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       setEditResults(project.results || '');
       setLikeCount(project.like_count || 0);
       setComments(project.comments || []);
+      setEditMediaList(project.medias || []);
       // проверяем лайкнул ли текущий пользователь
       if (user && project.comments) {
         // лайки не приходят в ответе напрямую, оставим false по умолчанию
@@ -128,6 +135,32 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       </section>
     );
   }
+  const handleAddMedia = async () => {
+    const id = projectId || project?.id || project?._id;
+    if (!newMediaFile || !id) return;
+    setMediaBusy(true);
+    setMediaError('');
+    try {
+      const media = await createMedia(id, newMediaFile, newMediaType);
+      setEditMediaList((prev) => [...prev, media]);
+      setNewMediaFile(null);
+    } catch (err) {
+      setMediaError(err.message || 'Не удалось загрузить файл');
+    } finally {
+      setMediaBusy(false);
+    }
+  };
+
+  const handleDeleteMedia = async (mediaId) => {
+    const id = projectId || project?.id || project?._id;
+    setMediaError('');
+    try {
+      await deleteMedia(id, mediaId);
+      setEditMediaList((prev) => prev.filter((m) => m.id !== mediaId));
+    } catch (err) {
+      setMediaError(err.message || 'Не удалось удалить файл');
+    }
+  };
 
   // Обработчик отправки формы редактирования
   const handleSave = async (e) => {
@@ -234,6 +267,43 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
             />
           </div>
 
+          <div className={styles.formGroup}>
+            <label>Дополнительные медиафайлы</label>
+
+            {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
+
+            {editMediaList.length > 0 && (
+              <ul className={styles.mediaList}>
+                {editMediaList.map((media) => (
+                  <li key={media.id} className={styles.mediaItem}>
+                    <span className={styles.mediaType}>
+                      {media.view === 'video' ? 'Видео' : 'Изображение'}
+                    </span>
+                    <span className={styles.mediaName}>{media.filename}</span>
+                    <Button type="button" variant="outline" onClick={() => handleDeleteMedia(media.id)}>
+                      Удалить
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className={styles.mediaUploadRow}>
+              <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
+                <option value="image">Изображение</option>
+                <option value="video">Видео</option>
+              </select>
+              <input
+                type="file"
+                accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
+                onChange={(e) => setNewMediaFile(e.target.files[0])}
+              />
+              <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
+                {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
+              </Button>
+            </div>
+          </div>
+
           <div style={{ marginTop: '20px' }}>
             <Button type="submit" disabled={isSaving}>
               {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
@@ -262,17 +332,21 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   if (mainImage) {
     slides.push({
       image: getMediaUrl(mainImage),
+      type: 'image',
       title: '',
       description: ''
     });
   }
 
   if (project.medias && Array.isArray(project.medias)) {
-    project.medias.forEach((media, index) => {
-      const mediaUrl = typeof media === 'string' ? media : (media.url || media.image_url || media.file_path || media.file);
+    project.medias.forEach((media) => {
+      const mediaUrl = typeof media === 'string'
+        ? media
+        : (media.filename || media.url || media.image_url || media.file_path || media.file);
       if (mediaUrl) {
         slides.push({
           image: getMediaUrl(mediaUrl),
+          type: media.view === 'video' ? 'video' : 'image',
           title: '',
           description: ''
         });
@@ -283,6 +357,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   if (slides.length === 0) {
     slides.push({
       image: 'https://placehold.co/1200x600?text=Нет+изображения',
+      type: 'image',
       title: '',
       description: ''
     });

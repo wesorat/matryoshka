@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../Buttons/Button.jsx';
-import { createProject, updateProject } from '../../api.js';
+import { createProject, updateProject, createMedia, deleteMedia } from '../../api.js';
 import styles from './ProjectForm.module.scss';
 
 function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onBack }) {
@@ -22,6 +22,13 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
+
+  const [mediaList, setMediaList] = useState([]);
+  const [newMediaFile, setNewMediaFile] = useState(null);
+  const [newMediaType, setNewMediaType] = useState('image');
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [mediaError, setMediaError] = useState('');
+
   // Синхронизация данных при открытии формы
   useEffect(() => {
     if (project) {
@@ -32,6 +39,7 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       setPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
       setImplementationDetails(project.implementation_details || project.implementationDetails || '');
       setResults(project.results || project.results || '');
+      setMediaList(project.medias || []);
     } else {
       // Сброс полей при создании нового проекта
       setTitle('');
@@ -42,9 +50,38 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       setPracticalBenefit('');
       setImplementationDetails('');
       setResults('');
+      setMediaList([]);
     }
     setError('');
   }, [project]);
+
+  const projectId = project?.id || project?._id;
+
+  const handleAddMedia = async () => {
+    if (!newMediaFile || !projectId) return;
+    setMediaBusy(true);
+    setMediaError('');
+    try {
+      const media = await createMedia(projectId, newMediaFile, newMediaType);
+      setMediaList((prev) => [...prev, media]);
+      setNewMediaFile(null);
+    } catch (err) {
+      setMediaError(err.message || 'Не удалось загрузить файл');
+    } finally {
+      setMediaBusy(false);
+    }
+  };
+
+  const handleDeleteMedia = async (mediaId) => {
+    if (!projectId) return;
+    setMediaError('');
+    try {
+      await deleteMedia(projectId, mediaId);
+      setMediaList((prev) => prev.filter((m) => m.id !== mediaId));
+    } catch (err) {
+      setMediaError(err.message || 'Не удалось удалить файл');
+    }
+  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -181,6 +218,45 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
               placeholder="Чего удалось достичь, метрики, результаты..."
             />
           </div>
+
+          {isEditMode && (
+            <div className={styles.formGroup}>
+              <label>Дополнительные медиафайлы</label>
+
+              {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
+
+              {mediaList.length > 0 && (
+                <ul className={styles.mediaList}>
+                  {mediaList.map((media) => (
+                    <li key={media.id} className={styles.mediaItem}>
+                      <span className={styles.mediaType}>
+                        {media.view === 'video' ? 'Видео' : 'Изображение'}
+                      </span>
+                      <span className={styles.mediaName}>{media.filename}</span>
+                      <Button type="button" variant="outline" onClick={() => handleDeleteMedia(media.id)}>
+                        Удалить
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className={styles.mediaUploadRow}>
+                <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
+                  <option value="image">Изображение</option>
+                  <option value="video">Видео</option>
+                </select>
+                <input
+                  type="file"
+                  accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
+                  onChange={(e) => setNewMediaFile(e.target.files[0])}
+                />
+                <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
+                  {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className={styles.actionsRow}>
             <Button type="button" variant="outline" onClick={closeForm} disabled={isSaving}>

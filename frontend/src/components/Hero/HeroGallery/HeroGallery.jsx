@@ -19,12 +19,12 @@ function HeroGallery({ slides = defaultSlides, onSlideClick = () => {} }) {
   }, [slides.length]);
 
   useEffect(() => {
-    if (isPaused || slides.length <= 1) return;
+  if (isPaused || slides.length <= 1 || slides[activeIndex]?.type === 'video') return;
 
-    timerRef.current = setInterval(goToNext, AUTOPLAY_INTERVAL);
+  timerRef.current = setInterval(goToNext, AUTOPLAY_INTERVAL);
 
-    return () => clearInterval(timerRef.current);
-  }, [isPaused, goToNext, slides.length]);
+  return () => clearInterval(timerRef.current);
+}, [isPaused, goToNext, slides.length, slides, activeIndex]);
 
   if (!slides.length) return null;
 
@@ -43,19 +43,29 @@ function HeroGallery({ slides = defaultSlides, onSlideClick = () => {} }) {
       <div className={styles.carouselWrapper}>
         <div className={styles.carousel}>
           <article className={`${styles.slide} ${styles.side}`}>
-            <img
-              src={prevSlide.image}
-              // alt={prevSlide.title}
-              className={styles.slideImage}
-            />
+            {prevSlide.type === 'video' ? (
+              <video src={prevSlide.image} className={styles.slideImage} muted playsInline />
+            ) : (
+              <img src={prevSlide.image} className={styles.slideImage} />
+            )}
           </article>
 
           <article className={`${styles.slide} ${styles.active}`} onClick={() => onSlideClick(activeSlide.id)} style={{ cursor: 'pointer' }}>
-            <img
-              src={activeSlide.image}
-              alt={activeSlide.title}
-              className={styles.slideImage}
-            />
+            {activeSlide.type === 'video' ? (
+              <video
+                src={activeSlide.image}
+                className={styles.slideImage}
+                controls
+                playsInline
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={activeSlide.image}
+                alt={activeSlide.title}
+                className={styles.slideImage}
+              />
+            )}
             {activeSlide.advantages && (
               <div className={styles.badge}>{activeSlide.advantages}</div>
             )}
@@ -66,11 +76,11 @@ function HeroGallery({ slides = defaultSlides, onSlideClick = () => {} }) {
           </article>
 
           <article className={`${styles.slide} ${styles.side}`}>
-            <img
-              src={nextSlide.image}
-              // alt={nextSlide.title}
-              className={styles.slideImage}
-            />
+            {nextSlide.type === 'video' ? (
+              <video src={nextSlide.image} className={styles.slideImage} muted playsInline />
+            ) : (
+              <img src={nextSlide.image} className={styles.slideImage} />
+            )}
           </article>
         </div>
 
