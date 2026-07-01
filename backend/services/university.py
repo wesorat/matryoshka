@@ -8,6 +8,6 @@ class UniversityService:
         self.session = session
         self.repo = UniversityRepository(session=session)
 
-    async def get_all(self, count: int) -> list[University]:
+    async def get_all(self, count: int = 500) -> list[University]:
         roles = await self.repo.get_all(count)
         return roles
