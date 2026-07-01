@@ -16,7 +16,8 @@ function CatPage({ category, projects = [], loading = false, onBack, onProjectCl
   }
 
   return (
-    <section className={styles.page}>
+    // Применяем класс categoryBlock вместо/вместе с page для создания контейнера
+    <section className={styles.categoryBlock}>
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>{category.name}</h1>
@@ -27,6 +28,7 @@ function CatPage({ category, projects = [], loading = false, onBack, onProjectCl
       </div>
 
       <CategorySection title={null} showAction={false} />
+      
       {loading ? (
         <section className={styles.loading}>
           <p>Загрузка проектов...</p>

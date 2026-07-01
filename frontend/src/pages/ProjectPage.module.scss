@@ -14,24 +14,28 @@
 
 // Основной контейнер страницы просмотра и редактирования
 .page {
-  padding-bottom: 100px; // Отступ в 50-70 пикселей от последнего текстового блока до футера
+  padding-bottom: 100px; 
 }
 
-// Верхний ряд страницы (заголовок, автор и кнопки управления)
+// Верхний ряд страницы 
 .headerRow {
-  margin-bottom: 2rem; // Отступ между кнопками шапки и галереей HeroGallery
+  @include mixins.glass-container; 
+  margin: 40px auto 32px;         
+  
+  display: flex;                
+  justify-content: space-between;
+  align-items: center;
 }
 
 .title {
   @include mixins.h1-heading;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
 }
 
 // Стиль для строки подзаголовка (Категория · Автор:)
 .subtitle {
   @include mixins.text-ordinary;
-  // 0.5rem сверху (от заголовка h1) и 1.25rem снизу (до кнопок управления)
-  margin: 0.5rem 0 1.25rem 0;
+  margin: 0;
 }
 
 // Ссылка/кнопка автора — теперь это просто кликабельный текст
@@ -55,7 +59,6 @@
 
   @include focus-ring;
 }
-
 // Задний фон (оверлей) модального окна
 .formOverlay {
   position: fixed;
@@ -190,7 +193,7 @@
     font-size: 14px;
     color: vars.$text-main;
     border-radius: 0.375rem;
-    background-color: #ffffff;
+    background-color: vars.$basic-light;
     width: 100%;
     border: 1px solid vars.$border-color;
     box-sizing: border-box;
@@ -322,15 +325,37 @@
 
 // Стили для текстового контента разделов проекта (Практическая польза и т.д.)
 .textContent {
-  @include mixins.text-ordinary;
-  margin-top: calc(vars.$base-spacing / 2);
-  margin-bottom: calc(vars.$base-spacing * 1.5);
+  @include mixins.glass-container; // Превращаем текстовый блок в стеклянный прямоугольник
+  margin: 32px auto;              // Внешние отступы между блоками
   color: vars.$text-main;
 
   p {
-    margin: 0;
+    @include mixins.text-ordinary;
+    margin: 16px 0 0 0;            // Отступ сверху, чтобы отделить текст от CategorySection
     line-height: 1.6;
     white-space: pre-wrap;
+  }
+}
+
+// Адаптивная верстка под мобильные экраны
+@media (max-width: 720px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 16px;
+    border-radius: 20px;
+    margin: 20px auto 16px;
+  }
+
+  .textContent {
+    padding: 20px 16px 24px;
+    border-radius: 20px;
+    margin: 16px auto;
+    
+    p {
+      margin-top: 12px;
+    }
   }
 }
 

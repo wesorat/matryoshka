@@ -10,9 +10,10 @@ function ProjectCards({
   onUserClick = () => {}, 
   onEditClick = null, // Новый проп для обработки редактирования
   limit = null 
-}) {
-  const visibleProjects = limit ? projects.slice(0, limit) : projects;
 
+}) {
+
+  const visibleProjects = limit ? projects.slice(0, limit) : projects;
   const handleKeyDown = (event, projectId) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -33,15 +34,24 @@ function ProjectCards({
               onClick={() => onProjectClick(project.id)}
               onKeyDown={(event) => handleKeyDown(event, project.id)}
             >
-              {project.image || project.image_url ? (
-                <img
-                  src={`${mediaBaseUrl}/media/uploads/${project.image || project.image_url}`}
-                  alt={project.title}
-                  className={styles.cardImage}
-                />
-              ) : (
-                <div className={styles.cardImagePlaceholder} />
-              )}
+              <div className={styles.cardMedia}>
+                {project.image || project.image_url ? (
+                  <img
+                    src={`${mediaBaseUrl}/media/uploads/${project.image || project.image_url}`}
+                    alt={project.title}
+                    className={styles.cardImage}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className={styles.cardImagePlaceholder} />
+                )}
+                <span className={styles.cardArrow} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </span>
+              </div>
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{project.title}</h3>
                 <p className={styles.cardSubtitle}>
@@ -53,7 +63,6 @@ function ProjectCards({
                     const rest = parts.slice(1).join(' · ')
                     const authorMatch = /Автор\s*(.+)/i.exec(rest)
                     const authorName = authorMatch ? authorMatch[1].trim() : null
-
                     return (
                       <>
                         <span>{first}</span>
@@ -76,7 +85,6 @@ function ProjectCards({
                   })()}
                 </p>
               </div>
-
               {/* Кнопка редактирования (отображается, если передан onEditClick) */}
               {onEditClick && (
                 <div 
@@ -101,3 +109,4 @@ function ProjectCards({
 }
 
 export default ProjectCards;
+

@@ -1,28 +1,22 @@
 @use "sass:color";
 
-$basic-light:       #fffaf3;
-$basic-semilight:   #fcd99c;
-$basic-dark:        rgb(248, 196, 118); 
-$basic-extra-dark:  color.scale($basic-dark, $lightness: -10%);
-$basic-accent:      #dd9428; 
+$basic-light: #fdfaf6;
+$basic-semilight: #f6dcae;
+$basic-dark: #e8ac5e;
+$basic-extra-dark: #b9722e;
+$basic-accent: #c9601f;
 
-//$basic-light:         #bbdce5;
-//$basic-semilight:     #eceedf; 
-//$basic-dark:          #d9c4b0; 
-//$basic-accent:        #cfab8d; 
+$bg-main: $basic-light;
 
-$bg-main:          $basic-light;
+$text-main: #1a1a1a;
+$text-muted: #6b5b48;
+$text-light: $basic-semilight;
 
-$text-main:        #1a1a1a; 
-$text-muted:       5a5a5a;
-$text-light:       $basic-semilight;
+$link-color: $basic-accent;
+$border-color: $basic-accent;
+$button-color: $basic-accent;
+$button-color-hover: $basic-extra-dark;
 
-$link-color:             $basic-accent;
-$border-color:           color.scale($basic-dark, $lightness: -10%);
-$button-color:           $basic-dark;
-$button-color-hover:     color.scale($basic-dark, $lightness: -10%);
-
-$font-main:        'st-nizhegorodsky', sans-serif;
-$font-secondary:   'Montserrat', sans-serif;
-$base-spacing:     1rem; // 16px
-
+$font-main: 'st-nizhegorodsky', sans-serif;
+$font-secondary: 'Golos Text', sans-serif;
+$base-spacing: 1rem;

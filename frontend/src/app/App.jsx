@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Button from '../components/Buttons/Button.jsx'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
+// ИСПРАВЛЕНО: Импортируем компонент под правильным именем SearchPanel
+import SearchPanel from '../components/SearchPanel/SearchPanel.jsx' 
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
@@ -22,6 +24,9 @@ function App() {
   const [logType, setLogType] = useState(null) // Тип окна авторизации (вход или регистрация)
   const [selectedProjectId, setSelectedProjectId] = useState(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+
+  // ИЗМЕНЕНИЕ: Глобальное состояние для текстового поиска по названию проектов
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Текущий пользователь =======================================================================================
   const [user, setUser] = useState(null) // Данные авторизованного юзера
@@ -160,7 +165,6 @@ function App() {
   // Успешный вход, регистрация ИЛИ редактирование профиля
   const handleAuthSuccess = (userData) => {
     setUser(userData)
-    // Если правили профиль, остаемся в личном кабинете, иначе идем на главную
     if (logType === 'edit') {
       setPage('user')
     } else {
@@ -227,7 +231,7 @@ function App() {
     window.history.pushState({ page: 'project', projectId }, '')
   }
 
-  // Кнопка «Назад» с умным возвратом: если проект ТВОЙ, кидает в профиль, иначе — на Главную
+  // Кнопка «Назад» с умным возвратом
   const handleBackToHome = () => {
     if (page === 'project' && user && myProjects.some(p => p.id === selectedProjectId || p._id === selectedProjectId)) {
       setPage('user')
@@ -252,7 +256,6 @@ function App() {
 
   // Закрытие окон авторизации
   const handleLogClose = () => {
-    // Если закрыли редактирование, возвращаемся в профиль, иначе на главную
     setPage(logType === 'edit' ? 'user' : 'home')
     setLogType(null)
   }
@@ -273,6 +276,7 @@ function App() {
   const handleLogoClick = () => {
     setSelectedProjectId(null)
     setSelectedCategoryId(null)
+    setSearchQuery('') // ИЗМЕНЕНИЕ: Сбрасываем текст поиска при клике на лого
     setPage('home')
     window.history.pushState({ page: 'home' }, '')
   }
@@ -286,8 +290,6 @@ function App() {
 
   const handlePublishSuccess = (savedProject) => {
     const projectId = savedProject.id || savedProject._id
-
-    // Обновить общий список проектов
     setProjects((prev) => {
       const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
       if (isExisting) {
@@ -296,8 +298,6 @@ function App() {
         return [savedProject, ...prev]
       }
     })
-
-    // Обновить список личных проектов пользователя
     setMyProjects((prev) => {
       const isExisting = prev.some((proj) => proj.id === projectId || proj._id === projectId)
       if (isExisting) {
@@ -306,19 +306,16 @@ function App() {
         return [savedProject, ...prev]
       }
     })
-    console.log('Стейт проектов успешно синхронизирован с сервером')
   }
 
-  // Получить информацию о проекте по его ID при открытии страницы проекта
+  // Получить информацию о проекте по его ID
   useEffect(() => {
     if (!selectedProjectId || page !== 'project') {
       setCurrentProject(null)
       return
     }
-
     let mounted = true
     setCurrentProjectLoading(true)
-
     fetchProjectById(selectedProjectId)
       .then((data) => {
         if (mounted) setCurrentProject(data)
@@ -329,30 +326,27 @@ function App() {
       .finally(() => {
         if (mounted) setCurrentProjectLoading(false)
       })
-
     return () => { mounted = false }
   }, [selectedProjectId, page])
 
-  // Поиск выбранной категории оставляем по полному списку categories,
-  // чтобы страница категории CatPage открывалась корректно в любом случае
-  const selectedCategory = categories.find((category) => category.id === selectedCategoryId)
+  const selectedCategory = categories.find((category) => (category.id || category._id) === selectedCategoryId)
 
-  // Проекты выбранной категории для вывода на CatPage (проверка на кэш или ручной фильтр)
   const displayedCategoryProjects = categoryLoading
     ? []
     : categoryProjects.length > 0
     ? categoryProjects
-    : projects.filter((project) => project.category_id === selectedCategoryId)
+    : projects.filter((project) => {
+        const projCatId = project.category?.id || project.category?._id || project.category_id
+        return projCatId === selectedCategoryId
+      })
 
   // Запрос к API для получения проектов внутри выбранной категории
   useEffect(() => {
     if (!selectedCategoryId) return
-
     let mounted = true
     setTimeout(() => {
       if (mounted) setCategoryLoading(true)
     }, 0)
-
     fetchProjectsByCategory(selectedCategoryId)
       .then((items) => {
         if (mounted) setCategoryProjects(items)
@@ -361,9 +355,38 @@ function App() {
       .finally(() => {
         if (mounted) setCategoryLoading(false)
       })
-
     return () => { mounted = false }
   }, [selectedCategoryId])
+
+  // Вспомогательная функция для фильтрации массива проектов по введённому в SearchPanel тексту
+  const getFilteredBySearch = (itemsList) => {
+  if (!searchQuery) return itemsList
+  return itemsList.filter(project => 
+    project.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+}
+
+  const getFilteredCategories = () => {
+    // Вместо homeCategories берем полный список categories, если выбран фильтр,
+    // и обязательно приводим ID к строке String(), чтобы избежать конфликта типов (число vs строка)
+    let filtered = selectedCategoryId 
+      ? categories.filter(category => String(category.id || category._id) === String(selectedCategoryId))
+      : homeCategories
+
+    // 2. Если текстового поиска нет, возвращаем результат текущей фильтрации
+    if (!searchQuery) return filtered
+
+    // 3. Если есть текст, дополнительно проверяем наличие подходящих по названию проектов
+    const filteredProjects = getFilteredBySearch(projects)
+    return filtered.filter(category => {
+      const catId = category.id || category._id
+      return filteredProjects.some(project => {
+        const projCatId = project.category?.id || project.category?._id || project.category_id
+        // ИСПРАВЛЕНО: здесь тоже сравниваем строки
+        return String(projCatId) === String(catId)
+      })
+    })
+  }
 
   return (
     <div className="app">
@@ -395,20 +418,46 @@ function App() {
       </header>
 
       <main className="appContent">
-        {page === 'home' && (
-          <HomePage
-            categories={homeCategories}
-            loading={homeCategoriesLoading}
-            projects={projects}
-            projectsLoading={projectsLoading}
-            onCategoryClick={handleCategoryClick}
-            onProjectClick={handleProjectClick}
-          />
-        )}
+        {/* 
+          ИЗМЕНЕНИЕ: Панель поиска размещена здесь. 
+          Она находится вне условных страниц, поэтому будет видна ВСЕГДА.
+        */}
+        <SearchPanel 
+          categories={categories}
+          onSearch={(query) => {
+            setSearchQuery(query)
+            if (query && page !== 'home' && page !== 'category') {
+              setPage('home')
+            }
+          }}
+          onFilterSelect={(catId) => {
+            // ИСПРАВЛЕНО: Вместо ухода на другую страницу, просто сохраняем ID категории
+            // и возвращаем пользователя на Главную страницу, где применится фильтр
+            setSelectedCategoryId(catId)
+            if (page !== 'home') {
+              setPage('home')
+            }
+          }}
+        />
+
+       {page === 'home' && (
+        <HomePage
+          categories={getFilteredCategories()}
+          loading={homeCategoriesLoading}
+          projects={getFilteredBySearch(projects)}
+          projectsLoading={projectsLoading}
+          // ИСПРАВЛЕНО: теперь клик по кнопке "Открыть" у категории просто активирует фильтр на главной
+          onCategoryClick={(catId) => setSelectedCategoryId(catId)} 
+          onProjectClick={handleProjectClick}
+          searchQuery={searchQuery}
+          selectedCategoryId={selectedCategoryId}
+        />
+      )}
         {page === 'category' && (
           <CatPage
             category={selectedCategory}
-            projects={displayedCategoryProjects}
+            // Передаем отфильтрованные поиском проекты конкретной категории
+            projects={getFilteredBySearch(displayedCategoryProjects)}
             loading={categoryLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
@@ -417,7 +466,7 @@ function App() {
         {page === 'user' && user && (
           <UserPage
             user={user}
-            onUserUpdate={setUser} /* ИЗМЕНЕНИЕ: Передаем функцию обновления данных пользователя */
+            onUserUpdate={setUser}
             projects={myProjects}
             loading={myProjectsLoading}
             categories={categories}
@@ -435,7 +484,6 @@ function App() {
           />
         )}
         {page === 'log' && (
-          /* ИЗМЕНЕНИЕ: Добавили проп user={user}, чтобы форма подтягивала текущие данные при редактировании */
           <LogPage type={logType} user={user} onBack={handleLogClose} onSuccess={handleAuthSuccess} />
         )}
         {page === 'project' && (

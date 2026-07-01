@@ -390,6 +390,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
 
   return (
     <section className={styles.page}>
+      
+
+      <HeroGallery slides={slides} />
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>{project.title}</h1>
@@ -444,8 +447,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
             )}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {/* Дополнительная кнопка редактирования из режима просмотра */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {user && project.owner && user.id === project.owner.id && (
             <>
               <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
@@ -460,38 +462,30 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
               </Button>
             </>
           )}
-
         </div>
       </div>
-
-      <HeroGallery slides={slides} />
       <div className={styles.metaRow}></div>
 
+      {/* Помещаем CategorySection внутрь textContent для эффекта единого контейнера */}
       {practicalBenefit && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Практическая польза" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{practicalBenefit}</p>
-          </div>
-        </>
+          <p>{practicalBenefit}</p>
+        </div>
       )}
 
       {implementationDetails && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Специфика реализации" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{implementationDetails}</p>
-          </div>
-        </>
+          <p>{implementationDetails}</p>
+        </div>
       )}
 
       {results && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Результативность" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{results}</p>
-          </div>
-        </>
+          <p>{results}</p>
+        </div>
       )}
       <div className={styles.likeRow}>
           <button
