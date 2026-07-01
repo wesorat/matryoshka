@@ -44,7 +44,7 @@ jobs:
           DB_HOST: "127.0.0.1"
           DB_PORT: "5432"
           DB_DATABASE: matr_db
-          SECRET: ci-secret
+          SECRET: ci_dummy_secret_for_tests_only_32_chars
           PUBLIC_BASE_URL: http://localhost
           VITE_API_URL: /api
         run: |

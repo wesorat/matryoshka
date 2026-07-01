@@ -45,7 +45,7 @@ jobs:
       DB_HOST: localhost
       DB_PORT: "5432"
       DB_DATABASE: matr_db
-      SECRET: ci-secret
+      SECRET: ci_dummy_secret_for_tests_only_32_chars
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -83,7 +83,7 @@ jobs:
       DB_HOST: matr_db
       DB_PORT: "5432"
       DB_DATABASE: matr_db
-      SECRET: ci-secret
+      SECRET: ci_dummy_secret_for_tests_only_32_chars
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -97,7 +97,7 @@ jobs:
             echo "DB_HOST=matr_db"
             echo "DB_PORT=5432"
             echo "DB_DATABASE=matr_db"
-            echo "SECRET=ci-secret"
+            echo "SECRET=ci_dummy_secret_for_tests_only_32_chars"
           } > .env
 
       - name: Validate Docker Compose configuration
