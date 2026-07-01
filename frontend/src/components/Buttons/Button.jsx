@@ -2,6 +2,7 @@ import styles from './Button.module.scss';
 
 function Button({
   children,
+  href,
   type = 'button',
   variant = 'default',
   active = false,
@@ -13,6 +14,14 @@ function Button({
   const classes = [styles.button, variantClass, activeClass, className]
     .filter(Boolean)
     .join(' ');
+
+  if (href) {
+    return (
+      <a href={href} className={classes} {...props}>
+        {children}
+      </a>
+    );
+  }
 
   return (
     <button type={type} className={classes} {...props}>

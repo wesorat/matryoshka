@@ -17,6 +17,10 @@ function UserPage({
   categories = [],  
   onBack = () => {}, 
   onProjectClick = () => {}, 
+  onCreateProjectClick = null,
+  createProjectHref = '/projects/new',
+  createProjectOpen = false,
+  onCreateProjectClose = null,
   onLogout = () => {},
   onPublishSuccess = () => {},
   onUserUpdate = () => {} 
@@ -39,7 +43,27 @@ function UserPage({
     setBio(user.bio || '');
   }, [user.bio]);
 
-  const handleCreateClick = () => {
+  useEffect(() => {
+    if (createProjectOpen) {
+      setSelectedProject(null);
+      setIsPublishOpen(true);
+    }
+  }, [createProjectOpen]);
+
+  const closePublishForm = () => {
+    setIsPublishOpen(false);
+    setSelectedProject(null);
+    if (onCreateProjectClose) {
+      onCreateProjectClose();
+    }
+  };
+
+  const handleCreateClick = (event) => {
+    if (onCreateProjectClick) {
+      onCreateProjectClick(event);
+      return;
+    }
+
     setSelectedProject(null);
     setIsPublishOpen(true);
   };
@@ -167,7 +191,7 @@ function UserPage({
           </div>
 
           <div className={styles.actions}>
-            <Button type="button" variant="outline" onClick={handleCreateClick}>
+            <Button type="button" variant="outline" href={createProjectHref} onClick={handleCreateClick}>
               Создать проект
             </Button>
             <Button type="button" variant="outline" onClick={() => setIsEditProfileOpen(true)}>
@@ -212,12 +236,9 @@ function UserPage({
           project={selectedProject}
           onSuccess={(data) => {
             onPublishSuccess(data);
-            setIsPublishOpen(false);
+            closePublishForm();
           }}
-          onCancel={() => {
-            setIsPublishOpen(false);
-            setSelectedProject(null);
-          }}
+          onCancel={closePublishForm}
         />
       )}
     </section>

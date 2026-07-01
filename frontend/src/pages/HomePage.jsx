@@ -58,8 +58,9 @@ function HomePage({
               <CategorySection
                 title={category.name}
                 actionText="Открыть"
-                onAction={() => onCategoryClick(catId)}
-                ShowAction={true}
+                actionHref={`/categories/${catId}`}
+                onAction={(event) => onCategoryClick(catId, event)}
+                showAction={true}
               />
               {projectsLoading ? (
                 <p className={styles.emptyText}>Загрузка проектов...</p>

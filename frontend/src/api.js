@@ -39,6 +39,10 @@ export async function fetchCategories(have_project = false) {
   return handleResponse(await fetch(url, fetchOptions()))
 }
 
+export async function fetchCategoryById(categoryId) {
+  return handleResponse(await fetch(`${API_URL}/category/${categoryId}`, fetchOptions()))
+}
+
 export async function fetchProjects() {
   return handleResponse(await fetch(`${API_URL}/projects/`, fetchOptions()))
 }

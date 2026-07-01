@@ -4,6 +4,14 @@ import Button from '../components/Buttons/Button.jsx';
 import styles from './CatPage.module.scss';
 
 function CatPage({ category, projects = [], loading = false, onBack, onProjectClick = () => {} }) {
+  if (!category && loading) {
+    return (
+      <section className={styles.empty}>
+        <h1>Загрузка категории...</h1>
+      </section>
+    );
+  }
+
   if (!category) {
     return (
       <section className={styles.empty}>
