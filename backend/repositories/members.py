@@ -15,6 +15,9 @@ class MembersRepository:
     async def add_member(self, member: MemberRoles) -> MemberRoles:
         self.session.add(member)
         return member
+    async def get_all(self, count: int) -> list[User]:
+        res = await self.session.execute(select(User).order_by(User.created_at.desc()).limit(count))
+        return res.scalars().all()
 
     async def get_user(self, user_id: int) -> User:
         res = await self.session.execute(select(User).where(

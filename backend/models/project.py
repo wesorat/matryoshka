@@ -29,7 +29,7 @@ class Projects(Base):
     slug: Mapped[str] = mapped_column(String(length=200), nullable=False)
     description: Mapped[str] = mapped_column(String, default="")
     image_url: Mapped[str] = mapped_column(String(length=500), default="")
-    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     university_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("universities.id"), nullable=True
     )

@@ -15,7 +15,7 @@ from services.likes import LikesService
 from services.media import MediaService, MediaStorageService
 from services.members import MembersService
 from services.projects import ProjectService
-from services.auth import current_active_user, current_active_user_optional
+from services.auth import current_active_user, current_active_user_optional, current_superuser
 from services.roles import RolesService
 from services.technology import TechnologyService
 from services.university import UniversityService
@@ -76,6 +76,7 @@ UniversityServiceDep = Annotated[UniversityService, Depends(get_university_servi
 TechnologyServiceDep = Annotated[TechnologyService, Depends(get_technology_service)]
 
 CurrentUserDep = Annotated[User, Depends(current_active_user)]
+CurrentAdminDep = Annotated[User, Depends(current_superuser)]
 CurrentUserOptionalDep = Annotated[User, Depends(current_active_user_optional)]
 
 async def get_projectCreate_from_form(

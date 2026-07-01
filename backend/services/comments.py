@@ -18,7 +18,10 @@ class CommentsService:
 
         return created_comment
 
-    async def delete(self, user_id: int, comment_id: int) -> int:
+    async def delete(self, user_id: int | None, comment_id: int) -> int:
         count = await self.repo.delete(user_id, comment_id)
         await self.session.commit()
         return count
+
+    async def get_all(self, count: int = 1000) -> list[Comments]:
+        return await self.repo.get_all(count)

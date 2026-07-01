@@ -1,6 +1,7 @@
 from click import File
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi_users import BaseUserManager
+from sqlalchemy import delete
 
 from api.v1.dependencies import CurrentUserDep, MembersServiceDep
 from core.dependencies import SessionDep
@@ -22,6 +23,10 @@ user_router = APIRouter(
 async def search_user(name: str, service: MembersServiceDep):
     users = await service.search_by_name(name)
     return users
+
+
+
+
 
 
 @user_router.post("/me/avatar")

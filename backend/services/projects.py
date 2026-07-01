@@ -45,6 +45,9 @@ class ProjectService:
     async def get_all(self) -> list[Projects]:
         return await self.repo.get_all()
 
+    async def get_all_by_creating(self, count: int = 1000) -> list[Projects]:
+        return await self.repo.get_all_by_creating(count)
+
     async def get_my(self, user_id: int) -> list[Projects]:
         return await self.repo.get_my(user_id)
 
@@ -64,7 +67,7 @@ class ProjectService:
         return await self.repo.search_by_title(title.strip())
 
 
-    async def delete(self, user_id: int, project_id: int) -> str:
+    async def delete(self, user_id: int | None, project_id: int) -> str:
         filename = await self.repo.delete(user_id, project_id)
         if filename != "" and filename is not None :
             await MediaStorageService().delete(filename)
@@ -72,7 +75,7 @@ class ProjectService:
         await self.session.commit()
         return filename
 
-    async def delete_by_slug(self, user_id: int, slug: str) -> str:
+    async def delete_by_slug(self, user_id: int | None, slug: str) -> str:
         filename = await self.repo.delete_by_slug(user_id, slug)
         if filename != "" and filename is not None:
             await MediaStorageService().delete(filename)

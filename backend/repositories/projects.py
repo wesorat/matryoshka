@@ -85,6 +85,13 @@ class ProjectsRepository:
         )
         return res.scalars().all()
 
+    async def get_all_by_creating(self, count: int = 1000) -> list[Projects]:
+        res = await self.session.execute(
+            select(Projects)
+            .order_by(Projects.created_at.desc()).limit(count)
+        )
+        return res.scalars().all()
+
     async def get_my(self, user_id: int) -> list[Projects]:
         res = await self.session.execute(
             select(Projects)
@@ -171,12 +178,14 @@ class ProjectsRepository:
 
         return project
 
-    async def delete(self, owner_id: int, project_id: int):
+    async def delete(self, owner_id: int | None, project_id: int):
+
         project = await self.session.get(Projects, project_id)
         if not project:
             raise ProjectNotFound(project_id)
-        if project.owner_id != owner_id:
-            raise NotOwnProject(owner_id)
+        if owner_id is not None:
+            if project.owner_id != owner_id:
+                raise NotOwnProject(owner_id)
 
         await self.session.execute(
             delete(Likes).where(Likes.project_id == project_id)
@@ -190,13 +199,14 @@ class ProjectsRepository:
 
         return project.image_url
 
-    async def delete_by_slug(self, owner_id: int, slug: str) -> int:
+    async def delete_by_slug(self, owner_id: int | None, slug: str) -> int:
 
         project = await self.session.execute(select(Projects).where(Projects.slug == slug))
         if not project:
             raise ProjectNotFound(project.id)
-        if project.owner_id != owner_id:
-            raise NotOwnProject(owner_id)
+        if owner_id is not None:
+            if project.owner_id != owner_id:
+                raise NotOwnProject(owner_id)
 
         res = await self.session.execute(
             delete(Projects)

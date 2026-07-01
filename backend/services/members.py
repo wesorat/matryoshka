@@ -60,3 +60,7 @@ class MembersService:
             return []
         return await self.repo.search_by_name(name.strip())
 
+    async def get_all(self, count: int = 100) -> list[User]:
+
+        return await self.repo.get_all(count)
+

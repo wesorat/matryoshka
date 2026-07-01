@@ -7,8 +7,8 @@ from db.base import Base
 class Likes(Base):
     __tablename__ = "project_likes"
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
 
     __table_args__ = (PrimaryKeyConstraint("user_id", "project_id"),)
 

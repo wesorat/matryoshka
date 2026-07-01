@@ -19,12 +19,14 @@ async def create(
     return created_comment
 
 
+
 @comments_router.delete("/", summary="Delete comment")
 async def delete(
     comment_service: CommentsServiceDep,
     user: CurrentUserDep,
     comment_id: int,
 ):
-    count = await comment_service.delete(user.id, comment_id)
+    user_id = None if user.is_superuser else user.id
+    count = await comment_service.delete(user_id, comment_id)
 
     return {"count_deleted": count}
