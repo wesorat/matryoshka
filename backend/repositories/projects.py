@@ -178,9 +178,14 @@ class ProjectsRepository:
 
         return project
 
-    async def delete(self, owner_id: int | None, project_id: int):
+    async def delete(self, owner_id: int | None, project_id: int) -> Projects:
 
-        project = await self.session.get(Projects, project_id)
+        res = await self.session.execute(
+            select(Projects)
+            .options(selectinload(Projects.medias))
+            .where(Projects.id == project_id))
+
+        project = res.scalar_one_or_none()
         if not project:
             raise ProjectNotFound(project_id)
         if owner_id is not None:
@@ -194,10 +199,9 @@ class ProjectsRepository:
             delete(Comments).where(Comments.project_id == project_id)
         )
 
-        await self.session.delete(project)
-        await self.session.commit()
+        await self.session.execute(delete(Projects).where(Projects.id == project_id))
 
-        return project.image_url
+        return project
 
     async def delete_by_slug(self, owner_id: int | None, slug: str) -> int:
 

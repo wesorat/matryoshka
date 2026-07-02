@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
@@ -17,6 +17,10 @@ function UserPage({
   categories = [],  
   onBack = () => {}, 
   onProjectClick = () => {}, 
+  onCreateProjectClick = null,
+  createProjectHref = '/projects/new',
+  createProjectOpen = false,
+  onCreateProjectClose = null,
   onLogout = () => {},
   onPublishSuccess = () => {},
   onUserUpdate = () => {} 
@@ -30,16 +34,34 @@ function UserPage({
   const [isEditingBio, setIsEditingBio] = useState(false);
 
   // 1. Добавляем стейт для обхода кэша браузера
-  const [avatarTicket, setAvatarTicket] = useState(Date.now());
+  const [avatarTicket, setAvatarTicket] = useState(0);
 
   // Ссылка на скрытый тег выбора файлов
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    setBio(user.bio || '');
+    const timeoutId = setTimeout(() => {
+      setBio(user.bio || '');
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [user.bio]);
 
-  const handleCreateClick = () => {
+  const isPublishFormOpen = isPublishOpen || createProjectOpen;
+
+  const closePublishForm = () => {
+    setIsPublishOpen(false);
+    setSelectedProject(null);
+    if (onCreateProjectClose) {
+      onCreateProjectClose();
+    }
+  };
+
+  const handleCreateClick = (event) => {
+    if (onCreateProjectClick) {
+      onCreateProjectClick(event);
+      return;
+    }
+
     setSelectedProject(null);
     setIsPublishOpen(true);
   };
@@ -167,7 +189,7 @@ function UserPage({
           </div>
 
           <div className={styles.actions}>
-            <Button type="button" variant="outline" onClick={handleCreateClick}>
+            <Button type="button" variant="outline" href={createProjectHref} onClick={handleCreateClick}>
               Создать проект
             </Button>
             <Button type="button" variant="outline" onClick={() => setIsEditProfileOpen(true)}>
@@ -206,18 +228,15 @@ function UserPage({
         />
       )}
 
-      {isPublishOpen && (
+      {isPublishFormOpen && (
         <ProjectForm
           categories={categories}
-          project={selectedProject}
+          project={createProjectOpen ? null : selectedProject}
           onSuccess={(data) => {
             onPublishSuccess(data);
-            setIsPublishOpen(false);
+            closePublishForm();
           }}
-          onCancel={() => {
-            setIsPublishOpen(false);
-            setSelectedProject(null);
-          }}
+          onCancel={closePublishForm}
         />
       )}
     </section>

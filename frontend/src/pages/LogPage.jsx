@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './LogPage.module.scss';
 import { login, register, fetchCurrentUser, fetchUniversities, updateCurrentUser } from '../api.js';
 
@@ -20,12 +20,16 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
    const overlayRef = useRef(null);
    const dialogRef = useRef(null);
    const dropdownRef = useRef(null);
+   const userName = user?.name || '';
+   const userEmail = user?.email || '';
+   const userUniversityId = user?.university?.id || '';
+   const userUniversityName = user?.university?.name || user?.university?.title || '';
 
-   const closeModal = () => {
+   const closeModal = useCallback(() => {
       setIsOpen(false);
       document.body.style.overflow = "";
       onBack();
-   };
+   }, [onBack]);
 
    // Эффект закрытия выпадающего списка при клике вне его области
    useEffect(() => {
@@ -40,28 +44,30 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
 
    // Заполнение полей формы при монтировании/изменении режима
    useEffect(() => {
-      setIsOpen(true);
-      setError('');
-      setAcceptedPolicy(false);
-      setIsDropdownOpen(false);
       document.body.style.overflow = "hidden";
-      setTimeout(() => dialogRef.current?.focus(), 0);
+      const focusTimeoutId = setTimeout(() => dialogRef.current?.focus(), 0);
+      const stateTimeoutId = setTimeout(() => {
+         setIsOpen(true);
+         setError('');
+         setAcceptedPolicy(false);
+         setIsDropdownOpen(false);
 
-      if (type === 'edit' && user) {
-         // Заполняем форму текущими данными пользователя, включая email
-         setFormData({ 
-            name: user.name || '', 
-            email: user.email || '', 
-            password: '', 
-            confirmPassword: '', 
-            universityId: user.university?.id || '' 
-         });
-         setUniversitySearch(user.university?.name || user.university?.title || '');
-      } else {
-         // Сброс состояний для login / signup
-         setFormData({ name: '', email: '', password: '', confirmPassword: '', universityId: '' });
-         setUniversitySearch('');
-      }
+         if (type === 'edit') {
+            // Заполняем форму текущими данными пользователя, включая email
+            setFormData({
+               name: userName,
+               email: userEmail,
+               password: '',
+               confirmPassword: '',
+               universityId: userUniversityId
+            });
+            setUniversitySearch(userUniversityName);
+         } else {
+            // Сброс состояний для login / signup
+            setFormData({ name: '', email: '', password: '', confirmPassword: '', universityId: '' });
+            setUniversitySearch('');
+         }
+      }, 0);
 
       // Загружаем университеты для регистрации и редактирования
       if (type === 'signup' || type === 'edit') {
@@ -74,9 +80,11 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
       }
 
       return () => {
+         clearTimeout(focusTimeoutId);
+         clearTimeout(stateTimeoutId);
          document.body.style.overflow = "";
       };
-   }, [type, user?.id]); // Защита от бесконечного рендеринга по примитиву
+   }, [type, userName, userEmail, userUniversityId, userUniversityName]);
 
    useEffect(() => {
       const handleKeyDown = (e) => {
@@ -102,7 +110,7 @@ export default function LogPage({ type = 'login', onBack = () => {}, onSuccess =
 
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
-   }, [isOpen]);
+   }, [isOpen, closeModal]);
 
    const handleChange = (e) => {
       setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));

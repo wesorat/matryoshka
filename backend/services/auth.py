@@ -30,7 +30,7 @@ cookie_transport = CookieTransport(
     cookie_name="access",
     cookie_max_age=24 * 60 * 60,
     cookie_httponly=True,
-    cookie_secure=False,
+    cookie_secure=not settings.DEBUG,
     cookie_samesite="lax",
     cookie_path="/",
 )
@@ -58,4 +58,3 @@ def generate_secure_random_password_hash(length: int = 64) -> str:
 
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*()_+-=[]{}|;:,.<>?"
     return hash(''.join(secrets.choice(alphabet) for _ in range(length)))
-

@@ -8,6 +8,7 @@
   border: none;
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
   @include mixins.text-ordinary;
 }
@@ -31,7 +32,7 @@
   background: transparent;
   color: vars.$basic-accent;
 
-  border: 3px solid vars.$basic-semilight;
+  border: 3px solid vars.$button-color;
   border-radius: 999px;
 
   transition:
@@ -41,8 +42,8 @@
     color 0.3s ease;
 
   &:hover {
-    background: vars.$basic-extra-dark;
-    color: vars.$bg_main;
+    background: vars.$button-color;
+    color: vars.$basic-light;
   }
 
   // Скролл
@@ -52,14 +53,15 @@
     font-size: 16px;
     // font-weight: 500;
     letter-spacing: 2px;
-    color: vars.$bg-main;
+    color: vars.$basic-light;
     background-color: transparent;
-    border-color: vars.$bg-main;
-    border: 2px solid vars.$basic-semilight;
+    border-color: vars.$basic-light;
+    border: 2px solid vars.$button-color;
 
     &:hover {
       // Стили для ховера на скролле, если нужны (например, чуть светлее/темнее)
-      background-color: lighten(vars.$basic-dark, 10%);
+      background-color: vars.$basic-accent;
+      border-color: vars.$basic-light;
     }
   }
 }
@@ -87,6 +89,33 @@
 .variant_outline:hover {
   background: vars.$button-color;
   color: vars.$basic-light;
+}
+
+.variant_solid {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 18px;
+  border: 2px solid vars.$basic-accent;
+  border-radius: 999px;
+  background: vars.$basic-accent;
+  color: vars.$basic-light;
+  font-family: vars.$font-secondary;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.variant_solid:hover {
+  background: vars.$button-color-hover;
+  border-color: vars.$button-color-hover;
+}
+
+.variant_solid:disabled {
+  background: vars.$basic-semilight;
+  border-color: vars.$basic-semilight;
+  color: vars.$text-muted;
+  cursor: not-allowed;
 }
 
 .variant_nav {

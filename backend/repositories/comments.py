@@ -36,3 +36,13 @@ class CommentsRepository:
                 )
             )
         return res.rowcount
+
+
+    async def search_by_text(self, text: str) -> list[Comments]:
+        res = await self.session.execute(
+            select(Comments)
+            .where(
+                Comments.text.ilike(f"%{text}%"),
+            )
+        )
+        return res.scalars().all()

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import HeroGallery from '../components/Hero/HeroGallery/HeroGallery.jsx';
 import CategorySection from '../components/CategorySection/CategorySection.jsx';
 import Button from '../components/Buttons/Button.jsx';
-import { fetchProjectById, updateProject, deleteProject, createLike, deleteLike, createComment, deleteComment, createMedia, deleteMedia, fetchUniversities } from '../api.js';
+import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
+import { fetchProjectById, deleteProject, createLike, deleteLike, createComment, deleteComment } from '../api.js';
 import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -12,31 +13,15 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
 
-  // Состояния для режима редактирования
+  // Режим редактирования — сама форма теперь общая (ProjectForm),
+  // здесь остаётся только флаг, что мы сейчас её показываем
   const [isEditing, setIsEditing] = useState(editMode);
-  const [editTitle, setEditTitle] = useState('');
-  const [editPracticalBenefit, setEditPracticalBenefit] = useState('');
-  const [editImplementationDetails, setEditImplementationDetails] = useState('');
-  const [editResults, setEditResults] = useState('');
-  const [editMedia, setEditMedia] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editStatus, setEditStatus] = useState('draft');
-  const [editCategoryId, setEditCategoryId] = useState('');
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
-
-  const [editMediaList, setEditMediaList] = useState([]);
-  const [newMediaFile, setNewMediaFile] = useState(null);
-  const [newMediaType, setNewMediaType] = useState('image');
-  const [mediaBusy, setMediaBusy] = useState(false);
-  const [mediaError, setMediaError] = useState('');
-
-  const [editUniversityId, setEditUniversityId] = useState('');
-  const [universities, setUniversities] = useState([]);
 
   const handleLike = async () => {
     if (!user) return;
@@ -79,52 +64,48 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
   };
 
   useEffect(() => {
-    fetchUniversities()
-      .then((items) => setUniversities(items))
-      .catch((err) => console.error('Не удалось загрузить список вузов:', err));
-  }, []);
-
-
-  useEffect(() => {
     const id = projectId || initialProject?.id || initialProject?._id;
     if (id && (!initialProject || (!initialProject.practical_benefit && !initialProject.practicalBenefit))) {
-      setLoading(true);
-      setError('');
+      let mounted = true;
+      const timeoutId = setTimeout(() => {
+        if (!mounted) return;
+        setLoading(true);
+        setError('');
+      }, 0);
       fetchProjectById(id)
         .then((data) => {
-          setProject(data);
+          if (mounted) setProject(data);
         })
         .catch((err) => {
           console.error(err);
-          setError('Не удалось загрузить подробную информацию о проекте.');
+          if (mounted) setError('Не удалось загрузить подробную информацию о проекте.');
         })
         .finally(() => {
-          setLoading(false);
+          if (mounted) setLoading(false);
         });
+      return () => {
+        mounted = false;
+        clearTimeout(timeoutId);
+      };
     } else {
-      setProject(initialProject);
+      const timeoutId = setTimeout(() => {
+        setProject(initialProject);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
   }, [projectId, initialProject]);
 
-  // Заполняем поля формы при получении данных проекта
+  // Заполняем состояния просмотра (лайки, комментарии) при получении данных проекта.
+  // Поля самой формы редактирования заполняет ProjectForm — ему нужен только project.
   useEffect(() => {
-    if (project) {
-      setEditTitle(project.title || '');
-      setEditStatus(project.status || 'draft');
-      setEditCategoryId(project.category?.id || '');
-      setEditPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
-      setEditImplementationDetails(project.implementation_details || project.implementationDetails || '');
-      setEditResults(project.results || '');
-      setLikeCount(project.like_count || 0);
-      setComments(project.comments || []);
-      setEditMediaList(project.medias || []);
-      setEditUniversityId(project.university?.id || '');
-      // проверяем лайкнул ли текущий пользователь
-      if (user && project.comments) {
-        // лайки не приходят в ответе напрямую, оставим false по умолчанию
+    const timeoutId = setTimeout(() => {
+      if (project) {
+        setLikeCount(project.like_count || 0);
+        setComments(project.comments || []);
         setLiked(false);
       }
-    }
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [project]);
 
   if (loading) {
@@ -145,193 +126,20 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       </section>
     );
   }
-  const handleAddMedia = async () => {
-    const id = projectId || project?.id || project?._id;
-    if (!newMediaFile || !id) return;
-    setMediaBusy(true);
-    setMediaError('');
-    try {
-      const media = await createMedia(id, newMediaFile, newMediaType);
-      setEditMediaList((prev) => [...prev, media]);
-      setNewMediaFile(null);
-    } catch (err) {
-      setMediaError(err.message || 'Не удалось загрузить файл');
-    } finally {
-      setMediaBusy(false);
-    }
-  };
-
-  const handleDeleteMedia = async (mediaId) => {
-    const id = projectId || project?.id || project?._id;
-    setMediaError('');
-    try {
-      await deleteMedia(id, mediaId);
-      setEditMediaList((prev) => prev.filter((m) => m.id !== mediaId));
-    } catch (err) {
-      setMediaError(err.message || 'Не удалось удалить файл');
-    }
-  };
-
-  // Обработчик отправки формы редактирования
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      const id = projectId || project?.id || project?._id;
-      const updatedData = {
-        title: editTitle,
-        categoryId: editCategoryId,
-        universityId: editUniversityId,
-        practicalBenefit: editPracticalBenefit,
-        status: editStatus,
-        implementationDetails: editImplementationDetails,
-        results: editResults,
-        media: editMedia, // Файл отправится, только если выбран новый
-      };
-
-      const updatedProject = await updateProject(id, updatedData);
-      setProject(updatedProject);
-      setIsEditing(false);
-    } catch (err) {
-      console.error(err);
-      alert('Не удалось сохранить изменения.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   // --- РЕНДЕР: РЕЖИМ РЕДАКТИРОВАНИЯ ---
+  // Используем тот же компонент ProjectForm, что и при создании проекта в UserPage —
+  // это гарантирует одинаковый набор полей и одинаковое поведение в обоих местах.
   if (isEditing) {
     return (
-      <section className={styles.page}>
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Редактирование проекта</h1>
-          </div>
-          <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-            Отмена
-          </Button>
-        </div>
-
-        <form onSubmit={handleSave} className={styles.editForm}>
-          <div className={styles.formGroup}>
-            <label>Название проекта</label>
-            <input
-              type="text"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Статус</label>
-            <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-              <option value="draft">Черновик</option>
-              <option value="published">Опубликовано</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Категория</label>
-            <select value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)}>
-              <option value="">Выберите категорию</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-
-              <div className={styles.formGroup}>
-                <label>Учебное заведение</label>
-                <select value={editUniversityId} onChange={(e) => setEditUniversityId(e.target.value)}>
-                  <option value="">Выберите учебное заведение</option>
-                  {universities.map((uni) => (
-                    <option key={uni.id} value={uni.id}>{uni.name}</option>
-                  ))}
-                </select>
-              </div>
-
-          <div className={styles.formGroup}>
-            <label>Главное изображение (выберите файл для замены)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setEditMedia(e.target.files[0])}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Практическая польза</label>
-            <textarea
-              value={editPracticalBenefit}
-              onChange={(e) => setEditPracticalBenefit(e.target.value)}
-              rows={5}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Специфика реализации</label>
-            <textarea
-              value={editImplementationDetails}
-              onChange={(e) => setEditImplementationDetails(e.target.value)}
-              rows={5}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Результативность</label>
-            <textarea
-              value={editResults}
-              onChange={(e) => setEditResults(e.target.value)}
-              rows={5}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Дополнительные медиафайлы</label>
-
-            {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
-
-            {editMediaList.length > 0 && (
-              <ul className={styles.mediaList}>
-                {editMediaList.map((media) => (
-                  <li key={media.id} className={styles.mediaItem}>
-                    <span className={styles.mediaType}>
-                      {media.view === 'video' ? 'Видео' : 'Изображение'}
-                    </span>
-                    <span className={styles.mediaName}>{media.filename}</span>
-                    <Button type="button" variant="outline" onClick={() => handleDeleteMedia(media.id)}>
-                      Удалить
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div className={styles.mediaUploadRow}>
-              <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
-                <option value="image">Изображение</option>
-                <option value="video">Видео</option>
-              </select>
-              <input
-                type="file"
-                accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
-                onChange={(e) => setNewMediaFile(e.target.files[0])}
-              />
-              <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
-                {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
-              </Button>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '20px' }}>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
-            </Button>
-          </div>
-        </form>
-      </section>
+      <ProjectForm
+        project={project}
+        categories={categories}
+        onSuccess={(updatedProject) => {
+          setProject(updatedProject);
+          setIsEditing(false);
+        }}
+        onCancel={() => setIsEditing(false)}
+      />
     );
   }
 
@@ -390,6 +198,9 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
 
   return (
     <section className={styles.page}>
+      
+
+      <HeroGallery slides={slides} />
       <div className={styles.headerRow}>
         <div>
           <h1 className={styles.title}>{project.title}</h1>
@@ -444,8 +255,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
             )}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {/* Дополнительная кнопка редактирования из режима просмотра */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {user && project.owner && user.id === project.owner.id && (
             <>
               <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
@@ -460,38 +270,30 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
               </Button>
             </>
           )}
-
         </div>
       </div>
-
-      <HeroGallery slides={slides} />
       <div className={styles.metaRow}></div>
 
+      {/* Помещаем CategorySection внутрь textContent для эффекта единого контейнера */}
       {practicalBenefit && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Практическая польза" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{practicalBenefit}</p>
-          </div>
-        </>
+          <p>{practicalBenefit}</p>
+        </div>
       )}
 
       {implementationDetails && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Специфика реализации" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{implementationDetails}</p>
-          </div>
-        </>
+          <p>{implementationDetails}</p>
+        </div>
       )}
 
       {results && (
-        <>
+        <div className={styles.textContent}>
           <CategorySection title="Результативность" showAction={false} />
-          <div className={styles.textContent}>
-            <p>{results}</p>
-          </div>
-        </>
+          <p>{results}</p>
+        </div>
       )}
       <div className={styles.likeRow}>
           <button

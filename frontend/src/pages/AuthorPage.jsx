@@ -11,13 +11,23 @@ function AuthorPage({ userId, onBack, onProjectClick }) {
 
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
+    let mounted = true;
+    const timeoutId = setTimeout(() => {
+      if (mounted) setLoading(true);
+    }, 0);
     fetchProjectsByUser(userId)
       .then((items) => {
+        if (!mounted) return;
         setProjects(items);
         if (items.length > 0) setAuthor(items[0].owner);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [userId]);
 
   return (

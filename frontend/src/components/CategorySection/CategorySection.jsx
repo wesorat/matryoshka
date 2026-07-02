@@ -4,6 +4,7 @@ import styles from './CategorySection.module.scss';
 function CategorySection({
   title = '',
   actionText = 'Еще',
+  actionHref,
   onAction,
   showAction = true,
 }) {
@@ -17,6 +18,7 @@ function CategorySection({
               type="button"
               variant="outline"
               className={styles.actionButton}
+              href={actionHref}
               onClick={onAction}
             >
               {actionText}

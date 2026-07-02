@@ -39,6 +39,10 @@ export async function fetchCategories(have_project = false) {
   return handleResponse(await fetch(url, fetchOptions()))
 }
 
+export async function fetchCategoryById(categoryId) {
+  return handleResponse(await fetch(`${API_URL}/category/${categoryId}`, fetchOptions()))
+}
+
 export async function fetchProjects() {
   return handleResponse(await fetch(`${API_URL}/projects/`, fetchOptions()))
 }
@@ -265,6 +269,57 @@ export async function createMedia(projectId, file, view = 'image') {
 export async function deleteMedia(projectId, mediaId) {
   return handleResponse(
     await fetch(`${API_URL}/media/?project_id=${projectId}&media_id=${mediaId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+  )
+}
+
+// --- Admin ---
+
+export async function fetchAdminUsers() {
+  return handleResponse(
+    await fetch(`${API_URL}/admin/users/`, { credentials: 'include' })
+  )
+}
+
+export async function fetchAdminProjects(count = 1000) {
+  return handleResponse(
+    await fetch(`${API_URL}/admin/projects/?count=${count}`, { credentials: 'include' })
+  )
+}
+
+export async function fetchAdminComments(count = 1000) {
+  return handleResponse(
+    await fetch(`${API_URL}/admin/comments?count=${count}`, { credentials: 'include' })
+  )
+}
+
+export async function searchUsersByName(name) {
+  return handleResponse(
+    await fetch(`${API_URL}/users/search/${encodeURIComponent(name)}`, fetchOptions())
+  )
+}
+
+export async function searchProjectsByTitle(title) {
+  return handleResponse(
+    await fetch(`${API_URL}/projects/search/${encodeURIComponent(title)}`, fetchOptions())
+  )
+}
+
+export async function searchCommentsByText(text) {
+  // В бэке path-параметр {name} не используется, но обязателен — дублируем text и туда
+  return handleResponse(
+    await fetch(
+      `${API_URL}/comments/search/${encodeURIComponent(text)}?text=${encodeURIComponent(text)}`,
+      fetchOptions()
+    )
+  )
+}
+
+export async function deleteUserAdmin(userId) {
+  return handleResponse(
+    await fetch(`${API_URL}/users/${userId}`, {
       method: 'DELETE',
       credentials: 'include',
     })
