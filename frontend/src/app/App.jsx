@@ -123,7 +123,7 @@ function App() {
 
   // Технологии =================================================================================================
   const [technologies, setTechnologies] = useState([])
-  // const [technologiesLoading, setTechnologiesLoading] = useState(true)
+  const [technologiesLoading, setTechnologiesLoading] = useState(true)
 
   // Вузы (для фильтра поиска) ===================================================================================
   const [universities, setUniversities] = useState([])
@@ -697,7 +697,7 @@ function App() {
           onCategoryClick={handleCategoryClick}
           onProjectClick={handleProjectClick}
           searchQuery={searchQuery}
-          selectedCategoryId={selectedCategoryId}
+          // selectedCategoryId={selectedCategoryId}
           isFilterActive={isFilterActive}
           flatProjects={getFilteredBySearch(filteredProjects)}
           flatLoading={filteredLoading}
