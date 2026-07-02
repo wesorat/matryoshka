@@ -12,7 +12,7 @@ function HomePage({
   onCategoryClick,
   onProjectClick,
   searchQuery = '',
-  selectedCategoryId = null, // ДОБАВЛЕНО
+  // selectedCategoryId = null, // ДОБАВЛЕНО
   isFilterActive = false,
   flatProjects = [],
   flatLoading = false,

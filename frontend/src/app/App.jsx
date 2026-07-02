@@ -123,7 +123,7 @@ function App() {
 
   // Технологии =================================================================================================
   const [technologies, setTechnologies] = useState([])
-  const [technologiesLoading, setTechnologiesLoading] = useState(true)
+  // const [technologiesLoading, setTechnologiesLoading] = useState(true)
 
   // Вузы (для фильтра поиска) ===================================================================================
   const [universities, setUniversities] = useState([])
