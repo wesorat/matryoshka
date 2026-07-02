@@ -1,11 +1,33 @@
-# Для запуска
+# Matryoshka — витрина студенческих проектов
+
+Платформа для публикации и обмена студенческими проектами: пользователи создают карточки проектов с описанием, технологиями и медиа, оставляют комментарии и лайки. Есть привязка к университетам и категориям для удобной фильтрации.
+
+# Стек технологий
+
+- **Backend**: FastAPI, SQLAlchemy (async ORM), Alembic (миграции), Pydantic (валидация), fastapi-users (аутентификация)
+- **База данных**: PostgreSQL
+- **Frontend**: React, Vite
+- **Инфраструктура**: Docker / docker-compose, Caddy (reverse proxy)
+- **CI/CD**: GitHub Actions
+
+# Установка и запуск
+## 1. Клонировать проект
+```bash
+    git clone https://github.com/wesorat/matryoshka.git
+    cd matryoshka
+```
+## 2. Создать .env файл на основе .env.example
+## 3. Запустить через Docker Compose
 ```bash
     docker-compose up --build -d
 ```
-# Для применения миграций
+## 4. Применить миграции
 ```bash
     docker exec -it matryoshka_backend alembic upgrade head
 ```
+## 5. API будет доступен по адресам
+- **Backend**: http://localhost:8000 (**OpenAPI-схема**: `backend/openapi.json`)
+- **Frontend**: http://localhost:5173
 # Для заполнения словарей и ручной demo-генерации
 
 `seed_for_db.sql` содержит постоянные справочники: категории проектов и роли. Его нужно применить до запуска demo generator. Файл идемпотентен: категории обновляются по `project_category.slug`, роли обновляются по `roles.name`.
@@ -136,3 +158,15 @@ cd /opt/matryoshka
 ```bash
 curl https://matryoshka.st.ifbest.org/api/health
 ```
+
+# Архитектурная схема
+
+<p align="center">
+  <img src="docs/Арх схема.png" alt="Архитектурная схема">
+</p>
+
+# Схема базы данных
+
+<p align="center">
+  <img src="docs/image.png" alt="Схема базы данных">
+</p>
