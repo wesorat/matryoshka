@@ -353,3 +353,16 @@ export async function deleteUserAdmin(userId) {
     })
   )
 }
+
+export async function fetchProjectsFilter({ universityId, categoryId, technologyIds } = {}) {
+  const params = new URLSearchParams()
+  if (universityId) params.append('university_id', universityId)
+  if (categoryId) params.append('category_id', categoryId)
+  if (technologyIds && technologyIds.length > 0) {
+    technologyIds.forEach((id) => params.append('technologies', id))
+  }
+  const query = params.toString()
+  return handleResponse(
+    await fetch(`${API_URL}/projects/filter/${query ? '?' + query : ''}`, fetchOptions())
+  )
+}

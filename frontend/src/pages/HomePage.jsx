@@ -4,19 +4,22 @@ import ProjectCards from '../components/ProjectCards/ProjectCards.jsx'
 import styles from './HomePage.module.scss'
 
 // ИСПРАВЛЕНО: принимаем selectedCategoryId из пропсов
-function HomePage({ 
-  categories = [], 
-  loading = false, 
-  projects = [], 
-  projectsLoading = false, 
-  onCategoryClick, 
+function HomePage({
+  categories = [],
+  loading = false,
+  projects = [],
+  projectsLoading = false,
+  onCategoryClick,
   onProjectClick,
   searchQuery = '',
-  selectedCategoryId = null // ДОБАВЛЕНО
+  selectedCategoryId = null, // ДОБАВЛЕНО
+  isFilterActive = false,
+  flatProjects = [],
+  flatLoading = false,
 }) {
-  
+
   // Функция фильтрации проектов внутри категории
-  const buildCategoryProjects = (categoryId) => 
+  const buildCategoryProjects = (categoryId) =>
     projects.filter((project) => {
       const projCatId = project.category?.id || project.category?._id || project.category_id
       return String(projCatId) === String(categoryId)
@@ -36,11 +39,19 @@ function HomePage({
   return (
     <>
       {/* ИСПРАВЛЕНО: Галерея скрывается, если есть поисковый запрос ИЛИ выбрана категория */}
-      {!searchQuery && !selectedCategoryId && heroSlides.length > 0 && (
+      {!searchQuery && !isFilterActive && heroSlides.length > 0 && (
         <HeroGallery slides={heroSlides} onSlideClick={onProjectClick} />
       )}
 
-      {loading ? (
+      {isFilterActive ? (
+        flatLoading ? (
+          <p className={styles.emptyText}>Загрузка проектов...</p>
+        ) : flatProjects.length === 0 ? (
+          <p className={styles.emptyText}>Проекты не найдены.</p>
+        ) : (
+          <ProjectCards projects={flatProjects} onProjectClick={onProjectClick} />
+        )
+      ) : loading ? (
         <section>
           <p className={styles.emptyText}>Загрузка категорий...</p>
         </section>
