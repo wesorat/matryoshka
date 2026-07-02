@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Button from '../Buttons/Button.jsx';
+import StyledSelect from '../StyledSelect/StyledSelect.jsx';
 import { createProject, updateProject, createMedia, deleteMedia, fetchUniversities } from '../../api.js';
 import styles from './ProjectForm.module.scss';
 
@@ -22,8 +23,14 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-
+  // Уже сохраненные на сервере медиафайлы (доступны только в режиме редактирования,
+  // пока проект действительно существует)
   const [mediaList, setMediaList] = useState([]);
+  // Медиафайлы, выбранные пользователем, но еще не отправленные на сервер
+  // (используется в режиме создания — проекта еще нет, поэтому грузить некуда,
+  // но пользователь может подготовить файлы заранее, и они уйдут сразу после
+  // успешного создания проекта)
+  const [pendingMedia, setPendingMedia] = useState([]);
   const [newMediaFile, setNewMediaFile] = useState(null);
   const [newMediaType, setNewMediaType] = useState('image');
   const [mediaBusy, setMediaBusy] = useState(false);
@@ -38,7 +45,7 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       if (project) {
         setTitle(project.title || '');
         setDescription(project.description || ''); // <-- ИСПРАВЛЕНО: теперь описание не потеряется при редактировании
-        setCategoryId(project.category_id || project.categoryId || '');
+        setCategoryId(project.category?.id || project.category_id || project.categoryId || '');
         setStatus(project.status || 'draft');
         setPracticalBenefit(project.practical_benefit || project.practicalBenefit || '');
         setImplementationDetails(project.implementation_details || project.implementationDetails || '');
@@ -58,6 +65,9 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
         setMediaList([]);
         setUniversityId('');
       }
+      setPendingMedia([]);
+      setNewMediaFile(null);
+      setMediaError('');
       setError('');
     }, 0);
     return () => clearTimeout(timeoutId);
@@ -71,19 +81,36 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
 
   const projectId = project?.id || project?._id;
 
+  // В режиме редактирования файл грузится на сервер сразу.
+  // В режиме создания проекта еще не существует — файл откладывается
+  // в очередь и будет отправлен сразу после успешного создания проекта.
   const handleAddMedia = async () => {
-    if (!newMediaFile || !projectId) return;
-    setMediaBusy(true);
-    setMediaError('');
-    try {
-      const media = await createMedia(projectId, newMediaFile, newMediaType);
-      setMediaList((prev) => [...prev, media]);
-      setNewMediaFile(null);
-    } catch (err) {
-      setMediaError(err.message || 'Не удалось загрузить файл');
-    } finally {
-      setMediaBusy(false);
+    if (!newMediaFile) return;
+
+    if (projectId) {
+      setMediaBusy(true);
+      setMediaError('');
+      try {
+        const uploaded = await createMedia(projectId, newMediaFile, newMediaType);
+        setMediaList((prev) => [...prev, uploaded]);
+        setNewMediaFile(null);
+      } catch (err) {
+        setMediaError(err.message || 'Не удалось загрузить файл');
+      } finally {
+        setMediaBusy(false);
+      }
+      return;
     }
+
+    setPendingMedia((prev) => [
+      ...prev,
+      {
+        tempId: `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file: newMediaFile,
+        type: newMediaType,
+      },
+    ]);
+    setNewMediaFile(null);
   };
 
   const handleDeleteMedia = async (mediaId) => {
@@ -95,6 +122,10 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
     } catch (err) {
       setMediaError(err.message || 'Не удалось удалить файл');
     }
+  };
+
+  const handleRemovePendingMedia = (tempId) => {
+    setPendingMedia((prev) => prev.filter((m) => m.tempId !== tempId));
   };
 
   const handleFormSubmit = async (e) => {
@@ -122,6 +153,30 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
         savedProject = await updateProject(projectId, projectData);
       } else {
         savedProject = await createProject(projectData);
+
+        // Проект только что создан — теперь можно догрузить отложенные медиафайлы
+        const newProjectId = savedProject?.id || savedProject?._id;
+        if (newProjectId && pendingMedia.length > 0) {
+          const uploadedMedia = [];
+          const failedUploads = [];
+
+          for (const pm of pendingMedia) {
+            try {
+              const uploaded = await createMedia(newProjectId, pm.file, pm.type);
+              uploadedMedia.push(uploaded);
+            } catch (err) {
+              console.error('Не удалось загрузить медиафайл:', err);
+              failedUploads.push(pm);
+            }
+          }
+
+          if (uploadedMedia.length > 0) {
+            savedProject = { ...savedProject, medias: [...(savedProject.medias || []), ...uploadedMedia] };
+          }
+          if (failedUploads.length > 0) {
+            setMediaError('Не все дополнительные медиафайлы удалось загрузить. Их можно будет добавить позже через редактирование проекта.');
+          }
+        }
       }
 
       if (onSuccess) {
@@ -172,33 +227,27 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
           {categories.length > 0 && (
             <div className={styles.formGroup}>
               <label>Категория</label>
-              <select
+              <StyledSelect
                 value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                <option value="">Выберите категорию</option>
-                {categories.map((cat) => (
-                  <option key={cat.id || cat._id} value={cat.id || cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCategoryId}
+                options={categories}
+                placeholder="Выберите категорию"
+                getOptionValue={(cat) => cat.id || cat._id}
+                getOptionLabel={(cat) => cat.name}
+              />
             </div>
           )}
           {universities.length > 0 && (
             <div className={styles.formGroup}>
               <label>Учебное заведение</label>
-              <select
+              <StyledSelect
                 value={universityId}
-                onChange={(e) => setUniversityId(e.target.value)}
-              >
-                <option value="">Выберите учебное заведение</option>
-                {universities.map((uni) => (
-                  <option key={uni.id} value={uni.id}>
-                    {uni.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setUniversityId}
+                options={universities}
+                placeholder="Выберите учебное заведение"
+                getOptionValue={(uni) => uni.id}
+                getOptionLabel={(uni) => uni.name}
+              />
             </div>
           )}
 
@@ -251,50 +300,61 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
             />
           </div>
 
-          {isEditMode && (
-            <div className={styles.formGroup}>
-              <label>Дополнительные медиафайлы</label>
+          <div className={styles.formGroup}>
+            <label>Дополнительные медиафайлы</label>
 
-              {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
+            {mediaError && <div className={styles.errorMessage}>{mediaError}</div>}
 
-              {mediaList.length > 0 && (
-                <ul className={styles.mediaList}>
-                  {mediaList.map((media) => (
-                    <li key={media.id} className={styles.mediaItem}>
-                      <span className={styles.mediaType}>
-                        {media.view === 'video' ? 'Видео' : 'Изображение'}
-                      </span>
-                      <span className={styles.mediaName}>{media.filename}</span>
-                      <Button type="button" variant="outline" onClick={() => handleDeleteMedia(media.id)}>
-                        Удалить
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            {(mediaList.length > 0 || pendingMedia.length > 0) && (
+              <ul className={styles.mediaList}>
+                {mediaList.map((m) => (
+                  <li key={m.id} className={styles.mediaItem}>
+                    <span className={styles.mediaType}>
+                      {m.view === 'video' ? 'Видео' : 'Изображение'}
+                    </span>
+                    <span className={styles.mediaName}>{m.filename}</span>
+                    <Button type="button" variant="outline" onClick={() => handleDeleteMedia(m.id)}>
+                      Удалить
+                    </Button>
+                  </li>
+                ))}
+                {pendingMedia.map((pm) => (
+                  <li key={pm.tempId} className={styles.mediaItem}>
+                    <span className={styles.mediaType}>
+                      {pm.type === 'video' ? 'Видео' : 'Изображение'}
+                    </span>
+                    <span className={styles.mediaName}>
+                      {pm.file.name} <em>(будет загружен после сохранения)</em>
+                    </span>
+                    <Button type="button" variant="outline" onClick={() => handleRemovePendingMedia(pm.tempId)}>
+                      Удалить
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-              <div className={styles.mediaUploadRow}>
-                <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
-                  <option value="image">Изображение</option>
-                  <option value="video">Видео</option>
-                </select>
-                <input
-                  type="file"
-                  accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
-                  onChange={(e) => setNewMediaFile(e.target.files[0])}
-                />
-                <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
-                  {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
-                </Button>
-              </div>
+            <div className={styles.mediaUploadRow}>
+              <select value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
+                <option value="image">Изображение</option>
+                <option value="video">Видео</option>
+              </select>
+              <input
+                type="file"
+                accept={newMediaType === 'video' ? 'video/*' : 'image/*'}
+                onChange={(e) => setNewMediaFile(e.target.files[0])}
+              />
+              <Button type="button" variant="outline" onClick={handleAddMedia} disabled={!newMediaFile || mediaBusy}>
+                {mediaBusy ? 'Загрузка...' : 'Добавить файл'}
+              </Button>
             </div>
-          )}
+          </div>
 
           <div className={styles.actionsRow}>
             <Button type="button" variant="outline" onClick={closeForm} disabled={isSaving}>
               Отмена
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" variant="solid" disabled={isSaving}>
               {isSaving ? 'Сохранение...' : isEditMode ? 'Сохранить изменения' : 'Опубликовать'}
             </Button>
           </div>

@@ -8,6 +8,7 @@
   border: none;
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
   @include mixins.text-ordinary;
 }
@@ -88,6 +89,33 @@
 .variant_outline:hover {
   background: vars.$button-color;
   color: vars.$basic-light;
+}
+
+.variant_solid {
+  min-width: 88px;
+  height: 40px;
+  padding: 0 18px;
+  border: 2px solid vars.$basic-accent;
+  border-radius: 999px;
+  background: vars.$basic-accent;
+  color: vars.$basic-light;
+  font-family: vars.$font-secondary;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.variant_solid:hover {
+  background: vars.$button-color-hover;
+  border-color: vars.$button-color-hover;
+}
+
+.variant_solid:disabled {
+  background: vars.$basic-semilight;
+  border-color: vars.$basic-semilight;
+  color: vars.$text-muted;
+  cursor: not-allowed;
 }
 
 .variant_nav {
