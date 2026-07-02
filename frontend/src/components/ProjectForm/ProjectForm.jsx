@@ -354,7 +354,7 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
             <Button type="button" variant="outline" onClick={closeForm} disabled={isSaving}>
               Отмена
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" variant="solid" disabled={isSaving}>
               {isSaving ? 'Сохранение...' : isEditMode ? 'Сохранить изменения' : 'Опубликовать'}
             </Button>
           </div>
