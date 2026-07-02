@@ -22,6 +22,10 @@ const SearchPanel = ({
   const [activeTechFilters, setActiveTechFilters] = useState([]);
   const [isTechDropdownOpen, setIsTechDropdownOpen] = useState(false);
 
+  const [categorySearchText, setCategorySearchText] = useState('');
+  const [universitySearchText, setUniversitySearchText] = useState('');
+  const [techSearchText, setTechSearchText] = useState('');
+
   const panelRef = useRef(null);
   const dropdownRef = useRef(null);
   const universityDropdownRef = useRef(null);
@@ -64,12 +68,14 @@ const SearchPanel = ({
   const handleCustomSelect = (val) => {
     setActiveFilter(val);
     setIsDropdownOpen(false);
+    setCategorySearchText('');
     if (onFilterSelect) onFilterSelect(val);
   };
 
   const handleUniversitySelect = (val) => {
     setActiveUniversityFilter(val);
     setIsUniversityDropdownOpen(false);
+    setUniversitySearchText('');
     if (onUniversityFilterSelect) onUniversityFilterSelect(val);
   };
 
@@ -82,6 +88,18 @@ const SearchPanel = ({
     });
   };
 
+  const filteredCategoriesList = categories.filter((cat) =>
+    (cat.name || '').toLowerCase().includes(categorySearchText.toLowerCase())
+  );
+
+  const filteredUniversitiesList = universities.filter((uni) =>
+    (uni.name || '').toLowerCase().includes(universitySearchText.toLowerCase())
+  );
+
+  const filteredTechnologiesList = technologies.filter((tech) =>
+    (tech.name || '').toLowerCase().includes(techSearchText.toLowerCase())
+  );
+
   const handleClear = (e) => {
     e.stopPropagation();
     setSearchQuery('');
@@ -92,6 +110,9 @@ const SearchPanel = ({
     setIsDropdownOpen(false);
     setIsUniversityDropdownOpen(false);
     setIsTechDropdownOpen(false);
+    setCategorySearchText('');
+    setUniversitySearchText('');
+    setTechSearchText('');
     if (onSearch) onSearch('');
     if (onFilterSelect) onFilterSelect(null);
     if (onUniversityFilterSelect) onUniversityFilterSelect(null);
@@ -145,14 +166,22 @@ const SearchPanel = ({
               </div>
 
               {isDropdownOpen && (
-                <div className={styles.searchPanel__dropdownMenu}>
+                <div className={styles.searchPanel__dropdownMenu} onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="text"
+                    className={styles.searchPanel__dropdownSearchInput}
+                    placeholder="Поиск раздела..."
+                    value={categorySearchText}
+                    onChange={(e) => setCategorySearchText(e.target.value)}
+                    autoFocus
+                  />
                   <div
                     className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
                     onClick={() => handleCustomSelect(null)}
                   >
                     Все разделы
                   </div>
-                  {categories.map((category) => {
+                  {filteredCategoriesList.map((category) => {
                     const catId = category.id || category._id;
                     const isActive = String(activeFilter) === String(catId);
                     return (
@@ -165,6 +194,9 @@ const SearchPanel = ({
                       </div>
                     );
                   })}
+                  {filteredCategoriesList.length === 0 && (
+                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                  )}
                 </div>
               )}
             </div>
@@ -183,14 +215,22 @@ const SearchPanel = ({
               </div>
 
               {isUniversityDropdownOpen && (
-                <div className={styles.searchPanel__dropdownMenu}>
+                <div className={styles.searchPanel__dropdownMenu} onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="text"
+                    className={styles.searchPanel__dropdownSearchInput}
+                    placeholder="Поиск вуза..."
+                    value={universitySearchText}
+                    onChange={(e) => setUniversitySearchText(e.target.value)}
+                    autoFocus
+                  />
                   <div
                     className={`${styles.searchPanel__dropdownItem} ${!activeUniversityFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
                     onClick={() => handleUniversitySelect(null)}
                   >
                     Все вузы
                   </div>
-                  {universities.map((uni) => {
+                  {filteredUniversitiesList.map((uni) => {
                     const uniId = uni.id || uni._id;
                     const isActive = String(activeUniversityFilter) === String(uniId);
                     return (
@@ -203,6 +243,9 @@ const SearchPanel = ({
                       </div>
                     );
                   })}
+                  {filteredUniversitiesList.length === 0 && (
+                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                  )}
                 </div>
               )}
             </div>
@@ -222,7 +265,15 @@ const SearchPanel = ({
 
               {isTechDropdownOpen && (
                 <div className={styles.searchPanel__dropdownMenu} onClick={(e) => e.stopPropagation()}>
-                  {technologies.map((tech) => {
+                  <input
+                    type="text"
+                    className={styles.searchPanel__dropdownSearchInput}
+                    placeholder="Поиск технологии..."
+                    value={techSearchText}
+                    onChange={(e) => setTechSearchText(e.target.value)}
+                    autoFocus
+                  />
+                  {filteredTechnologiesList.map((tech) => {
                     const techId = tech.id || tech._id;
                     const isActive = activeTechFilters.includes(String(techId));
                     return (
@@ -235,6 +286,9 @@ const SearchPanel = ({
                       </div>
                     );
                   })}
+                  {filteredTechnologiesList.length === 0 && (
+                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                  )}
                 </div>
               )}
             </div>
