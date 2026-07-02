@@ -1,0 +1,93 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins' as mixins;
+@use "sass:color";
+
+.wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.trigger {
+  @include mixins.text-ordinary;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border: 1px solid vars.$border-color;
+  border-radius: 8px;
+  color: vars.$text-main;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: vars.$basic-accent;
+  }
+}
+
+.triggerOpen {
+  outline: none;
+  border-color: vars.$basic-accent;
+  box-shadow: 0 0 0 3px color.scale(vars.$basic-accent, $alpha: -90%);
+}
+
+.triggerLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.triggerArrow {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid vars.$text-muted;
+  border-bottom: 2px solid vars.$text-muted;
+  transform: rotate(45deg);
+  margin-top: -4px;
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  // Ключевая часть фикса: ширина списка жёстко равна ширине поля,
+  // а не ширине самого длинного варианта, как у нативного <select>.
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background-color: #ffffff;
+  border: 1px solid vars.$border-color;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.option {
+  @include mixins.text-ordinary;
+  padding: 10px 16px;
+  color: vars.$text-main;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: vars.$basic-light;
+  }
+}
+
+.optionSelected {
+  background-color: color.scale(vars.$basic-accent, $alpha: -90%);
+  font-weight: 600;
+}
