@@ -135,9 +135,17 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         project={project}
         categories={categories}
         technologies={technologies}
-        onSuccess={(updatedProject) => {
-          setProject(updatedProject);
+        onSuccess={async () => {
           setIsEditing(false);
+          setLoading(true);
+          try {
+            const freshProject = await fetchProjectById(project.id || project._id);
+            setProject(freshProject);
+          } catch (err) {
+            console.error('Не удалось обновить данные проекта:', err);
+          } finally {
+            setLoading(false);
+          }
         }}
         onCancel={() => setIsEditing(false)}
       />
