@@ -8,7 +8,7 @@ import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {}, categories = [] }) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {}, categories = [], technologies = [] }) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -134,6 +134,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       <ProjectForm
         project={project}
         categories={categories}
+        technologies={technologies}
         onSuccess={(updatedProject) => {
           setProject(updatedProject);
           setIsEditing(false);

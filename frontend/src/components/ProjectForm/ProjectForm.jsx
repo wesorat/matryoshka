@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Button from '../Buttons/Button.jsx';
 import StyledSelect from '../StyledSelect/StyledSelect.jsx';
 import {
@@ -54,6 +54,10 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
   const [techError, setTechError] = useState('');
   const [techBusy, setTechBusy] = useState(false);
 
+  const [techSearch, setTechSearch] = useState('');
+  const [isTechDropdownOpen, setIsTechDropdownOpen] = useState(false);
+  const techDropdownRef = useRef(null);
+
   // Синхронизация данных при открытии формы
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -99,6 +103,16 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
     }, 0);
     return () => clearTimeout(timeoutId);
   }, [project]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (techDropdownRef.current && !techDropdownRef.current.contains(e.target)) {
+        setIsTechDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchUniversities()
@@ -340,22 +354,78 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
 
               {techError && <div className={styles.errorMessage}>{techError}</div>}
 
-              <div className={styles.techCheckboxGrid}>
-                {technologies.map((tech) => {
-                  const techId = String(tech.id || tech._id);
-                  const checked = selectedTechIds.includes(techId);
-                  return (
-                    <label key={techId} className={styles.techCheckboxItem}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        disabled={techBusy}
-                        onChange={() => handleToggleTechnology(techId)}
-                      />
-                      <span>{tech.name}</span>
-                    </label>
-                  );
-                })}
+              {selectedTechIds.length > 0 && (
+                <div className={styles.techChipsRow}>
+                  {selectedTechIds.map((techId) => {
+                    const tech = technologies.find((t) => String(t.id || t._id) === techId);
+                    if (!tech) return null;
+                    return (
+                      <span key={techId} className={styles.techChip}>
+                        {tech.name}
+                        <button
+                          type="button"
+                          className={styles.techChipRemove}
+                          disabled={techBusy}
+                          onClick={() => handleToggleTechnology(techId)}
+                          aria-label={`Удалить ${tech.name}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className={styles.techComboboxWrapper} ref={techDropdownRef}>
+                <input
+                  type="text"
+                  value={techSearch}
+                  onChange={(e) => {
+                    setTechSearch(e.target.value);
+                    setIsTechDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsTechDropdownOpen(true)}
+                  placeholder="Начните вводить название технологии..."
+                  disabled={techBusy}
+                  autoComplete="off"
+                />
+
+                {isTechDropdownOpen && (
+                  <ul className={styles.techDropdownMenu}>
+                    {technologies
+                      .filter((tech) => {
+                        const techId = String(tech.id || tech._id);
+                        const alreadySelected = selectedTechIds.includes(techId);
+                        const matchesSearch = tech.name.toLowerCase().includes(techSearch.toLowerCase());
+                        return !alreadySelected && matchesSearch;
+                      })
+                      .slice(0, 50)
+                      .map((tech) => {
+                        const techId = String(tech.id || tech._id);
+                        return (
+                          <li
+                            key={techId}
+                            className={styles.techDropdownItem}
+                            onClick={() => {
+                              handleToggleTechnology(techId);
+                              setTechSearch('');
+                            }}
+                          >
+                            {tech.name}
+                          </li>
+                        );
+                      })}
+                    {technologies.filter((tech) => {
+                      const techId = String(tech.id || tech._id);
+                      const alreadySelected = selectedTechIds.includes(techId);
+                      const matchesSearch = tech.name.toLowerCase().includes(techSearch.toLowerCase());
+                      return !alreadySelected && matchesSearch;
+                    }).length === 0 && (
+                      <li className={styles.techDropdownNoResults}>Ничего не найдено</li>
+                    )}
+                  </ul>
+                )}
               </div>
             </div>
           )}
