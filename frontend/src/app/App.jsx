@@ -11,7 +11,7 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { fetchCategories, fetchCategoryById, fetchProjects, fetchProjectsByCategory,
-         fetchCurrentUser, logout, fetchMyProjects, fetchProjectById } from '../api.js'
+         fetchCurrentUser, logout, fetchMyProjects, fetchProjectById, fetchTechnologies } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
 import AdminPage from '../pages/AdminPage.jsx'
 
@@ -119,6 +119,10 @@ function App() {
 
   const [homeCategories, setHomeCategories] = useState([]) //только интересные (с проектами)
   const [homeCategoriesLoading, setHomeCategoriesLoading] = useState(true)
+
+  // Технологии =================================================================================================
+  const [technologies, setTechnologies] = useState([])
+  const [technologiesLoading, setTechnologiesLoading] = useState(true)
 
   // Состояния для глобальной ленты всех проектов и страниц категорий ===========================================
   const [projects, setProjects] = useState([])
@@ -281,6 +285,16 @@ function App() {
       .then((items) => { if (mounted) setHomeCategories(items) })
       .catch((error) => console.error('Не удалось загрузить категории для главной:', error))
       .finally(() => { if (mounted) setHomeCategoriesLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  // Загрузка полного списка технологий (для формы создания/редактирования проекта)
+  useEffect(() => {
+    let mounted = true
+    fetchTechnologies()
+      .then((items) => { if (mounted) setTechnologies(items) })
+      .catch((error) => console.error('Не удалось загрузить технологии:', error))
+      .finally(() => { if (mounted) setTechnologiesLoading(false) })
     return () => { mounted = false }
   }, [])
 
@@ -646,6 +660,7 @@ function App() {
             projects={myProjects}
             loading={myProjectsLoading}
             categories={categories}
+            technologies={technologies}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
             onCreateProjectClick={handleCreateProjectClick}
@@ -683,6 +698,7 @@ function App() {
             onAuthorClick={handleAuthorClick}
             onUserPageClick={handleAccountClick}
             categories={categories}
+            technologies={technologies}
           />
         )}
           {page === 'admin' && user?.is_superuser && (

@@ -201,3 +201,23 @@
     border-radius: 8px;
   }
 }
+
+.techCheckboxGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+ 
+.techCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+  cursor: pointer;
+ 
+  input[type='checkbox'] {
+    width: auto;
+    cursor: pointer;
+  }
+}

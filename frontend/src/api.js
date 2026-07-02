@@ -195,6 +195,34 @@ export async function fetchUniversities() {
   return handleResponse(await fetch(`${API_URL}/university/`, fetchOptions()))
 }
 
+// --- Технологии ---
+
+export async function fetchTechnologies(count = 300) {
+  return handleResponse(await fetch(`${API_URL}/technology/?count=${count}`, fetchOptions()))
+}
+
+export async function addProjectTechnology(projectId, technologyId) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, technology_id: technologyId }),
+    })
+  )
+}
+
+export async function removeProjectTechnology(projectId, technologyId) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, technology_id: technologyId }),
+    })
+  )
+}
+
 export async function createLike(projectId) {
   return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
     method: 'POST',

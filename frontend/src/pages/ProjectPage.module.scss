@@ -14,15 +14,15 @@
 
 // Основной контейнер страницы просмотра и редактирования
 .page {
-  padding-bottom: 100px; 
+  padding-bottom: 100px;
 }
 
-// Верхний ряд страницы 
+// Верхний ряд страницы
 .headerRow {
-  @include mixins.glass-container; 
-  margin: 40px auto 32px;         
-  
-  display: flex;                
+  @include mixins.glass-container;
+  margin: 40px auto 32px;
+
+  display: flex;
   justify-content: space-between;
   align-items: center;
 }
@@ -352,7 +352,7 @@
     padding: 20px 16px 24px;
     border-radius: 20px;
     margin: 16px auto;
-    
+
     p {
       margin-top: 12px;
     }
@@ -524,4 +524,21 @@
     border: 1px solid vars.$border-color;
     border-radius: 8px;
   }
+}
+
+.techTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.techTag {
+  @include mixins.text-ordinary;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: vars.$basic-light;
+  border: 1px solid vars.$border-color;
+  color: vars.$text-main;
 }

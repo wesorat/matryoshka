@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import Button from '../Buttons/Button.jsx';
 import StyledSelect from '../StyledSelect/StyledSelect.jsx';
-import { createProject, updateProject, createMedia, deleteMedia, fetchUniversities } from '../../api.js';
+import {
+  createProject,
+  updateProject,
+  createMedia,
+  deleteMedia,
+  fetchUniversities,
+  addProjectTechnology,
+  removeProjectTechnology,
+} from '../../api.js';
 import styles from './ProjectForm.module.scss';
 
-function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onBack }) {
+function ProjectForm({ project = null, categories = [], technologies = [], onSuccess, onCancel, onBack }) {
   const isEditMode = !!project;
 
   // Защита от нестыковки пропсов: сработает и onCancel, и onBack из UserPage
@@ -39,6 +47,13 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
   const [universityId, setUniversityId] = useState('');
   const [universities, setUniversities] = useState([]);
 
+  // Технологии проекта: уже привязанные (id технологий) — множественный выбор
+  const [selectedTechIds, setSelectedTechIds] = useState([]);
+  // Технологии, которые были у проекта изначально (нужно для вычисления diff при сохранении)
+  const [initialTechIds, setInitialTechIds] = useState([]);
+  const [techError, setTechError] = useState('');
+  const [techBusy, setTechBusy] = useState(false);
+
   // Синхронизация данных при открытии формы
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -52,6 +67,15 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
         setResults(project.results || '');
         setMediaList(project.medias || []);
         setUniversityId(project.university?.id || project.university_id || project.universityId || '');
+
+        // Уже привязанные к проекту технологии.
+        // Бэкенд отдаёт их в поле project_technologies: [{ technology: { id, name }, project_id }]
+        const existingTechIds = (project.project_technologies || [])
+          .map((pt) => pt.technology?.id)
+          .filter((id) => id !== undefined && id !== null)
+          .map(String);
+        setSelectedTechIds(existingTechIds);
+        setInitialTechIds(existingTechIds);
       } else {
         // Сброс полей при создании нового проекта
         setTitle('');
@@ -64,10 +88,13 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
         setResults('');
         setMediaList([]);
         setUniversityId('');
+        setSelectedTechIds([]);
+        setInitialTechIds([]);
       }
       setPendingMedia([]);
       setNewMediaFile(null);
       setMediaError('');
+      setTechError('');
       setError('');
     }, 0);
     return () => clearTimeout(timeoutId);
@@ -128,6 +155,40 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
     setPendingMedia((prev) => prev.filter((m) => m.tempId !== tempId));
   };
 
+  // Переключение чекбокса технологии. В режиме создания просто копим id
+  // в selectedTechIds — реальные запросы уйдут после создания проекта.
+  const handleToggleTechnology = (techId) => {
+    const id = String(techId);
+    setSelectedTechIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  };
+
+  // Применяет разницу между initialTechIds и selectedTechIds к уже существующему
+  // проекту: недостающие технологии добавляются, лишние — удаляются.
+  const syncProjectTechnologies = async (targetProjectId) => {
+    const toAdd = selectedTechIds.filter((id) => !initialTechIds.includes(id));
+    const toRemove = initialTechIds.filter((id) => !selectedTechIds.includes(id));
+
+    if (toAdd.length === 0 && toRemove.length === 0) return;
+
+    setTechBusy(true);
+    setTechError('');
+    try {
+      for (const techId of toAdd) {
+        await addProjectTechnology(targetProjectId, techId);
+      }
+      for (const techId of toRemove) {
+        await removeProjectTechnology(targetProjectId, techId);
+      }
+      setInitialTechIds(selectedTechIds);
+    } catch (err) {
+      setTechError(err.message || 'Не удалось сохранить технологии проекта');
+    } finally {
+      setTechBusy(false);
+    }
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
@@ -151,11 +212,33 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
       if (isEditMode) {
         const projectId = project.id || project._id;
         savedProject = await updateProject(projectId, projectData);
+        await syncProjectTechnologies(projectId);
       } else {
         savedProject = await createProject(projectData);
 
         // Проект только что создан — теперь можно догрузить отложенные медиафайлы
         const newProjectId = savedProject?.id || savedProject?._id;
+
+        // ...и привязать выбранные технологии (запросы уходят по одному,
+        // как и с отложенными медиафайлами выше)
+        if (newProjectId && selectedTechIds.length > 0) {
+          setTechBusy(true);
+          setTechError('');
+          const failedTechIds = [];
+          for (const techId of selectedTechIds) {
+            try {
+              await addProjectTechnology(newProjectId, techId);
+            } catch (err) {
+              console.error('Не удалось привязать технологию:', err);
+              failedTechIds.push(techId);
+            }
+          }
+          setTechBusy(false);
+          if (failedTechIds.length > 0) {
+            setTechError('Не все технологии удалось сохранить. Их можно будет добавить позже через редактирование проекта.');
+          }
+        }
+
         if (newProjectId && pendingMedia.length > 0) {
           const uploadedMedia = [];
           const failedUploads = [];
@@ -248,6 +331,32 @@ function ProjectForm({ project = null, categories = [], onSuccess, onCancel, onB
                 getOptionValue={(uni) => uni.id}
                 getOptionLabel={(uni) => uni.name}
               />
+            </div>
+          )}
+
+          {technologies.length > 0 && (
+            <div className={styles.formGroup}>
+              <label>Технологии</label>
+
+              {techError && <div className={styles.errorMessage}>{techError}</div>}
+
+              <div className={styles.techCheckboxGrid}>
+                {technologies.map((tech) => {
+                  const techId = String(tech.id || tech._id);
+                  const checked = selectedTechIds.includes(techId);
+                  return (
+                    <label key={techId} className={styles.techCheckboxItem}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={techBusy}
+                        onChange={() => handleToggleTechnology(techId)}
+                      />
+                      <span>{tech.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           )}
 

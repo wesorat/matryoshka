@@ -198,7 +198,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
 
   return (
     <section className={styles.page}>
-      
+
 
       <HeroGallery slides={slides} />
       <div className={styles.headerRow}>
@@ -293,6 +293,18 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         <div className={styles.textContent}>
           <CategorySection title="Результативность" showAction={false} />
           <p>{results}</p>
+        </div>
+      )}
+      {project.project_technologies && project.project_technologies.length > 0 && (
+        <div className={styles.textContent}>
+          <CategorySection title="Технологии" showAction={false} />
+          <div className={styles.techTags}>
+            {project.project_technologies.map((pt) => (
+              <span key={pt.technology.id} className={styles.techTag}>
+                {pt.technology.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
       <div className={styles.likeRow}>
