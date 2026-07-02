@@ -721,6 +721,7 @@ function App() {
             loading={myProjectsLoading}
             categories={categories}
             technologies={technologies}
+            technologiesLoading={technologiesLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
             onCreateProjectClick={handleCreateProjectClick}
