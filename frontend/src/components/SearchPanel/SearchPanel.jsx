@@ -175,28 +175,30 @@ const SearchPanel = ({
                     onChange={(e) => setCategorySearchText(e.target.value)}
                     autoFocus
                   />
-                  <div
-                    className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                    onClick={() => handleCustomSelect(null)}
-                  >
-                    Все разделы
+                  <div className={styles.searchPanel__dropdownList}>
+                    <div
+                      className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                      onClick={() => handleCustomSelect(null)}
+                    >
+                      Все разделы
+                    </div>
+                    {filteredCategoriesList.map((category) => {
+                      const catId = category.id || category._id;
+                      const isActive = String(activeFilter) === String(catId);
+                      return (
+                        <div
+                          key={catId}
+                          className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                          onClick={() => handleCustomSelect(catId)}
+                        >
+                          {category.name}
+                        </div>
+                      );
+                    })}
+                    {filteredCategoriesList.length === 0 && (
+                      <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                    )}
                   </div>
-                  {filteredCategoriesList.map((category) => {
-                    const catId = category.id || category._id;
-                    const isActive = String(activeFilter) === String(catId);
-                    return (
-                      <div
-                        key={catId}
-                        className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                        onClick={() => handleCustomSelect(catId)}
-                      >
-                        {category.name}
-                      </div>
-                    );
-                  })}
-                  {filteredCategoriesList.length === 0 && (
-                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
-                  )}
                 </div>
               )}
             </div>
@@ -224,28 +226,30 @@ const SearchPanel = ({
                     onChange={(e) => setUniversitySearchText(e.target.value)}
                     autoFocus
                   />
-                  <div
-                    className={`${styles.searchPanel__dropdownItem} ${!activeUniversityFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                    onClick={() => handleUniversitySelect(null)}
-                  >
-                    Все вузы
+                  <div className={styles.searchPanel__dropdownList}>
+                    <div
+                      className={`${styles.searchPanel__dropdownItem} ${!activeUniversityFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                      onClick={() => handleUniversitySelect(null)}
+                    >
+                      Все вузы
+                    </div>
+                    {filteredUniversitiesList.map((uni) => {
+                      const uniId = uni.id || uni._id;
+                      const isActive = String(activeUniversityFilter) === String(uniId);
+                      return (
+                        <div
+                          key={uniId}
+                          className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                          onClick={() => handleUniversitySelect(uniId)}
+                        >
+                          {uni.name}
+                        </div>
+                      );
+                    })}
+                    {filteredUniversitiesList.length === 0 && (
+                      <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                    )}
                   </div>
-                  {filteredUniversitiesList.map((uni) => {
-                    const uniId = uni.id || uni._id;
-                    const isActive = String(activeUniversityFilter) === String(uniId);
-                    return (
-                      <div
-                        key={uniId}
-                        className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                        onClick={() => handleUniversitySelect(uniId)}
-                      >
-                        {uni.name}
-                      </div>
-                    );
-                  })}
-                  {filteredUniversitiesList.length === 0 && (
-                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
-                  )}
                 </div>
               )}
             </div>
@@ -273,22 +277,24 @@ const SearchPanel = ({
                     onChange={(e) => setTechSearchText(e.target.value)}
                     autoFocus
                   />
-                  {filteredTechnologiesList.map((tech) => {
-                    const techId = tech.id || tech._id;
-                    const isActive = activeTechFilters.includes(String(techId));
-                    return (
-                      <div
-                        key={techId}
-                        className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                        onClick={() => handleTechToggle(techId)}
-                      >
-                        {isActive ? '✓ ' : ''}{tech.name}
-                      </div>
-                    );
-                  })}
-                  {filteredTechnologiesList.length === 0 && (
-                    <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
-                  )}
+                  <div className={styles.searchPanel__dropdownList}>
+                    {filteredTechnologiesList.map((tech) => {
+                      const techId = tech.id || tech._id;
+                      const isActive = activeTechFilters.includes(String(techId));
+                      return (
+                        <div
+                          key={techId}
+                          className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                          onClick={() => handleTechToggle(techId)}
+                        >
+                          {isActive ? '✓ ' : ''}{tech.name}
+                        </div>
+                      );
+                    })}
+                    {filteredTechnologiesList.length === 0 && (
+                      <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
