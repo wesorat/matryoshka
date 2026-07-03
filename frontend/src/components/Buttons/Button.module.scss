@@ -139,3 +139,17 @@
   color: vars.$basic-accent;
   background: rgba(246, 36, 64, 0.12);
 }
+
+
+@media (max-width: 600px) {
+  .variant_link {
+    font-size: 13px;
+    padding: 8px 10px;
+    border-width: 2px;
+
+    :global(.appHeader--shrunk) & {
+      font-size: 11px;
+      padding: 6px 8px;
+    }
+  }
+}

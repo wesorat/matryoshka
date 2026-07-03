@@ -28,21 +28,22 @@
     @include mixins.glass-container;
     position: fixed;
 
-    width: 160px;           // ИСПРАВЛЕНО: Фиксированная ширина вместо fit-content для плавной анимации
+    width: 56px;
     max-width: none;
     cursor: pointer;
 
     height: 56px;
-    padding: 0 24px;        // ИСПРАВЛЕНО: Делаем правый (и левый) отступ ровно 24px, как в развернутом виде
-    border-radius: 14px;
+    padding: 0;
+    border-radius: 50%;
     display: flex;
     align-items: center;
+    justify-content: center;
 
     .searchPanel__mainRow {
       height: 100%;
       min-height: auto;
-      gap: 12px;
       width: 100%;
+      justify-content: center;
     }
 
     &:hover {
@@ -300,5 +301,53 @@
     &:hover {
       color: vars.$basic-accent;
     }
+  }
+}
+@media (max-width: 640px) {
+  .searchPanel--expanded {
+    left: 20px;
+    right: 20px;
+    width: auto;
+    max-width: none;
+  }
+
+  .searchPanel--expanded {
+    padding: 14px 16px;
+
+    .searchPanel__mainRow {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: stretch;
+      height: auto;
+      gap: 10px;
+    }
+
+    .searchPanel__glassItem--input {
+      order: 1;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .searchPanel__glassItem--icon {
+      order: 2;
+      flex: 0 0 44px;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      aspect-ratio: auto;
+    }
+
+    .searchPanel__glassItem--dropdown {
+      order: 3;
+      flex: 1 1 100%;
+      width: 100%;
+    }
+  }
+
+  .searchPanel__dropdownMenu {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
   }
 }

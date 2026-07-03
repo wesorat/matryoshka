@@ -142,7 +142,17 @@
     grid-template-columns: 1fr;
   }
 
+  .side {
+    display: none; // прячем боковые слайды, иначе controls уезжают вниз под них
+  }
+
   .active {
+    grid-column: 1 / -1;
     box-shadow: none;
   }
+
+  .controls {
+    grid-column: 1 / -1; // растягиваем на всю ширину carouselWrapper, а не только на среднюю колонку
+  }
+
 }

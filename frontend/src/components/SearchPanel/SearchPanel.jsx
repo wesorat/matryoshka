@@ -311,13 +311,10 @@ const SearchPanel = ({
               )}
             </div>
           </>
-        ) : (
-          <>
-            <span className={styles.searchPanel__placeholder}>ПОИСК</span>
-            <div className={styles.searchPanel__iconWrapper}>
-              <CustomIcon className={styles.searchPanel__matrIcon} />
-            </div>
-          </>
+          ) : (
+          <div className={styles.searchPanel__iconWrapper}>
+            <CustomIcon className={styles.searchPanel__matrIcon} />
+          </div>
         )}
       </div>
     </div>

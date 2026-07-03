@@ -120,3 +120,35 @@
   // [COLOR] Если и сжатый хедер, и модификатор wide одновременно
   color: vars.$bg-main;
 }
+
+// ==== Мобильная адаптация шапки ====
+@media (max-width: 600px) {
+  .appHeader__inner {
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+
+  .appHeader__logo {
+    height: auto;
+    min-width: 0;
+    width: 110px;
+    max-height: none;
+    margin-left: 8px; // сдвигаем логотип правее, чтобы не вылезал за экран
+  }
+
+  .appHeader__logoSvg--wide .logo-letter,
+  .appHeader__logoSvg .logo-letter {
+    transform: none !important; // на мобильном отключаем сдвиг букв, из-за которого лого уезжало влево
+  }
+
+  .appHeader__nav {
+    // убираем абсолютное позиционирование, из-за которого было наложение
+    position: static;
+    gap: 6px;
+  }
+
+  .appHeader__link {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+}
