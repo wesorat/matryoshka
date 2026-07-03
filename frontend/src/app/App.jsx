@@ -327,7 +327,9 @@ function App() {
       return
     }
     let mounted = true
-    setFilteredLoading(true)
+    const timeoutId = setTimeout(() => {
+      if (mounted) setFilteredLoading(true)
+    }, 0)
     fetchProjectsFilter({
       categoryId: selectedCategoryId || undefined,
       universityId: filterUniversityId || undefined,
@@ -336,7 +338,10 @@ function App() {
       .then((items) => { if (mounted) setFilteredProjects(items) })
       .catch((err) => console.error('Ошибка фильтрации проектов:', err))
       .finally(() => { if (mounted) setFilteredLoading(false) })
-    return () => { mounted = false }
+    return () => { 
+      mounted = false 
+      clearTimeout(timeoutId) // Очищаем таймаут при изменении зависимостей
+    }
   // ИСПРАВЛЕНИЕ: Добавили `isFilterActive` в массив зависимостей (решает варнинг)
   }, [page, isFilterActive, selectedCategoryId, filterUniversityId, filterTechnologyIds])
 
