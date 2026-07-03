@@ -2,32 +2,33 @@ import { useState, useEffect, useRef } from 'react';
 import ProjectCards from '../components/ProjectCards/ProjectCards.jsx';
 import Button from '../components/Buttons/Button.jsx';
 import ProjectForm from '../components/ProjectForm/ProjectForm.jsx';
-import LogPage from './LogPage.jsx'; 
-import { updateCurrentUser, uploadUserAvatar } from '../api.js'; 
+import LogPage from './LogPage.jsx';
+import { updateCurrentUser, uploadUserAvatar } from '../api.js';
 import styles from './UserPage.module.scss';
 
 // Вычисление базового пути до медиа-файлов, как в ProjectCards.jsx
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const mediaBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 
-function UserPage({ 
-  user = {}, 
-  projects = [], 
-  loading = false, 
-  categories = [],  
-  onBack = () => {}, 
-  onProjectClick = () => {}, 
+function UserPage({
+  user = {},
+  projects = [],
+  loading = false,
+  categories = [],
+  technologies = [],
+  onBack = () => {},
+  onProjectClick = () => {},
   onCreateProjectClick = null,
   createProjectHref = '/projects/new',
   createProjectOpen = false,
   onCreateProjectClose = null,
   onLogout = () => {},
   onPublishSuccess = () => {},
-  onUserUpdate = () => {} 
+  onUserUpdate = () => {}
 }) {
   const { name = 'Имя Пользователя', avatar, image_url } = user;
   const [isPublishOpen, setIsPublishOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false); 
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
   const [bio, setBio] = useState(user.bio || '');
@@ -84,7 +85,7 @@ function UserPage({
 
   const handleBioKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); 
+      e.preventDefault();
       handleSaveBio();
     }
   };
@@ -107,12 +108,12 @@ function UserPage({
 
     try {
       const updatedData = await uploadUserAvatar(file);
-      
+
       if (onUserUpdate) {
         // Слияние старых данных пользователя и ответа от бэкенда
         onUserUpdate({ ...user, ...updatedData });
       }
-      
+
       // 2. Обновляем тикет времени, чтобы заставить браузер сделать новый GET-запрос картинки
       setAvatarTicket(Date.now());
 
@@ -134,10 +135,10 @@ function UserPage({
   return (
     <section className={styles.page}>
       <div className={styles.container}>
-        
+
         <header className={styles.profileHeader}>
           {/* Интерактивный аватар */}
-          <div 
+          <div
             className={styles.avatarWrapper}
             onClick={handleAvatarClick}
             style={{ cursor: 'pointer' }}
@@ -148,7 +149,7 @@ function UserPage({
               alt={name}
               className={styles.avatar}
             />
-            <input 
+            <input
               type="file"
               ref={fileInputRef}
               onChange={handleAvatarChange}
@@ -159,26 +160,26 @@ function UserPage({
 
           <div className={styles.profileInfo}>
             <h1 className={styles.name}>{name}</h1>
-            
+
             <p className={styles.universityText}>
               {user.university?.name ? `Студент ${user.university.name}` : 'Студент'}
             </p>
-            
+
             <div className={styles.bioBlock}>
               {isEditingBio ? (
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   onKeyDown={handleBioKeyDown}
-                  onBlur={handleSaveBio} 
+                  onBlur={handleSaveBio}
                   autoFocus
-                  className={styles.bioInput} 
-                  maxLength={300} 
-                  rows={3} 
+                  className={styles.bioInput}
+                  maxLength={300}
+                  rows={3}
                 />
               ) : (
-                <p 
-                  className={styles.bioText} 
+                <p
+                  className={styles.bioText}
                   onClick={() => setIsEditingBio(true)}
                   title="Кликните для редактирования"
                 >
@@ -208,29 +209,30 @@ function UserPage({
           {loading ? (
              <p>Загрузка проектов...</p>
           ) : (
-             <ProjectCards 
-               projects={projects} 
-               onProjectClick={onProjectClick} 
+             <ProjectCards
+               projects={projects}
+               onProjectClick={onProjectClick}
              />
           )}
         </main>
       </div>
 
       {isEditProfileOpen && (
-        <LogPage 
-          type="edit" 
-          user={user} 
-          onBack={() => setIsEditProfileOpen(false)} 
+        <LogPage
+          type="edit"
+          user={user}
+          onBack={() => setIsEditProfileOpen(false)}
           onSuccess={(freshUserData) => {
             onUserUpdate({ ...user, ...freshUserData });
-            setIsEditProfileOpen(false); 
-          }} 
+            setIsEditProfileOpen(false);
+          }}
         />
       )}
 
       {isPublishFormOpen && (
         <ProjectForm
           categories={categories}
+          technologies={technologies}
           project={createProjectOpen ? null : selectedProject}
           onSuccess={(data) => {
             onPublishSuccess(data);

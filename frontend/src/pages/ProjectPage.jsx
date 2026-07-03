@@ -8,7 +8,7 @@ import styles from './ProjectPage.module.scss';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {}, categories = [] }) {
+function ProjectPage({ project: initialProject, projectId, onBack, editMode = false, user = null, onAuthorClick = () => {}, onUserPageClick = () => {}, categories = [], technologies = [] }) {
   const [project, setProject] = useState(initialProject);
   const [loading, setLoading] = useState(!initialProject);
   const [error, setError] = useState('');
@@ -134,9 +134,18 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
       <ProjectForm
         project={project}
         categories={categories}
-        onSuccess={(updatedProject) => {
-          setProject(updatedProject);
+        technologies={technologies}
+        onSuccess={async () => {
           setIsEditing(false);
+          setLoading(true);
+          try {
+            const freshProject = await fetchProjectById(project.id || project._id);
+            setProject(freshProject);
+          } catch (err) {
+            console.error('Не удалось обновить данные проекта:', err);
+          } finally {
+            setLoading(false);
+          }
         }}
         onCancel={() => setIsEditing(false)}
       />
@@ -198,7 +207,7 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
 
   return (
     <section className={styles.page}>
-      
+
 
       <HeroGallery slides={slides} />
       <div className={styles.headerRow}>
@@ -293,6 +302,18 @@ function ProjectPage({ project: initialProject, projectId, onBack, editMode = fa
         <div className={styles.textContent}>
           <CategorySection title="Результативность" showAction={false} />
           <p>{results}</p>
+        </div>
+      )}
+      {project.project_technologies && project.project_technologies.length > 0 && (
+        <div className={styles.textContent}>
+          <CategorySection title="Технологии" showAction={false} />
+          <div className={styles.techTags}>
+            {project.project_technologies.map((pt) => (
+              <span key={pt.technology.id} className={styles.techTag}>
+                {pt.technology.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
       <div className={styles.likeRow}>

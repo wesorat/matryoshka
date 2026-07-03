@@ -195,6 +195,34 @@ export async function fetchUniversities() {
   return handleResponse(await fetch(`${API_URL}/university/`, fetchOptions()))
 }
 
+// --- Технологии ---
+
+export async function fetchTechnologies(count = 300) {
+  return handleResponse(await fetch(`${API_URL}/technology/?count=${count}`, fetchOptions()))
+}
+
+export async function addProjectTechnology(projectId, technologyId) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, technology_id: technologyId }),
+    })
+  )
+}
+
+export async function removeProjectTechnology(projectId, technologyId) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId, technology_id: technologyId }),
+    })
+  )
+}
+
 export async function createLike(projectId) {
   return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
     method: 'POST',
@@ -323,5 +351,18 @@ export async function deleteUserAdmin(userId) {
       method: 'DELETE',
       credentials: 'include',
     })
+  )
+}
+
+export async function fetchProjectsFilter({ universityId, categoryId, technologyIds } = {}) {
+  const params = new URLSearchParams()
+  if (universityId) params.append('university_id', universityId)
+  if (categoryId) params.append('category_id', categoryId)
+  if (technologyIds && technologyIds.length > 0) {
+    technologyIds.forEach((id) => params.append('technologies', id))
+  }
+  const query = params.toString()
+  return handleResponse(
+    await fetch(`${API_URL}/projects/filter/${query ? '?' + query : ''}`, fetchOptions())
   )
 }

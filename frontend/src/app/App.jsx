@@ -3,7 +3,7 @@ import Button from '../components/Buttons/Button.jsx'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
 // ИСПРАВЛЕНО: Импортируем компонент под правильным именем SearchPanel
-import SearchPanel from '../components/SearchPanel/SearchPanel.jsx' 
+import SearchPanel from '../components/SearchPanel/SearchPanel.jsx'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
 import ProjectPage from '../pages/ProjectPage.jsx'
@@ -11,7 +11,8 @@ import CatPage from '../pages/CatPage.jsx'
 import UserPage from '../pages/UserPage.jsx'
 import LogPage from '../pages/LogPage.jsx'
 import { fetchCategories, fetchCategoryById, fetchProjects, fetchProjectsByCategory,
-         fetchCurrentUser, logout, fetchMyProjects, fetchProjectById } from '../api.js'
+         fetchCurrentUser, logout, fetchMyProjects, fetchProjectById, fetchTechnologies,
+         fetchUniversities, fetchProjectsFilter } from '../api.js'
 import AuthorPage from '../pages/AuthorPage.jsx'
 import AdminPage from '../pages/AdminPage.jsx'
 
@@ -119,6 +120,19 @@ function App() {
 
   const [homeCategories, setHomeCategories] = useState([]) //только интересные (с проектами)
   const [homeCategoriesLoading, setHomeCategoriesLoading] = useState(true)
+
+  // Технологии =================================================================================================
+  const [technologies, setTechnologies] = useState([])
+  const [technologiesLoading, setTechnologiesLoading] = useState(true)
+
+  // Вузы (для фильтра поиска) ===================================================================================
+  const [universities, setUniversities] = useState([])
+
+  // Фильтр на главной ===========================================================================================
+  const [filterUniversityId, setFilterUniversityId] = useState(null)
+  const [filterTechnologyIds, setFilterTechnologyIds] = useState([])
+  const [filteredProjects, setFilteredProjects] = useState([])
+  const [filteredLoading, setFilteredLoading] = useState(false)
 
   // Состояния для глобальной ленты всех проектов и страниц категорий ===========================================
   const [projects, setProjects] = useState([])
@@ -284,6 +298,53 @@ function App() {
     return () => { mounted = false }
   }, [])
 
+  // Загрузка полного списка технологий (для формы создания/редактирования проекта)
+  useEffect(() => {
+    let mounted = true
+    fetchTechnologies()
+      .then((items) => { if (mounted) setTechnologies(items) })
+      .catch((error) => console.error('Не удалось загрузить технологии:', error))
+      .finally(() => { if (mounted) setTechnologiesLoading(false) })
+    return () => { mounted = false }
+  }, [])
+
+  // Загрузка списка вузов (для фильтра)
+  useEffect(() => {
+    let mounted = true
+    fetchUniversities()
+      .then((items) => { if (mounted) setUniversities(items) })
+      .catch((error) => console.error('Не удалось загрузить вузы:', error))
+    return () => { mounted = false }
+  }, [])
+
+  const isFilterActive = Boolean(selectedCategoryId) || Boolean(filterUniversityId) || filterTechnologyIds.length > 0
+
+  if ((page !== 'home' || !isFilterActive) && filteredProjects.length > 0) {
+    setFilteredProjects([]);
+  }
+  useEffect(() => {
+    if (page !== 'home' || !isFilterActive) {
+      return
+    }
+    let mounted = true
+    const timeoutId = setTimeout(() => {
+      if (mounted) setFilteredLoading(true)
+    }, 0)
+    fetchProjectsFilter({
+      categoryId: selectedCategoryId || undefined,
+      universityId: filterUniversityId || undefined,
+      technologyIds: filterTechnologyIds,
+    })
+      .then((items) => { if (mounted) setFilteredProjects(items) })
+      .catch((err) => console.error('Ошибка фильтрации проектов:', err))
+      .finally(() => { if (mounted) setFilteredLoading(false) })
+    return () => { 
+      mounted = false 
+      clearTimeout(timeoutId) // Очищаем таймаут при изменении зависимостей
+    }
+  // ИСПРАВЛЕНИЕ: Добавили `isFilterActive` в массив зависимостей (решает варнинг)
+  }, [page, isFilterActive, selectedCategoryId, filterUniversityId, filterTechnologyIds])
+
   // Загрузка всех проектов при инициализации страницы
   useEffect(() => {
     let mounted = true
@@ -387,6 +448,9 @@ function App() {
   // Клик на логотип для сброса на Главную страницу
   const handleLogoClick = () => {
     setSearchQuery('') // ИЗМЕНЕНИЕ: Сбрасываем текст поиска при клике на лого
+    setSelectedCategoryId(null)
+    setFilterUniversityId(null)
+    setFilterTechnologyIds([])
     navigateToRoute('/')
   }
 
@@ -535,7 +599,7 @@ function App() {
   // Вспомогательная функция для фильтрации массива проектов по введённому в SearchPanel тексту
   const getFilteredBySearch = (itemsList) => {
   if (!searchQuery) return itemsList
-  return itemsList.filter(project => 
+  return itemsList.filter(project =>
     project.title?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 }
@@ -543,7 +607,7 @@ function App() {
   const getFilteredCategories = () => {
     // Вместо homeCategories берем полный список categories, если выбран фильтр,
     // и обязательно приводим ID к строке String(), чтобы избежать конфликта типов (число vs строка)
-    let filtered = selectedCategoryId 
+    let filtered = selectedCategoryId
       ? categories.filter(category => String(category.id || category._id) === String(selectedCategoryId))
       : homeCategories
 
@@ -592,12 +656,14 @@ function App() {
       </header>
 
       <main className="appContent">
-        {/* 
-          ИЗМЕНЕНИЕ: Панель поиска размещена здесь. 
+        {/*
+          ИЗМЕНЕНИЕ: Панель поиска размещена здесь.
           Она находится вне условных страниц, поэтому будет видна ВСЕГДА.
         */}
-        <SearchPanel 
+        <SearchPanel
           categories={categories}
+          universities={universities}
+          technologies={technologies}
           onSearch={(query) => {
             setSearchQuery(query)
             if (query && page !== 'home' && page !== 'category') {
@@ -606,9 +672,21 @@ function App() {
             }
           }}
           onFilterSelect={(catId) => {
-            // ИСПРАВЛЕНО: Вместо ухода на другую страницу, просто сохраняем ID категории
-            // и возвращаем пользователя на Главную страницу, где применится фильтр
             setSelectedCategoryId(catId)
+            if (page !== 'home') {
+              setPage('home')
+              window.history.pushState({ page: 'home' }, '', '/')
+            }
+          }}
+          onUniversityFilterSelect={(uniId) => {
+            setFilterUniversityId(uniId)
+            if (page !== 'home') {
+              setPage('home')
+              window.history.pushState({ page: 'home' }, '', '/')
+            }
+          }}
+          onTechnologyFilterSelect={(techIds) => {
+            setFilterTechnologyIds(techIds)
             if (page !== 'home') {
               setPage('home')
               window.history.pushState({ page: 'home' }, '', '/')
@@ -622,11 +700,13 @@ function App() {
           loading={homeCategoriesLoading}
           projects={getFilteredBySearch(projects)}
           projectsLoading={projectsLoading}
-          // ИСПРАВЛЕНО: теперь клик по кнопке "Открыть" у категории просто активирует фильтр на главной
           onCategoryClick={handleCategoryClick}
           onProjectClick={handleProjectClick}
           searchQuery={searchQuery}
-          selectedCategoryId={selectedCategoryId}
+          // selectedCategoryId={selectedCategoryId}
+          isFilterActive={isFilterActive}
+          flatProjects={getFilteredBySearch(filteredProjects)}
+          flatLoading={filteredLoading}
         />
       )}
         {page === 'category' && (
@@ -646,6 +726,8 @@ function App() {
             projects={myProjects}
             loading={myProjectsLoading}
             categories={categories}
+            technologies={technologies}
+            technologiesLoading={technologiesLoading}
             onBack={handleBackToHome}
             onProjectClick={handleProjectClick}
             onCreateProjectClick={handleCreateProjectClick}
@@ -683,6 +765,7 @@ function App() {
             onAuthorClick={handleAuthorClick}
             onUserPageClick={handleAccountClick}
             categories={categories}
+            technologies={technologies}
           />
         )}
           {page === 'admin' && user?.is_superuser && (
