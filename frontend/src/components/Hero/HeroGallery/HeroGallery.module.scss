@@ -68,7 +68,7 @@
   right: 0;
   bottom: 0;
   padding: 16px 18px;
-  // background:rgba(#000000, 0.1);
+  background: rgba(#ffffff, 0.5); /* Белый фон с 50% прозрачности */
   color: vars.$text-light;
   display: flex;
   flex-direction: column;
@@ -123,7 +123,7 @@
   padding: 0 24px;
   border: 1px solid vars.$button-color;
   background: vars.$button-color;
-   color: vars.$bg-main;
+  color: vars.$bg-main;
   font-size: 24px;
   line-height: 1;
   border-radius: 15px;
@@ -133,7 +133,7 @@
 
 .navButton:hover {
   background: vars.$button-color-hover;
-   color: vars.$bg-main;
+  color: vars.$bg-main;
 }
 
 
@@ -146,4 +146,3 @@
     box-shadow: none;
   }
 }
-
