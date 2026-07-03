@@ -317,13 +317,13 @@ function App() {
     return () => { mounted = false }
   }, [])
 
-  // Признак того, что активен хотя бы один структурный фильтр (категория/вуз/технологии)
   const isFilterActive = Boolean(selectedCategoryId) || Boolean(filterUniversityId) || filterTechnologyIds.length > 0
 
-  // Запрос к /projects/filter/ при изменении фильтров на главной
+  if ((page !== 'home' || !isFilterActive) && filteredProjects.length > 0) {
+    setFilteredProjects([]);
+  }
   useEffect(() => {
     if (page !== 'home' || !isFilterActive) {
-      setFilteredProjects([])
       return
     }
     let mounted = true
@@ -337,7 +337,8 @@ function App() {
       .catch((err) => console.error('Ошибка фильтрации проектов:', err))
       .finally(() => { if (mounted) setFilteredLoading(false) })
     return () => { mounted = false }
-  }, [page, selectedCategoryId, filterUniversityId, filterTechnologyIds])
+  // ИСПРАВЛЕНИЕ: Добавили `isFilterActive` в массив зависимостей (решает варнинг)
+  }, [page, isFilterActive, selectedCategoryId, filterUniversityId, filterTechnologyIds])
 
   // Загрузка всех проектов при инициализации страницы
   useEffect(() => {
