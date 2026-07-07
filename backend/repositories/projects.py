@@ -1,7 +1,7 @@
 from typing import Optional
 
 from sqlalchemy import and_, delete, func, or_, select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload, selectinload, noload
 
 from core.dependencies import SessionDep
 from core.exceptions import NotOwnProject, ProjectNotFound
@@ -78,6 +78,10 @@ class ProjectsRepository:
     async def get_all(self) -> list[Projects]:
         res = await self.session.execute(
             select(Projects)
+            .options(
+                noload(Projects.invites),
+                noload(Projects.project_technologies),
+            )
             .where(
                 Projects.status == ProjectStatus.PUBLISHED,
             )
@@ -88,6 +92,11 @@ class ProjectsRepository:
     async def get_all_by_creating(self, count: int = 1000) -> list[Projects]:
         res = await self.session.execute(
             select(Projects)
+            .options(
+                noload(Projects.project_technologies),
+                noload(Projects.invites)
+
+            )
             .order_by(Projects.created_at.desc()).limit(count)
         )
         return res.scalars().all()
@@ -95,6 +104,10 @@ class ProjectsRepository:
     async def get_my(self, user_id: int) -> list[Projects]:
         res = await self.session.execute(
             select(Projects)
+            .options(
+                noload(Projects.project_technologies),
+                noload(Projects.invites)
+            )
             .outerjoin(Projects.member_roles)
             .where(
                 or_(

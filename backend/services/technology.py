@@ -37,9 +37,39 @@ class TechnologyService:
 
         created_project_technology = ProjectTechnology(**project_technology_dict)
         created_project_technology = await self.repo.add_project_technology(created_project_technology)
+        await self.session.flush()
+        await self.session.refresh(project_technology,
+            attribute_names=['project', 'technology']
+        )
         await self.session.commit()
 
         return created_project_technology
+
+    async def create_all(self, owner_id: int, project_id: int, technologies_id: list[int]):
+        project = await ProjectService(self.session).get(owner_id, project_id)
+        if project is None:
+            raise ProjectNotFound(project_id)
+        if project.owner.id != owner_id:
+            raise NotOwnProject(owner_id)
+
+
+        await self.repo.add_project_technologies(project_id, technologies_id)
+        await self.session.commit()
+
+
+    async def delete_all(self, owner_id: int, project_id: int, technologies_id: list[int]) -> int:
+        project = await ProjectService(self.session).get(owner_id, project_id)
+        if project is None:
+            raise ProjectNotFound(project_id)
+        if project.owner.id != owner_id:
+            raise NotOwnProject(owner_id)
+
+
+        count = await self.repo.delete_project_technologies(project_id, technologies_id)
+        await self.session.flush()
+        await self.session.commit()
+
+        return count
 
     async def remove(self, owner_id: int, project_technology: ProjectTechnologyCreate) -> int:
         project = await ProjectService(self.session).get(owner_id, project_technology.project_id)

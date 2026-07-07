@@ -1,5 +1,6 @@
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, insert
+from sqlalchemy.orm import noload
 
 from core.dependencies import SessionDep
 
@@ -15,11 +16,26 @@ class TechnologyRepository:
 
     async def add_project_technology(self, project_technology: ProjectTechnology) -> ProjectTechnology:
         self.session.add(project_technology)
-        await self.session.flush()
-        await self.session.refresh(project_technology,
-        attribute_names=['project', 'technology']
-    )
+
         return project_technology
+
+    async def add_project_technologies(self, project_id: int, technologies_id: list[int]):
+        await self.session.execute(
+            insert(ProjectTechnology).values([
+                {"project_id": project_id, "technology_id": tech_id}
+                for tech_id in technologies_id
+            ])
+        )
+
+
+    async def delete_project_technologies(self, project_id: int, technologies_id: list[int]) -> int:
+        res = await self.session.execute(
+                delete(ProjectTechnology).where(
+                ProjectTechnology.project_id == project_id,
+                ProjectTechnology.technology_id.in_(technologies_id)
+                ))
+        return res.rowcount
+
 
     async def get_technology(self, technology_id: int) -> Technology:
         return await self.session.get(Technology, technology_id)
