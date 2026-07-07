@@ -7,8 +7,8 @@ import {
   createMedia,
   deleteMedia,
   fetchUniversities,
-  addProjectTechnology,
-  removeProjectTechnology,
+  addProjectTechnologies,
+  removeProjectTechnologies,
 } from '../../api.js';
 import styles from './ProjectForm.module.scss';
 
@@ -196,11 +196,11 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
     setTechBusy(true);
     setTechError('');
     try {
-      for (const techId of toAdd) {
-        await addProjectTechnology(targetProjectId, techId);
+      if (toAdd.length > 0) {
+        await addProjectTechnologies(targetProjectId, toAdd);
       }
-      for (const techId of toRemove) {
-        await removeProjectTechnology(targetProjectId, techId);
+      if (toRemove.length > 0) {
+        await removeProjectTechnologies(targetProjectId, toRemove);
       }
       setInitialTechIds(selectedTechIds);
     } catch (err) {
@@ -245,18 +245,13 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
         if (newProjectId && selectedTechIds.length > 0) {
           setTechBusy(true);
           setTechError('');
-          const failedTechIds = [];
-          for (const techId of selectedTechIds) {
-            try {
-              await addProjectTechnology(newProjectId, techId);
-            } catch (err) {
-              console.error('Не удалось привязать технологию:', err);
-              failedTechIds.push(techId);
-            }
-          }
-          setTechBusy(false);
-          if (failedTechIds.length > 0) {
+          try {
+            await addProjectTechnologies(newProjectId, selectedTechIds);
+          } catch (err) {
+            console.error('Не удалось привязать технологии:', err);
             setTechError('Не все технологии удалось сохранить. Их можно будет добавить позже через редактирование проекта.');
+          } finally {
+            setTechBusy(false);
           }
         }
 

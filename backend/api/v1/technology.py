@@ -47,6 +47,43 @@ async def add(
         else:
             raise e
 
+@technology_router.post("/all", summary="Add new technologies for project")
+async def add_many(
+    service: TechnologyServiceDep,
+    user: CurrentUserDep,
+    project_id: int,
+    technologies_id: list[int]
+):
+    try:
+        user_id = user.id
+        await service.create_all(user_id, project_id, technologies_id)
+        return {"status": "inserted"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except NotOwnProject as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except IntegrityError as e:
+        raise e
+
+
+@technology_router.delete("/all", summary="Delete technologies for project")
+async def delete_many(
+    service: TechnologyServiceDep,
+    user: CurrentUserDep,
+    project_id: int,
+    technologies_id: list[int]
+):
+    try:
+        user_id = user.id
+        count = await service.delete_all(user_id, project_id, technologies_id)
+        return {"count deleted": count}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except NotOwnProject as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except IntegrityError as e:
+        raise e
+
 
 @technology_router.delete("/", summary="Remove technology for project")
 async def remove(

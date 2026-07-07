@@ -223,6 +223,28 @@ export async function removeProjectTechnology(projectId, technologyId) {
   )
 }
 
+export async function addProjectTechnologies(projectId, technologyIds) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/all?project_id=${projectId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(technologyIds.map(Number)),
+    })
+  )
+}
+
+export async function removeProjectTechnologies(projectId, technologyIds) {
+  return handleResponse(
+    await fetch(`${API_URL}/technology/all?project_id=${projectId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(technologyIds.map(Number)),
+    })
+  )
+}
+
 export async function createLike(projectId) {
   return handleResponse(await fetch(`${API_URL}/likes/?project_id=${projectId}`, {
     method: 'POST',
