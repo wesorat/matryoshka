@@ -90,7 +90,7 @@ class MediaStorageService:
         if view == MediaView.IMAGE:
             if file.size > self.max_size_image:
                 raise ValueError(
-                    f"Файл слишком большой. Максимум: {self.max_size // (1024*1024)} MB"
+                    f"Файл слишком большой. Максимум: {self.max_size_image // (1024*1024)} MB"
                 )
             ext = Path(file.filename).suffix.lower()
             if ext not in self.allowed_images:
