@@ -58,6 +58,10 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
   const [isTechDropdownOpen, setIsTechDropdownOpen] = useState(false);
   const techDropdownRef = useRef(null);
 
+  const [universitySearch, setUniversitySearch] = useState('');
+  const [isUniversityDropdownOpen, setIsUniversityDropdownOpen] = useState(false);
+  const universityDropdownRef = useRef(null);
+
   // Синхронизация данных при открытии формы
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -71,7 +75,7 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
         setResults(project.results || '');
         setMediaList(project.medias || []);
         setUniversityId(project.university?.id || project.university_id || project.universityId || '');
-
+        setUniversitySearch(project.university?.name || '');
         // Уже привязанные к проекту технологии.
         // Бэкенд отдаёт их в поле project_technologies: [{ technology: { id, name }, project_id }]
         const existingTechIds = (project.project_technologies || [])
@@ -108,6 +112,9 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
     const handleClickOutside = (e) => {
       if (techDropdownRef.current && !techDropdownRef.current.contains(e.target)) {
         setIsTechDropdownOpen(false);
+      }
+      if (universityDropdownRef.current && !universityDropdownRef.current.contains(e.target)) {
+        setIsUniversityDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -337,14 +344,46 @@ function ProjectForm({ project = null, categories = [], technologies = [], onSuc
           {universities.length > 0 && (
             <div className={styles.formGroup}>
               <label>Учебное заведение</label>
-              <StyledSelect
-                value={universityId}
-                onChange={setUniversityId}
-                options={universities}
-                placeholder="Выберите учебное заведение"
-                getOptionValue={(uni) => uni.id}
-                getOptionLabel={(uni) => uni.name}
-              />
+              <div className={styles.techComboboxWrapper} ref={universityDropdownRef}>
+                <input
+                  type="text"
+                  value={universitySearch}
+                  onChange={(e) => {
+                    setUniversitySearch(e.target.value);
+                    setIsUniversityDropdownOpen(true);
+                    setUniversityId('');
+                  }}
+                  onFocus={() => setIsUniversityDropdownOpen(true)}
+                  placeholder="Начните вводить название вуза..."
+                  autoComplete="off"
+                />
+
+                {isUniversityDropdownOpen && (
+                  <ul className={styles.techDropdownMenu}>
+                    {universities
+                      .filter((uni) => uni.name.toLowerCase().includes(universitySearch.toLowerCase()))
+                      .slice(0, 50)
+                      .map((uni) => (
+                        <li
+                          key={uni.id}
+                          className={styles.techDropdownItem}
+                          onClick={() => {
+                            setUniversityId(uni.id);
+                            setUniversitySearch(uni.name);
+                            setIsUniversityDropdownOpen(false);
+                          }}
+                        >
+                          {uni.name}
+                        </li>
+                      ))}
+                    {universities.filter((uni) =>
+                      uni.name.toLowerCase().includes(universitySearch.toLowerCase())
+                    ).length === 0 && (
+                      <li className={styles.techDropdownNoResults}>Ничего не найдено</li>
+                    )}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
 
