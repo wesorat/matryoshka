@@ -73,11 +73,11 @@ export async function fetchUniversities() {
 }
 
 //=======================================================================================
-//                      Авторизация и профиль
+//                      Регистрация, вход, профиль
 //=======================================================================================
 
 export async function login(email, password) {
-  // Выполняет вход по email/password и сохраняет сессию через cookie.
+  // Выполняет вход по email и password, сохраняет сессию с помощью cookie.
   const formData = new URLSearchParams()
   formData.append('username', email)
   formData.append('password', password)

@@ -6,10 +6,8 @@
   box-sizing: border-box;
   z-index: 9999;
 
-  // Анимация изменения размеров и внутренних отступов
   transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 
-  // Глобальное позиционирование в сетке (в рамках вашего исходного дизайна)
   position: fixed;
   bottom: 30px;
   right: 20px;
@@ -23,15 +21,12 @@
     max-width: 1140px;
   }
 
-  // СОСТОЯНИЕ: Свёрнуто
   &--collapsed {
     @include mixins.glass-container;
     position: fixed;
-
     width: 56px;
     max-width: none;
     cursor: pointer;
-
     height: 56px;
     padding: 0;
     border-radius: 20px;
@@ -50,22 +45,18 @@
     }
   }
 
-  // СОСТОЯНИЕ: Развёрнуто
   &--expanded {
     @include mixins.glass-container;
     position: fixed;
-
     background: rgba(vars.$basic-light, 0.4);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     box-shadow: 0 12px 40px rgba(26, 17, 8, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-
     padding: 14px 24px;
     overflow: visible;
 
-    // Контентная строка теперь занимает всю внутреннюю ширину за вычетом padding
     .searchPanel__mainRow {
       width: 100%;          
       margin: 0;            
@@ -89,12 +80,10 @@
     justify-content: space-between;
   }
 
-  // Базовая конфигурация внутренних элементов
   &__glassItem {
     @include mixins.glass-container;
     width: auto;
     max-width: none;
-
     height: 56px;
     padding: 0 16px;
     display: flex;
@@ -124,6 +113,23 @@
         top: 50%;
         transform: translateY(-50%);
         pointer-events: none;
+      }
+    }
+
+    // Умное растягивание меню ВУЗов до правого края панели
+    &--university {
+      .searchPanel__dropdownMenu {
+        width: calc(300% + 92px + 4px); 
+        left: 0;
+      }
+    }
+
+    // Разделы и технологии сохраняют стандартное поведение (прямо над/под кнопкой)
+    &--category,
+    &--tech {
+      .searchPanel__dropdownMenu {
+        width: 100%;
+        left: 0;
       }
     }
 
@@ -164,7 +170,6 @@
     }
   }
 
-  // Текст текущего выбора на кнопке
   &__selectedText {
     width: 100%;
     color: vars.$text-main;
@@ -175,28 +180,23 @@
     text-overflow: ellipsis;
   }
 
-  // Контейнер выпадающего списка (ВСПЛЫВАЕТ НАВЕРХ)
   &__dropdownMenu {
     position: absolute;
-    bottom: calc(100% + 8px); // Садится НАД инпутом панели с зазором
+    bottom: calc(100% + 8px); 
     left: 0;
-    min-width: 100%;       // не уже кнопки-родителя
-    width: max-content;    // расширяется под самый длинный вариант
-    max-width: min(90vw, 420px); // но не шире экрана / разумного предела
+    box-sizing: border-box;
     max-height: 300px;
-    background: rgba(255, 255, 255, 0.98); // Контрастный белый фон
+    background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(vars.$basic-accent, 0.15);
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(26, 17, 8, 0.12);
     z-index: 10001;
-
     display: flex;
     flex-direction: column;
-    overflow: hidden; // сам контейнер не скроллится — скроллится только список внутри
+    overflow: hidden;
     padding: 6px 0;
   }
 
-  // Скроллящийся список пунктов (под неподвижным полем поиска)
   &__dropdownList {
     overflow-y: auto;
 
@@ -208,7 +208,7 @@
       border-radius: 4px;
     }
   }
-  // Поле поиска внутри выпадающего списка (неподвижное, список скроллится отдельно ниже)
+
   &__dropdownSearchInput {
     flex-shrink: 0;
     display: block;
@@ -240,8 +240,6 @@
     color: vars.$text-muted;
   }
 
-
-  // Элемент списка (категория)
   &__dropdownItem {
     padding: 10px 16px;
     font-size: 0.9rem;
@@ -250,7 +248,7 @@
     color: vars.$text-main;
     text-align: left;
     transition: background-color 0.15s, color 0.15s;
-    white-space: normal;   // разрешаем перенос, чтобы длинное название не обрезалось
+    white-space: normal;   
     word-break: break-word;
     cursor: pointer;
 
@@ -300,15 +298,14 @@
     }
   }
 }
+
+// Адаптив под мобильные устройства
 @media (max-width: 640px) {
   .searchPanel--expanded {
     left: 20px;
     right: 20px;
     width: auto;
     max-width: none;
-  }
-
-  .searchPanel--expanded {
     padding: 14px 16px;
 
     .searchPanel__mainRow {
@@ -338,6 +335,15 @@
       order: 3;
       flex: 1 1 100%;
       width: 100%;
+    }
+    
+    // Сбрасываем десктопное растягивание вузов на мобилках, чтобы список занимал честные 100% экрана
+    .searchPanel__glassItem--university {
+      .searchPanel__dropdownMenu {
+        width: 100% !important;
+        left: 0;
+        right: 0;
+      }
     }
   }
 
