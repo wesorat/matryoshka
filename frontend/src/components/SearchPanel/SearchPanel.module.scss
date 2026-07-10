@@ -34,7 +34,7 @@
 
     height: 56px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 25%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,13 +64,13 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
 
-    padding: 14px 24px;     // ИСПРАВЛЕНО: Задаем фиксированный боковой отступ 24px вместо 0
+    padding: 14px 24px;
     overflow: visible;
 
     // Контентная строка теперь занимает всю внутреннюю ширину за вычетом padding
     .searchPanel__mainRow {
-      width: 100%;          // ИСПРАВЛЕНО: 100% вместо 95%
-      margin: 0;            // ИСПРАВЛЕНО: убираем auto-центрирование, теперь выравнивание по краям идеальное
+      width: 100%;          
+      margin: 0;            
       gap: 12px;
       min-height: auto;
       height: 56px;
@@ -115,7 +115,7 @@
       padding-right: 32px;
       cursor: pointer;
       user-select: none;
-      overflow: visible !important; // ИСПРАВЛЕНО: перебиваем hidden из glass-container
+      overflow: visible !important; 
 
       &::after {
         content: '▼';
