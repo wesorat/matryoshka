@@ -34,7 +34,7 @@
 
     height: 56px;
     padding: 0;
-    border-radius: 25%;
+    border-radius: 20px;
     @include mixins.flex-center;
 
     .searchPanel__mainRow {
@@ -175,7 +175,6 @@
     text-overflow: ellipsis;
   }
 
-  // Контейнер выпадающего списка (ВСПЛЫВАЕТ НАВЕРХ)
   // Контейнер выпадающего списка (ВСПЛЫВАЕТ НАВЕРХ)
   &__dropdownMenu {
     position: absolute;
