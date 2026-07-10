@@ -72,18 +72,9 @@
 }
 
 .variant_outline {
-  min-width: 88px;
-  height: 40px;
-  padding: 0 18px;
+  @include mixins.pill-button-outline;
   border: 2px solid vars.$button-color;
-  border-radius: 999px;
-  background: transparent;
   color: vars.$text-main;
-  font-family: vars.$font-secondary;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .variant_outline:hover {

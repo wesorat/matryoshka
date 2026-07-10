@@ -35,9 +35,7 @@
     height: 56px;
     padding: 0;
     border-radius: 25%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include mixins.flex-center;
 
     .searchPanel__mainRow {
       height: 100%;
@@ -133,7 +131,7 @@
       flex: 5 0 0%;
       min-width: 56px;
       padding: 0;
-      justify-content: center;
+      @include mixins.flex-center;
       aspect-ratio: 1;
       height: 100%;
       cursor: pointer;
