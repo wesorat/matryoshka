@@ -29,17 +29,15 @@ const SearchPanel = ({
   const panelRef = useRef(null);
   const dropdownRef = useRef(null);
   const universityDropdownRef = useRef(null);
-  const techDropdownRef = useRef(null);// ИСПРАВЛЕНО: Реф для кнопки селекта
+  const techDropdownRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Закрытие всей панели
       if (panelRef.current && !panelRef.current.contains(event.target)) {
         if (!searchQuery) {
           setIsExpanded(false);
         }
       }
-      // ИСПРАВЛЕНО: Закрытие списка, если кликнули в любое другое место (включая инпут поиска)
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
@@ -152,61 +150,10 @@ const SearchPanel = ({
               />
             </div>
 
-            {/* БЛОК 2: Категории (Кастомный дропдаун) */}
-            <div
-              ref={dropdownRef} // ИСПРАВЛЕНО: Вешаем реф
-              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDropdownOpen(!isDropdownOpen);
-              }}
-            >
-              <div className={styles.searchPanel__selectedText}>
-                {selectedCategoryName}
-              </div>
-
-              {isDropdownOpen && (
-                <div className={styles.searchPanel__dropdownMenu} onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="text"
-                    className={styles.searchPanel__dropdownSearchInput}
-                    placeholder="Поиск раздела..."
-                    value={categorySearchText}
-                    onChange={(e) => setCategorySearchText(e.target.value)}
-                    autoFocus
-                  />
-                  <div className={styles.searchPanel__dropdownList}>
-                    <div
-                      className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                      onClick={() => handleCustomSelect(null)}
-                    >
-                      Все разделы
-                    </div>
-                    {filteredCategoriesList.map((category) => {
-                      const catId = category.id || category._id;
-                      const isActive = String(activeFilter) === String(catId);
-                      return (
-                        <div
-                          key={catId}
-                          className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
-                          onClick={() => handleCustomSelect(catId)}
-                        >
-                          {category.name}
-                        </div>
-                      );
-                    })}
-                    {filteredCategoriesList.length === 0 && (
-                      <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* БЛОК 2b: Университеты */}
+            {/* БЛОК 2a: Университеты (Перенесен на 2-е место) */}
             <div
               ref={universityDropdownRef}
-              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']}`}
+              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']} ${styles['searchPanel__glassItem--university']}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsUniversityDropdownOpen(!isUniversityDropdownOpen);
@@ -254,10 +201,61 @@ const SearchPanel = ({
               )}
             </div>
 
-            {/* БЛОК 2c: Технологии (мультивыбор) */}
+            {/* БЛОК 2b: Категории / Разделы */}
+            <div
+              ref={dropdownRef}
+              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']} ${styles['searchPanel__glassItem--category']}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
+            >
+              <div className={styles.searchPanel__selectedText}>
+                {selectedCategoryName}
+              </div>
+
+              {isDropdownOpen && (
+                <div className={styles.searchPanel__dropdownMenu} onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="text"
+                    className={styles.searchPanel__dropdownSearchInput}
+                    placeholder="Поиск раздела..."
+                    value={categorySearchText}
+                    onChange={(e) => setCategorySearchText(e.target.value)}
+                    autoFocus
+                  />
+                  <div className={styles.searchPanel__dropdownList}>
+                    <div
+                      className={`${styles.searchPanel__dropdownItem} ${!activeFilter ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                      onClick={() => handleCustomSelect(null)}
+                    >
+                      Все разделы
+                    </div>
+                    {filteredCategoriesList.map((category) => {
+                      const catId = category.id || category._id;
+                      const isActive = String(activeFilter) === String(catId);
+                      return (
+                        <div
+                          key={catId}
+                          className={`${styles.searchPanel__dropdownItem} ${isActive ? styles['searchPanel__dropdownItem--active'] : ''}`}
+                          onClick={() => handleCustomSelect(catId)}
+                        >
+                          {category.name}
+                        </div>
+                      );
+                    })}
+                    {filteredCategoriesList.length === 0 && (
+                      <div className={styles.searchPanel__dropdownNoResults}>Ничего не найдено</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* БЛОК 2c: Технологии */}
             <div
               ref={techDropdownRef}
-              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']}`}
+              className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--dropdown']} ${styles['searchPanel__glassItem--tech']}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsTechDropdownOpen(!isTechDropdownOpen);
@@ -299,7 +297,7 @@ const SearchPanel = ({
               )}
             </div>
 
-            {/* БЛОК 3: Матрёшка / Закрытие */}
+            {/* БЛОК 3: Иконка / Закрытие */}
             <div
               className={`${styles.searchPanel__glassItem} ${styles['searchPanel__glassItem--icon']}`}
               onClick={handleClear}
@@ -311,7 +309,7 @@ const SearchPanel = ({
               )}
             </div>
           </>
-          ) : (
+        ) : (
           <div className={styles.searchPanel__iconWrapper}>
             <CustomIcon className={styles.searchPanel__matrIcon} />
           </div>

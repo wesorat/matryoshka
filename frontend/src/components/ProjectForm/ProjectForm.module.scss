@@ -76,15 +76,7 @@
   input[type="text"],
   select,
   textarea {
-    @include mixins.text-ordinary; // Применен миксин для текста внутри инпутов
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid vars.$border-color; // Использован брендовый цвет границы
-    border-radius: 8px;
-    color: vars.$text-main;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    @include mixins.form-control;
 
     &:focus {
       outline: none;

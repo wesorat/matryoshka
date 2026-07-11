@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import Button from '../components/Buttons/Button.jsx'
 import Logo from '../components/Logo'
 import Footer from '../components/Footer'
-// ИСПРАВЛЕНО: Импортируем компонент под правильным именем SearchPanel
 import SearchPanel from '../components/SearchPanel/SearchPanel.jsx'
 import './App.scss'
 import HomePage from '../pages/HomePage.jsx'
